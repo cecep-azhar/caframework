@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pro-server-available"
+description = "Enables the pro_server_available command without any pre-configured scope."
+commands.allow = ["pro_server_available"]
+
+[[permission]]
+identifier = "deny-pro-server-available"
+description = "Denies the pro_server_available command without any pre-configured scope."
+commands.deny = ["pro_server_available"]

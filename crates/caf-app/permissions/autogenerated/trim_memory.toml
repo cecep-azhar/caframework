@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-trim-memory"
+description = "Enables the trim_memory command without any pre-configured scope."
+commands.allow = ["trim_memory"]
+
+[[permission]]
+identifier = "deny-trim-memory"
+description = "Denies the trim_memory command without any pre-configured scope."
+commands.deny = ["trim_memory"]

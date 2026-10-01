@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-execute-sync"
+description = "Enables the execute_sync command without any pre-configured scope."
+commands.allow = ["execute_sync"]
+
+[[permission]]
+identifier = "deny-execute-sync"
+description = "Denies the execute_sync command without any pre-configured scope."
+commands.deny = ["execute_sync"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-calculate-remote-checksum"
+description = "Enables the calculate_remote_checksum command without any pre-configured scope."
+commands.allow = ["calculate_remote_checksum"]
+
+[[permission]]
+identifier = "deny-calculate-remote-checksum"
+description = "Denies the calculate_remote_checksum command without any pre-configured scope."
+commands.deny = ["calculate_remote_checksum"]

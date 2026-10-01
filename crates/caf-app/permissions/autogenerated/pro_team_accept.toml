@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pro-team-accept"
+description = "Enables the pro_team_accept command without any pre-configured scope."
+commands.allow = ["pro_team_accept"]
+
+[[permission]]
+identifier = "deny-pro-team-accept"
+description = "Denies the pro_team_accept command without any pre-configured scope."
+commands.deny = ["pro_team_accept"]

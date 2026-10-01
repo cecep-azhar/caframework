@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-delete-investigation"
+description = "Enables the delete_investigation command without any pre-configured scope."
+commands.allow = ["delete_investigation"]
+
+[[permission]]
+identifier = "deny-delete-investigation"
+description = "Denies the delete_investigation command without any pre-configured scope."
+commands.deny = ["delete_investigation"]

@@ -1,0 +1,8 @@
+# Funding platforms for CAFramework — see https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+# Only `github` and `custom` accept lists; every other key takes a single value.
+
+github: cecep-azhar
+ko_fi: cecepazhar
+buy_me_a_coffee: cecepazhar
+thanks_dev: u/gh/cecep-azhar
+custom: ['https://paypal.me/cecepazhar']

@@ -1,0 +1,113 @@
+name: Build macOS (.dmg & .app)
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: Build macOS (${{ matrix.name }})
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            name: Apple Silicon (ARM64)
+          - target: x86_64-apple-darwin
+            name: Intel (x86_64)
+          - target: universal-apple-darwin
+            name: Universal (ARM64 + x86_64)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin, x86_64-apple-darwin
+
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli@^2
+
+      - name: Build Tauri macOS Bundle (${{ matrix.target }})
+        run: tauri build --target ${{ matrix.target }}
+        working-directory: crates/caf-app
+        env:
+          # Signs updater artifacts (*.sig). Public half in plugins.updater.pubkey in tauri.conf.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # CAFramework Pro licence verification key (public, hex) printed by GCC's cmd/caframework-pro-keygen.
+          CATERM_PRO_LICENSE_PUBKEY_V1: ${{ vars.CATERM_PRO_LICENSE_PUBKEY_V1 }}
+          # Apple signing & notarization credentials (optional)
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Stage macOS Artifacts (.dmg and .app)
+        run: |
+          mkdir -p artifacts
+          
+          # Copy .dmg installer bundles
+          find target/${{ matrix.target }}/release/bundle/dmg -name "*.dmg" -exec cp {} artifacts/ \; 2>/dev/null || true
+          
+          # Package .app bundle into .zip preserving macOS file permissions and symlinks
+          if [ -d "target/${{ matrix.target }}/release/bundle/macos/CAFramework.app" ]; then
+            ditto -c -k --keepParent "target/${{ matrix.target }}/release/bundle/macos/CAFramework.app" "artifacts/CAFramework-${{ matrix.target }}.app.zip"
+          else
+            for app in target/${{ matrix.target }}/release/bundle/macos/*.app; do
+              if [ -d "$app" ]; then
+                app_name=$(basename "$app" .app)
+                ditto -c -k --keepParent "$app" "artifacts/${app_name}-${{ matrix.target }}.app.zip"
+              fi
+            done
+          fi
+          
+          # Copy updater tar.gz and signature files if generated
+          find target/${{ matrix.target }}/release/bundle/macos -name "*.tar.gz*" -exec cp {} artifacts/ \; 2>/dev/null || true
+          
+          echo "Staged macOS build artifacts:"
+          ls -la artifacts/
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: caframework-macos-${{ matrix.target }}
+          path: artifacts/*
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true

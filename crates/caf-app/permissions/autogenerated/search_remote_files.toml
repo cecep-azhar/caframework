@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-search-remote-files"
+description = "Enables the search_remote_files command without any pre-configured scope."
+commands.allow = ["search_remote_files"]
+
+[[permission]]
+identifier = "deny-search-remote-files"
+description = "Denies the search_remote_files command without any pre-configured scope."
+commands.deny = ["search_remote_files"]

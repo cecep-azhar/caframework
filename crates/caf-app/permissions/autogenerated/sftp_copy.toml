@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sftp-copy"
+description = "Enables the sftp_copy command without any pre-configured scope."
+commands.allow = ["sftp_copy"]
+
+[[permission]]
+identifier = "deny-sftp-copy"
+description = "Denies the sftp_copy command without any pre-configured scope."
+commands.deny = ["sftp_copy"]

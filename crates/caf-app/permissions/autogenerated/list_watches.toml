@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-watches"
+description = "Enables the list_watches command without any pre-configured scope."
+commands.allow = ["list_watches"]
+
+[[permission]]
+identifier = "deny-list-watches"
+description = "Denies the list_watches command without any pre-configured scope."
+commands.deny = ["list_watches"]

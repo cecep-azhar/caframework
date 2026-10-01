@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  openssh-server:
+    image: lscr.io/linuxserver/openssh-server:latest
+    container_name: caframework-openssh-test
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - PASSWORD_ACCESS=true
+      - USER_PASSWORD=QA_TEST_password_123
+      - USER_NAME=qa_user
+    ports:
+      - "2222:2222"
+    restart: unless-stopped

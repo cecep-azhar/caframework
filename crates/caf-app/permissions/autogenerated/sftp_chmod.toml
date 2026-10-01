@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sftp-chmod"
+description = "Enables the sftp_chmod command without any pre-configured scope."
+commands.allow = ["sftp_chmod"]
+
+[[permission]]
+identifier = "deny-sftp-chmod"
+description = "Denies the sftp_chmod command without any pre-configured scope."
+commands.deny = ["sftp_chmod"]

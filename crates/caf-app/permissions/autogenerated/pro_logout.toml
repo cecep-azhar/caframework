@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pro-logout"
+description = "Enables the pro_logout command without any pre-configured scope."
+commands.allow = ["pro_logout"]
+
+[[permission]]
+identifier = "deny-pro-logout"
+description = "Denies the pro_logout command without any pre-configured scope."
+commands.deny = ["pro_logout"]

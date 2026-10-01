@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-sftp-compress"
+description = "Enables the sftp_compress command without any pre-configured scope."
+commands.allow = ["sftp_compress"]
+
+[[permission]]
+identifier = "deny-sftp-compress"
+description = "Denies the sftp_compress command without any pre-configured scope."
+commands.deny = ["sftp_compress"]

@@ -1,0 +1,60 @@
+FROM rust:latest
+
+RUN apt-get update && apt-get install -y \
+    nodejs npm \
+    curl unzip wget git \
+    openjdk-21-jdk \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+ENV ANDROID_HOME=/opt/android-sdk
+ENV ANDROID_NDK_HOME=/opt/android-sdk/ndk/25.2.9519653
+ENV PATH=${PATH}:/opt/android-sdk/cmdline-tools/latest/bin:/opt/android-sdk/platform-tools:/opt/android-sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin
+
+# Download & Setup Android SDK Cmdline Tools
+RUN mkdir -p /opt/android-sdk/cmdline-tools && \
+    wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O /tmp/cmdline-tools.zip && \
+    unzip -q /tmp/cmdline-tools.zip -d /opt/android-sdk/cmdline-tools && \
+    mv /opt/android-sdk/cmdline-tools/cmdline-tools /opt/android-sdk/cmdline-tools/latest && \
+    rm /tmp/cmdline-tools.zip
+
+# Pre-accept licenses directly to prevent sdkmanager interactive hang (Pitfall 15)
+RUN mkdir -p /opt/android-sdk/licenses && \
+    echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> /opt/android-sdk/licenses/android-sdk-license && \
+    echo "84831b9409646a918e30573bab4c9c91346d8abd" >> /opt/android-sdk/licenses/android-sdk-preview-license && \
+    echo "859f317696f67ef3d7f30a50a5560e7834b43903" >> /opt/android-sdk/licenses/android-sdk-arm-dbt-license && \
+    echo "601085b94cd77f0b54ff86406957099ebe79c4d6" >> /opt/android-sdk/licenses/android-googletv-license && \
+    echo "ceff83576aac4f7f37cb98fe189e9fb3c49d3b81" >> /opt/android-sdk/licenses/android-googlexr-license && \
+    echo "33b6a2b64607f11b759f320ef9dff4ae5c47d97a" >> /opt/android-sdk/licenses/google-gdk-license && \
+    echo "e9acab5b5fbb560a72cfaecce8946896ff6aab9d" >> /opt/android-sdk/licenses/mips-android-sysimage-license
+
+# Install NDK, Build Tools, and Platforms
+RUN sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "ndk;25.2.9519653"
+
+# Create toolchain symlinks for clang/ar/ranlib
+RUN cd /opt/android-sdk/ndk/25.2.9519653/toolchains/llvm/prebuilt/linux-x86_64/bin && \
+    ln -s aarch64-linux-android24-clang aarch64-linux-android-clang && \
+    ln -s aarch64-linux-android24-clang++ aarch64-linux-android-clang++ && \
+    ln -s armv7a-linux-androideabi24-clang armv7-linux-androideabi-clang && \
+    ln -s armv7a-linux-androideabi24-clang++ armv7-linux-androideabi-clang++ && \
+    ln -s i686-linux-android24-clang i686-linux-android-clang && \
+    ln -s i686-linux-android24-clang++ i686-linux-android-clang++ && \
+    ln -s x86_64-linux-android24-clang x86_64-linux-android-clang && \
+    ln -s x86_64-linux-android24-clang++ x86_64-linux-android-clang++ && \
+    ln -s llvm-ar aarch64-linux-android-ar && \
+    ln -s llvm-ranlib aarch64-linux-android-ranlib && \
+    ln -s llvm-ar arm-linux-androideabi-ar && \
+    ln -s llvm-ranlib arm-linux-androideabi-ranlib && \
+    ln -s llvm-ar i686-linux-android-ar && \
+    ln -s llvm-ranlib i686-linux-android-ranlib && \
+    ln -s llvm-ar x86_64-linux-android-ar && \
+    ln -s llvm-ranlib x86_64-linux-android-ranlib
+
+# Rust Targets for Android
+RUN rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+
+# Tauri CLI
+RUN npm install -g @tauri-apps/cli
+
+WORKDIR /app

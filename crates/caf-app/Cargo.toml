@@ -1,0 +1,46 @@
+[package]
+name = "caf-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CAFramework v2 desktop shell — thin Tauri binding layer over caf-core. No business logic here (K2-1)."
+
+[lib]
+name = "caf_app_lib"
+crate-type = ["staticlib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+caf-core = { path = "../caf-core" }
+tauri = { version = "2", features = [] }
+serde.workspace = true
+serde_json.workspace = true
+async-trait = "0.1.92"
+parking_lot = "0.12.5"
+tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "sync", "time", "process", "io-util"] }
+tauri-plugin-dialog = "2.7.3"
+mimalloc = { version = "0.1", default-features = false }
+tauri-plugin-process = "2"
+tauri-plugin-fs = "2"
+
+[target.'cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))'.dependencies]
+tauri-plugin-updater = "2"
+
+[target.'cfg(windows)'.dependencies]
+ssh2 = "0.9.6"
+# Same versions Tauri/wry already link (webview2-com 0.38 on windows 0.61), so no second
+# copy of the bindings ends up in the binary. Used to set WebView2's memory target level.
+webview2-com = "0.38"
+windows-core = "0.61"
+
+[target.'cfg(not(windows))'.dependencies]
+ssh2 = { version = "0.9.6", features = ["vendored-openssl"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = { version = "2.0", default-features = false }
+
+tauri-plugin-single-instance = "2.0.0"

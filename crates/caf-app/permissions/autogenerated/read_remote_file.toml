@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-read-remote-file"
+description = "Enables the read_remote_file command without any pre-configured scope."
+commands.allow = ["read_remote_file"]
+
+[[permission]]
+identifier = "deny-read-remote-file"
+description = "Denies the read_remote_file command without any pre-configured scope."
+commands.deny = ["read_remote_file"]

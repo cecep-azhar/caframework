@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+button, [role="button"], a, input[type="submit"], input[type="button"], select {
+  cursor: pointer !important;
+}
+
+[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+}
+
+button, input, textarea, a, select, [role="button"], .no-drag {
+  -webkit-app-region: no-drag;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Scrollable but without a visible bar (session tab strip, sidebar nav). */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+:root {
+  --bg-app: #f5f5f5;
+  --bg-surface: #ffffff;
+  --border-subtle: #e5e5e5;
+  --text-primary: #171717;
+  --text-secondary: #737373;
+  color-scheme: light;
+}
+
+html.dark {
+  --bg-app: #0a0a0a;
+  --bg-surface: #171717;
+  --border-subtle: #262626;
+  --text-primary: #ededed;
+  --text-secondary: #a3a3a3;
+  color-scheme: dark;
+}

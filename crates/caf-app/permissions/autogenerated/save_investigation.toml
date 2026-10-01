@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-save-investigation"
+description = "Enables the save_investigation command without any pre-configured scope."
+commands.allow = ["save_investigation"]
+
+[[permission]]
+identifier = "deny-save-investigation"
+description = "Denies the save_investigation command without any pre-configured scope."
+commands.deny = ["save_investigation"]

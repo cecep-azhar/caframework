@@ -1,0 +1,47 @@
+# Rust
+/target/
+crates/*/target/
+Cargo.lock.bak
+bench-report.json
+
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.svelte-kit/
+
+# Tauri
+crates/caf-app/target/
+crates/caf-app/gen/
+
+# Database & Runtime
+*.db
+*.db-wal
+*.db-shm
+
+# Portable mode marker (never ship a real one from a dev machine)
+portable.txt
+
+# IDE & OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Temporary files
+*.tmp
+*.log
+
+# Packaging output
+dist/
+*.exe
+*.msi
+*.dmg
+*.deb
+*.rpm
+*.AppImage
+*.apk
+flatpak/tools/.venv

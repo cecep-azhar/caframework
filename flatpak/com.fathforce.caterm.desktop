@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=CAFramework
+Comment=Zero-Knowledge SSH Terminal & SFTP Client
+Exec=caframework %u
+Icon=com.fathforce.caframework
+Terminal=false
+Categories=Development;Network;Utility;
+Keywords=SSH;Terminal;SFTP;

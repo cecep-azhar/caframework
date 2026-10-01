@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-pro-team-leave"
+description = "Enables the pro_team_leave command without any pre-configured scope."
+commands.allow = ["pro_team_leave"]
+
+[[permission]]
+identifier = "deny-pro-team-leave"
+description = "Denies the pro_team_leave command without any pre-configured scope."
+commands.deny = ["pro_team_leave"]

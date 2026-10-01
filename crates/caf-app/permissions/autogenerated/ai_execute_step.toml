@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-execute-step"
+description = "Enables the ai_execute_step command without any pre-configured scope."
+commands.allow = ["ai_execute_step"]
+
+[[permission]]
+identifier = "deny-ai-execute-step"
+description = "Denies the ai_execute_step command without any pre-configured scope."
+commands.deny = ["ai_execute_step"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-list-snippets"
+description = "Enables the list_snippets command without any pre-configured scope."
+commands.allow = ["list_snippets"]
+
+[[permission]]
+identifier = "deny-list-snippets"
+description = "Denies the list_snippets command without any pre-configured scope."
+commands.deny = ["list_snippets"]

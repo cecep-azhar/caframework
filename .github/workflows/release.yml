@@ -1,0 +1,210 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows (x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli@^2
+
+      - name: Build Tauri (Windows NSIS + MSI)
+        run: tauri build
+        working-directory: crates/caf-app
+        env:
+          # Signs the updater artifacts (*.sig). Public half is plugins.updater.pubkey in tauri.conf.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # CAFramework Pro licence verification key (public, hex) printed by GCC's cmd/caframework-pro-keygen.
+          # A repository *variable*, not a secret. Unset: the build reports "not set up for Pro".
+          CATERM_PRO_LICENSE_PUBKEY_V1: ${{ vars.CATERM_PRO_LICENSE_PUBKEY_V1 }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/release/bundle/nsis/*.exe
+            target/release/bundle/nsis/*.exe.sig
+            target/release/bundle/msi/*.msi
+            target/release/bundle/msi/*.msi.sig
+          generate_release_notes: true
+
+  build-linux:
+    name: Build Linux (x64)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Tauri Linux system deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libsoup-3.0-dev \
+            libayatana-appindicator3-dev \
+            rpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Install Tauri CLI
+        run: npm install -g @tauri-apps/cli@^2
+
+      - name: Build Tauri (DEB + RPM + AppImage)
+        run: tauri build
+        working-directory: crates/caf-app
+        env:
+          # Signs the updater artifacts (*.sig). Public half is plugins.updater.pubkey in tauri.conf.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # CAFramework Pro licence verification key (public, hex) printed by GCC's cmd/caframework-pro-keygen.
+          # A repository *variable*, not a secret. Unset: the build reports "not set up for Pro".
+          CATERM_PRO_LICENSE_PUBKEY_V1: ${{ vars.CATERM_PRO_LICENSE_PUBKEY_V1 }}
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/release/bundle/deb/*.deb
+            target/release/bundle/deb/*.deb.sig
+            target/release/bundle/rpm/*.rpm
+            target/release/bundle/rpm/*.rpm.sig
+            target/release/bundle/appimage/*.AppImage
+            target/release/bundle/appimage/*.AppImage.sig
+
+  updater-manifest:
+    name: Publish updater manifest (latest.json)
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      # The in-app updater reads releases/latest/download/latest.json: version + one signed
+      # installer URL per platform (NSIS on Windows, AppImage on Linux).
+      - name: Build and upload latest.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir sigs
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.sig' --dir sigs
+          win_sig=$(ls sigs/*-setup.exe.sig | head -n1)
+          linux_sig=$(ls sigs/*.AppImage.sig | head -n1)
+          base="https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}"
+          jq -n \
+            --arg version "${TAG#v}" \
+            --arg notes "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}" \
+            --arg pub_date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg win_sig "$(cat "$win_sig")" \
+            --arg win_url "${base}/$(basename "${win_sig%.sig}")" \
+            --arg linux_sig "$(cat "$linux_sig")" \
+            --arg linux_url "${base}/$(basename "${linux_sig%.sig}")" \
+            '{version: $version, notes: $notes, pub_date: $pub_date, platforms: {
+                "windows-x86_64": {signature: $win_sig, url: $win_url},
+                "linux-x86_64": {signature: $linux_sig, url: $linux_url}}}' > latest.json
+          cat latest.json
+          gh release upload "$TAG" latest.json --clobber --repo "$GITHUB_REPOSITORY"
+
+  publish-gcc:
+    name: Publish to GCC (downloads, auto-update, email)
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
+      GCC_API_KEY: ${{ secrets.GCC_API_KEY }}
+      GCC_BASE_URL: ${{ vars.GCC_BASE_URL || 'https://gcc.fathforce.com' }}
+    steps:
+      # Mirrors the GitHub release into GCC's Storage module (R2/MinIO), which
+      # serves caframework.fathforce.com/dl/..., the updater manifest at
+      # /api/releases/caframework/latest.json, and emails newsletter subscribers.
+      # GCC_API_KEY must belong to a superadmin (the Storage module is
+      # superadmin-only) and GCC must have a release app with slug "caframework".
+      - name: Download release assets
+        run: |
+          set -euo pipefail
+          mkdir dist
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir dist
+          rm -f dist/latest.json
+          ls -la dist
+
+      - name: Upload installers, then signatures
+        run: |
+          set -euo pipefail
+          upload() {
+            local file="$1" name
+            name=$(basename "$file")
+            echo "::group::$name"
+            curl --fail-with-body -sS --retry 3 --retry-all-errors \
+              -X POST "${GCC_BASE_URL}/api/v1/releases/caframework/versions/${TAG}/assets?name=$(jq -rn --arg n "$name" '$n|@uri')" \
+              -H "X-API-Key: ${GCC_API_KEY}" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary "@${file}"
+            echo
+            echo "::endgroup::"
+          }
+          # A .sig attaches to its installer, so installers go first.
+          for f in dist/*; do
+            if [[ "$f" != *.sig ]]; then upload "$f"; fi
+          done
+          for f in dist/*.sig; do
+            if [[ -e "$f" ]]; then upload "$f"; fi
+          done
+
+      - name: Publish and notify subscribers
+        run: |
+          set -euo pipefail
+          notes=$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)
+          jq -n --arg notes "$notes" '{notes: $notes, channel: "stable", notify: true}' > publish.json
+          curl --fail-with-body -sS \
+            -X POST "${GCC_BASE_URL}/api/v1/releases/caframework/versions/${TAG}/publish" \
+            -H "X-API-Key: ${GCC_API_KEY}" \
+            -H "Content-Type: application/json" \
+            --data-binary @publish.json

@@ -1,0 +1,4 @@
+disallowed-methods = [
+    { path = "std::process::exit", reason = "library code must return Result, not exit the process; only a bin's outermost main() may exit" },
+    { path = "std::env::set_var", reason = "mutating global process env from library code is a data race hazard; resolve configuration explicitly and pass it as a value" },
+]

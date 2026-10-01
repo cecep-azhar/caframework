@@ -1,0 +1,29 @@
+[package]
+name = "caf-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "caframeworkctl — headless verification CLI for CAFramework v2. The curl-equivalent for a desktop app."
+
+[[bin]]
+name = "caframeworkctl"
+path = "src/main.rs"
+
+[dependencies]
+caf-core = { path = "../caf-core" }
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sysinfo.workspace = true
+
+# Private-memory accounting (T2-BOOT-06). sysinfo only exposes the *working set*, which
+# double-counts pages shared between WebView2's process tree and therefore cannot be used
+# as a budget figure. See crates/caf-cli/src/bench.rs for the full rationale.
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.59", features = [
+    "Win32_Foundation",
+    "Win32_System_ProcessStatus",
+    "Win32_System_Threading",
+] }

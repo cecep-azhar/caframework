@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-dismiss-crash-report"
+description = "Enables the dismiss_crash_report command without any pre-configured scope."
+commands.allow = ["dismiss_crash_report"]
+
+[[permission]]
+identifier = "deny-dismiss-crash-report"
+description = "Denies the dismiss_crash_report command without any pre-configured scope."
+commands.deny = ["dismiss_crash_report"]
