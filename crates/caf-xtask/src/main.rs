@@ -233,13 +233,22 @@ fn run_new_app(
     }
 
     // Recursively copy base repo, excluding git and build targets
-    let template_root = config_path.parent().unwrap_or_else(|| Path::new("."));
+    let template_root = match std::env::var("CARGO_MANIFEST_DIR") {
+        Ok(dir) => {
+            let p = PathBuf::from(dir);
+            p.parent()
+                .and_then(|p| p.parent())
+                .map(|p| p.to_path_buf())
+                .unwrap_or_else(|| PathBuf::from("."))
+        }
+        Err(_) => std::env::current_dir().unwrap_or_else(|_| PathBuf::from(".")),
+    };
     fs::create_dir_all(out_dir)?;
 
-    for entry in walkdir::WalkDir::new(template_root) {
+    for entry in walkdir::WalkDir::new(&template_root) {
         let entry = entry?;
         let path = entry.path();
-        let rel_path = path.strip_prefix(template_root)?;
+        let rel_path = path.strip_prefix(&template_root)?;
 
         let rel_str = rel_path.to_string_lossy();
         if rel_str.starts_with(".git")
@@ -275,6 +284,16 @@ fn run_new_app(
                 fs::copy(path, &dest)?;
             }
         }
+    }
+
+    // Ensure frontend/build placeholder exists so tauri generate_context doesn't fail
+    let build_dir = out_dir.join("frontend/build");
+    fs::create_dir_all(&build_dir)?;
+    if !build_dir.join("index.html").exists() {
+        fs::write(
+            build_dir.join("index.html"),
+            "<!DOCTYPE html><html><head><title>CAFramework</title></head><body><div id=\"app\"></div></body></html>",
+        )?;
     }
 
     // Write app.toml to target
