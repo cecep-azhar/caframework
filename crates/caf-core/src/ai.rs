@@ -228,3 +228,43 @@ pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, Cater
         tokens_used: tokens,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_redaction_removes_emails_and_cards() {
+        let input = "Hubungi support@fathforce.com untuk tagihan 4111-2222-3333-4444 hari ini.";
+        let (redacted, count) = redact_context(input);
+        assert_eq!(count, 2);
+        assert!(!redacted.contains("support@fathforce.com"));
+        assert!(!redacted.contains("4111-2222-3333-4444"));
+        assert!(redacted.contains("[REDACTED_EMAIL]"));
+        assert!(redacted.contains("[REDACTED_ACCOUNT]"));
+    }
+
+    #[test]
+    fn test_ai_settings_save_and_get() {
+        let _guard = crate::test_support::isolated_data_dir("ai_settings_test");
+        let _key = crate::vault::ensure_unlocked_key().expect("vault key");
+
+        let initial = get_settings().expect("default settings");
+        assert_eq!(initial.provider, "openai");
+
+        let custom = AiSettings {
+            provider: "ollama".into(),
+            model: "llama3.2".into(),
+            endpoint: "http://localhost:11434".into(),
+            api_key: "".into(),
+            privacy_redaction_enabled: true,
+            temperature: 80,
+        };
+
+        save_settings(&custom).expect("save custom");
+        let fetched = get_settings().expect("get saved");
+        assert_eq!(fetched.provider, "ollama");
+        assert_eq!(fetched.model, "llama3.2");
+        assert_eq!(fetched.temperature, 80);
+    }
+}

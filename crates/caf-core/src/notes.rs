@@ -221,3 +221,58 @@ pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CatermError>
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_note_lifecycle_and_changelog() {
+        let _guard = crate::test_support::isolated_data_dir("notes_lifecycle_test");
+        let _key = crate::vault::ensure_unlocked_key().expect("vault key");
+
+        // 1. Create note
+        let created = save_note(
+            NoteInput {
+                id: None,
+                title: "Belajar Rust CAFramework".into(),
+                content: "Starter template berbasis CATerm v2".into(),
+                tags: vec!["rust".into(), "svelte".into()],
+                visibility: Some("shared".into()),
+                owner_profile_id: "user-1".into(),
+            },
+            "user-1",
+        )
+        .expect("save note");
+
+        assert_eq!(created.rev, 1);
+        assert_eq!(created.title, "Belajar Rust CAFramework");
+
+        // 2. List note
+        let list = list_notes("user-1", false).expect("list notes");
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].id, created.id);
+
+        // 3. Update note
+        let updated = save_note(
+            NoteInput {
+                id: Some(created.id.clone()),
+                title: "Belajar Rust CAFramework - Updated".into(),
+                content: "Starter template modern".into(),
+                tags: vec!["rust".into(), "tauri".into()],
+                visibility: Some("shared".into()),
+                owner_profile_id: "user-1".into(),
+            },
+            "user-1",
+        )
+        .expect("update note");
+
+        assert_eq!(updated.rev, 2);
+        assert_eq!(updated.title, "Belajar Rust CAFramework - Updated");
+
+        // 4. Delete note
+        delete_note(&created.id, "user-1").expect("delete note");
+        let list_after = list_notes("user-1", false).expect("list after delete");
+        assert!(list_after.is_empty());
+    }
+}
