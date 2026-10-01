@@ -14,7 +14,7 @@
 
   const CELL_SIZE = 40;
 
-  let canvas: HTMLCanvasElement;
+  let canvas = $state<HTMLCanvasElement | null>(null);
   let animId = 0;
   let ctx: CanvasRenderingContext2D | null = null;
   let width = 0;
@@ -451,7 +451,7 @@
   const onFocus = () => handleVisibility(true);
 
   onMount(() => {
-  	if (appearance.reduceMotion) return;
+  	if (appearance.reduceMotion || !canvas) return;
 
   	ctx = canvas.getContext('2d');
   	resize();

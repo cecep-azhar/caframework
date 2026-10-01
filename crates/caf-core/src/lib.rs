@@ -28,31 +28,15 @@ pub mod crash;
 pub mod db;
 pub mod error;
 pub mod feedback;
-pub mod ftp;
-pub mod groups;
-pub mod investigations;
-pub mod keys;
-pub mod local_fs;
-pub mod monitor;
+pub mod notes;
 pub mod paths;
 pub mod prefs;
 pub mod pro;
-pub mod s3;
-pub mod scp;
+pub mod profiles;
 pub mod secret;
-pub mod sftp;
-pub mod snippets;
-pub mod ssh;
-pub mod store;
-pub mod sync;
-pub mod teams;
-pub mod tunnels;
 pub mod vault;
-pub mod vfs;
-pub mod webdav;
 
-pub use error::CatermError;
-pub use vfs::RemoteFileSystem;
+pub use error::CatermError as CafError;
 
 pub const CORE_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -63,12 +47,12 @@ pub(crate) mod test_support {
     use std::ffi::OsString;
     use std::path::PathBuf;
 
-    /// The `CATERM_DATA_DIR` env var and the unlocked-vault key are process-wide, and cargo
+    /// The `CAF_DATA_DIR` env var and the unlocked-vault key are process-wide, and cargo
     /// runs tests in parallel threads. Tests touching either hold this lock, so one test can't
     /// swap the data directory or lock the vault underneath another.
     static GLOBAL_STATE: Mutex<()> = Mutex::new(());
 
-    /// A throwaway data directory that `CATERM_DATA_DIR` points at for the lifetime of the
+    /// A throwaway data directory that `CAF_DATA_DIR` points at for the lifetime of the
     /// value. Dropping it locks the vault, restores the previous env value and deletes the dir,
     /// so no test ever reads or writes the developer's real vault.
     pub(crate) struct IsolatedDataDir {
@@ -82,12 +66,12 @@ pub(crate) mod test_support {
         let path =
             std::env::temp_dir().join(format!("caframework_test_{label}_{}", uuid::Uuid::new_v4()));
         std::fs::create_dir_all(&path).expect("create isolated test data dir");
-        let previous = std::env::var_os("CATERM_DATA_DIR");
-        // SAFETY: tests that depend on CATERM_DATA_DIR hold GLOBAL_STATE (taken above), so no
+        let previous = std::env::var_os("CAF_DATA_DIR");
+        // SAFETY: tests that depend on CAF_DATA_DIR hold GLOBAL_STATE (taken above), so no
         // other such test reads or writes the variable while it changes.
         #[allow(clippy::disallowed_methods)]
         unsafe {
-            std::env::set_var("CATERM_DATA_DIR", &path);
+            std::env::set_var("CAF_DATA_DIR", &path);
         }
         IsolatedDataDir {
             path,
@@ -98,16 +82,19 @@ pub(crate) mod test_support {
 
     impl Drop for IsolatedDataDir {
         fn drop(&mut self) {
-            let _ = crate::vault::lock_vault();
-            // SAFETY: still holding GLOBAL_STATE until this value (and its guard) is dropped.
-            #[allow(clippy::disallowed_methods)]
-            unsafe {
-                match &self.previous {
-                    Some(value) => std::env::set_var("CATERM_DATA_DIR", value),
-                    None => std::env::remove_var("CATERM_DATA_DIR"),
+            crate::vault::lock();
+            let _ = std::fs::remove_dir_all(&self.path);
+            if let Some(prev) = self.previous.take() {
+                #[allow(clippy::disallowed_methods)]
+                unsafe {
+                    std::env::set_var("CAF_DATA_DIR", prev);
+                }
+            } else {
+                #[allow(clippy::disallowed_methods)]
+                unsafe {
+                    std::env::remove_var("CAF_DATA_DIR");
                 }
             }
-            let _ = std::fs::remove_dir_all(&self.path);
         }
     }
 }

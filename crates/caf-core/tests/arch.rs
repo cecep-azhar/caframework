@@ -29,9 +29,7 @@ fn workspace_root() -> PathBuf {
         .parent()
         .and_then(Path::parent)
         .unwrap_or_else(|| {
-            panic!(
-                "caf-core diharapkan berada di <root>/crates/caf-core, got {manifest_dir:?}"
-            )
+            panic!("caf-core diharapkan berada di <root>/crates/caf-core, got {manifest_dir:?}")
         });
     root.to_path_buf()
 }
@@ -182,10 +180,7 @@ fn caf_core_source_never_mentions_tauri_directly() {
 /// Melebihi itu berarti logika bisnis bocor ke lapisan binding (K2-1).
 #[test]
 fn tauri_commands_in_caf_app_are_thin_bindings() {
-    let app_src = workspace_root()
-        .join("crates")
-        .join("caf-app")
-        .join("src");
+    let app_src = workspace_root().join("crates").join("caf-app").join("src");
     let mut violations: Vec<String> = Vec::new();
 
     scan_rs_files(&app_src, &mut |path, contents| {
@@ -256,8 +251,8 @@ fn tauri_command_registry_build_script_and_acl_agree() {
 
     let lib_rs = std::fs::read_to_string(app_dir.join("src").join("lib.rs"))
         .expect("gagal membaca caf-app/src/lib.rs");
-    let build_rs = std::fs::read_to_string(app_dir.join("build.rs"))
-        .expect("gagal membaca caf-app/build.rs");
+    let build_rs =
+        std::fs::read_to_string(app_dir.join("build.rs")).expect("gagal membaca caf-app/build.rs");
     let capabilities = std::fs::read_to_string(app_dir.join("capabilities").join("default.json"))
         .expect("gagal membaca caf-app/capabilities/default.json");
 
