@@ -1,0 +1,38 @@
+[app]
+name = "CAFramework"
+slug = "caframework"
+bundle_id = "com.fathforce.caframework"
+version = "0.1.0-dev"
+accent_color = "indigo"
+error_prefix = "CAF"
+description = "Privacy-first modular application starter framework"
+
+[window]
+title = "CAFramework"
+width = 1200
+height = 800
+min_width = 800
+min_height = 600
+
+[security]
+master_password_required = true
+profile_pin_enabled = true
+
+[modules]
+sample_slice_enabled = true
+ai_assistant_enabled = true
+pro_licensing_enabled = true
+updater_enabled = true
+crash_reporting_enabled = true
+backup_restore_enabled = true
+
+[roles]
+default_role = "member"
+allowed_roles = ["owner", "partner", "member", "child"]
+
+[[menus]]
+key = "notes"
+label = "Notes"
+href = "/"
+icon = "notes"
+description = "Encrypted personal notes vertical slice"

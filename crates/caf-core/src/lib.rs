@@ -36,7 +36,7 @@ pub mod profiles;
 pub mod secret;
 pub mod vault;
 
-pub use error::CatermError as CafError;
+pub use error::{CafError, CatermError};
 
 pub const CORE_VERSION: &str = env!("CARGO_PKG_VERSION");
 

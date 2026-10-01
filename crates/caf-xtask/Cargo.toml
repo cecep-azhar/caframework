@@ -1,0 +1,19 @@
+[package]
+name = "caf-xtask"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CAFramework xtask developer tool and app generator"
+
+[dependencies]
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
+thiserror = { workspace = true }
+minisign = "0.7"
+rand = "0.8"
+walkdir = "2"
+chrono = { version = "0.4", features = ["serde"] }

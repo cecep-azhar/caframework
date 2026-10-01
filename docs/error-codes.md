@@ -1,18 +1,32 @@
-# CAFramework v2 — Error Code Registry
+# CAFramework Error Code Registry
 
-Generated from `crates/caf-core/src/error.rs`. Do not edit by hand — regenerate with `UPDATE_GOLDEN=1 cargo test -p caf-core --test error_codes_unique`.
-
-| Code | Domain | Message |
-|---|---|---|
-| `CAT-VAULT-000` | VAULT | vault: unclassified error in this domain |
-| `CAT-DB-000` | DB | database: unclassified error in this domain |
-| `CAT-SSH-000` | SSH | ssh: unclassified error in this domain |
-| `CAT-SFTP-000` | SFTP | sftp: unclassified error in this domain |
-| `CAT-TUNNEL-000` | TUNNEL | tunnel: unclassified error in this domain |
-| `CAT-AI-000` | AI | ai: unclassified error in this domain |
-| `CAT-SYNC-000` | SYNC | sync: unclassified error in this domain |
-| `CAT-IO-000` | IO | io: unclassified error in this domain |
-| `CAT-VALIDATION-000` | VALIDATION | validation: unclassified error in this domain |
-| `CAT-FTP-000` | FTP | ftp: unclassified error in this domain |
-| `CAT-PRO-000` | PRO | pro: unclassified error in this domain |
-| `CAT-CORE-501` | CORE | not implemented: unclassified error in this domain |
+| Code | Domain | Description |
+| --- | --- | --- |
+| `CAF-AI-000` | `AI` | ai: sample error |
+| `CAF-AI-001` | `AI` | ai: AI provider service is unavailable |
+| `CAF-AI-002` | `AI` | ai: AI provider API key is not configured |
+| `CAF-AI-003` | `AI` | ai: input or output violated system guardrails |
+| `CAF-AUTH-000` | `AUTH` | auth: sample error |
+| `CAF-AUTH-001` | `AUTH` | auth: unauthorized profile access |
+| `CAF-AUTH-002` | `AUTH` | auth: invalid profile PIN |
+| `CAF-AUTH-003` | `AUTH` | auth: insufficient role permissions |
+| `CAF-CORE-501` | `CORE` | not implemented: example feature |
+| `CAF-DB-000` | `DB` | database: sample error |
+| `CAF-DB-001` | `DB` | database: database connection failed |
+| `CAF-DB-002` | `DB` | database: database query execution failed |
+| `CAF-DB-003` | `DB` | database: database migration failed |
+| `CAF-DB-004` | `DB` | database: record not found |
+| `CAF-IO-000` | `IO` | io: sample error |
+| `CAF-IO-001` | `IO` | io: file not found |
+| `CAF-IO-002` | `IO` | io: permission denied |
+| `CAF-PRO-000` | `PRO` | pro: sample error |
+| `CAF-PRO-001` | `PRO` | pro: feature requires active Pro license |
+| `CAF-VALIDATION-000` | `VALIDATION` | validation: sample error |
+| `CAF-VALIDATION-001` | `VALIDATION` | validation: field cannot be empty |
+| `CAF-VALIDATION-002` | `VALIDATION` | validation: invalid field format |
+| `CAF-VAULT-000` | `VAULT` | vault: sample error |
+| `CAF-VAULT-001` | `VAULT` | vault: vault is locked |
+| `CAF-VAULT-002` | `VAULT` | vault: vault is already unlocked |
+| `CAF-VAULT-003` | `VAULT` | vault: invalid master password |
+| `CAF-VAULT-004` | `VAULT` | vault: account is temporarily locked out due to too many failed attempts |
+| `CAF-VAULT-005` | `VAULT` | vault: vault database header is corrupted |

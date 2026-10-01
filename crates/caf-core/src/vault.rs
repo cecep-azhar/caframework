@@ -51,7 +51,6 @@ pub fn lock() {
     if let Some(mut key) = guard.take() {
         key.zeroize();
     }
-    let _ = crate::audit::log_event("VAULT_LOCK", None, "Vault locked");
 }
 
 pub fn reset_vault() -> Result<(), CatermError> {
