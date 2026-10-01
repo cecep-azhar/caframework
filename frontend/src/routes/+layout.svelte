@@ -19,6 +19,7 @@
   import { invoke } from '@tauri-apps/api/core';
   import { t } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
+  import { APP_CONFIG } from '$lib/generated/app';
   import { navItems as getNavItems, settingsNavItem } from '$lib/navItems';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import { getPalette, openPalette, closePalette } from '$lib/stores/commandPalette.svelte';
@@ -76,16 +77,16 @@
         {#if !isCollapsed}
           <div class="flex items-center gap-2.5 overflow-hidden">
             <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30 text-xs">
-              CA
+              {APP_CONFIG.name.slice(0, 2).toUpperCase()}
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="font-bold text-sm tracking-tight text-neutral-100 truncate">CAFramework</span>
+              <span class="font-bold text-sm tracking-tight text-neutral-100 truncate">{APP_CONFIG.name}</span>
               <span class="text-[10px] text-neutral-500 font-mono">v{APP_VERSION}</span>
             </div>
           </div>
         {:else}
           <div class="w-8 h-8 mx-auto rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30 text-xs">
-            CA
+            {APP_CONFIG.name.slice(0, 2).toUpperCase()}
           </div>
         {/if}
 

@@ -110,7 +110,7 @@ pub fn save_profile(
         None
     };
 
-    let (id, rev, created_at, _action) = if let Some(existing_id) = input.id {
+    let (id, rev, created_at, final_pin_hash, _action) = if let Some(existing_id) = input.id {
         let existing: (i64, String, Option<String>) = tx
             .query_row(
                 "SELECT rev, created_at, pin_hash FROM profiles WHERE id = ?1 AND deleted_at IS NULL",
@@ -128,7 +128,7 @@ pub fn save_profile(
         )
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-        (existing_id, new_rev, existing.1, "update")
+        (existing_id, new_rev, existing.1, final_pin_hash, "update")
     } else {
         let new_id = Uuid::now_v7().to_string();
         let rev = 1;
@@ -150,13 +150,17 @@ pub fn save_profile(
         )
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-        (new_id, rev, now.clone(), "create")
+        (new_id, rev, now.clone(), pin_hash, "create")
     };
 
     tx.commit()
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-    let has_pin = input.pin.is_some();
+    let has_pin = final_pin_hash.is_some()
+        && !final_pin_hash
+            .as_ref()
+            .map(|s| s.is_empty())
+            .unwrap_or(true);
     Ok(ProfileRecord {
         id,
         name: input.name,
@@ -197,4 +201,133 @@ pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CatermError> {
 
     let argon2 = Argon2::default();
     Ok(argon2.verify_password(pin.as_bytes(), &parsed_hash).is_ok())
+}
+
+pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CatermError> {
+    let conn = db::open()?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, name, role, avatar, pin_hash, rev, created_at, updated_at, deleted_at, origin_device_id, owner_profile_id, visibility 
+             FROM profiles 
+             WHERE id = ?1 AND deleted_at IS NULL",
+        )
+        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+
+    let mut rows = stmt
+        .query_map([id], |row| {
+            let pin_hash: Option<String> = row.get(4)?;
+            let has_pin =
+                pin_hash.is_some() && !pin_hash.as_ref().map(|s| s.is_empty()).unwrap_or(true);
+            Ok(ProfileRecord {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                role: row.get(2)?,
+                avatar: row.get(3)?,
+                pin_hash,
+                has_pin,
+                rev: row.get(5)?,
+                created_at: row.get(6)?,
+                updated_at: row.get(7)?,
+                deleted_at: row.get(8)?,
+                origin_device_id: row.get(9)?,
+                owner_profile_id: row.get(10)?,
+                visibility: row.get(11)?,
+            })
+        })
+        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+
+    if let Some(row) = rows.next() {
+        Ok(Some(row.map_err(|e| {
+            CatermError::Db(DbError::Generic(e.to_string()))
+        })?))
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn delete_profile(id: &str, caller_profile_id: &str) -> Result<(), CatermError> {
+    let mut conn = db::open()?;
+    let tx = conn
+        .transaction()
+        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+
+    let now = Utc::now().to_rfc3339();
+    tx.execute(
+        "UPDATE profiles SET deleted_at = ?1, updated_at = ?1 WHERE id = ?2 AND deleted_at IS NULL",
+        rusqlite::params![now, id],
+    )
+    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+
+    tx.commit()
+        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+
+    let _ = crate::audit::log_event(
+        "PROFILE_DELETE",
+        Some(caller_profile_id),
+        &format!("Deleted profile {id}"),
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_profile_crud_and_pin_verification() {
+        let _guard = crate::test_support::isolated_data_dir("profile_tests");
+        let _key = crate::vault::ensure_unlocked_key().expect("vault key");
+
+        // 1. Create Profile with PIN "123456"
+        let created = save_profile(
+            ProfileInput {
+                id: None,
+                name: "Prof. Cecep".into(),
+                role: "owner".into(),
+                avatar: Some("hero".into()),
+                pin: Some("123456".into()),
+            },
+            "system",
+        )
+        .expect("create profile");
+
+        assert_eq!(created.name, "Prof. Cecep");
+        assert_eq!(created.role, "owner");
+        assert!(created.has_pin);
+
+        // 2. Read
+        let fetched = get_profile(&created.id)
+            .expect("get profile")
+            .expect("found");
+        assert_eq!(fetched.id, created.id);
+        assert_eq!(fetched.name, "Prof. Cecep");
+
+        // 3. Verify PIN
+        let correct = verify_pin(&created.id, "123456").expect("verify pin");
+        assert!(correct);
+        let wrong = verify_pin(&created.id, "000000").expect("verify wrong pin");
+        assert!(!wrong);
+
+        // 4. Update Profile
+        let updated = save_profile(
+            ProfileInput {
+                id: Some(created.id.clone()),
+                name: "Prof. Cecep Azhar".into(),
+                role: "owner".into(),
+                avatar: Some("hero-star".into()),
+                pin: None, // Keep existing PIN
+            },
+            &created.id,
+        )
+        .expect("update profile");
+
+        assert_eq!(updated.name, "Prof. Cecep Azhar");
+        assert!(updated.has_pin);
+        assert!(verify_pin(&created.id, "123456").expect("pin still valid"));
+
+        // 5. Soft Delete
+        delete_profile(&created.id, &created.id).expect("delete profile");
+        let fetched_after = get_profile(&created.id).expect("get after delete");
+        assert!(fetched_after.is_none());
+    }
 }

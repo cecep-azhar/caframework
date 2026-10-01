@@ -4,6 +4,8 @@
   import { listNotes, saveNote, deleteNote, type NoteRecord, type NoteInput } from '$lib/api/notes';
   import { showToast, confirmModal } from '$lib/stores/uiNotifications.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import EmptyState from '$lib/components/EmptyState.svelte';
+  import LoadingState from '$lib/components/LoadingState.svelte';
 
   let notes = $state<NoteRecord[]>([]);
   let searchQuery = $state('');
@@ -140,26 +142,15 @@
   </PageHeader>
 
   {#if isLoading}
-    <div class="flex flex-col items-center justify-center py-20 text-neutral-500">
-      <div class="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      <p class="mt-4 text-sm">{t('common.loading')}</p>
-    </div>
+    <LoadingState message={t('common.loading')} />
   {:else if filteredNotes.length === 0}
-    <div class="flex flex-col items-center justify-center py-20 border border-dashed border-neutral-800 rounded-2xl bg-neutral-900/20 text-center p-6">
-      <div class="w-12 h-12 rounded-full bg-neutral-800/80 flex items-center justify-center text-neutral-400 mb-4">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-        </svg>
-      </div>
-      <h3 class="text-base font-semibold text-neutral-300">{t('notes.noNotes')}</h3>
-      <p class="text-sm text-neutral-500 mt-1 max-w-sm">{t('notes.subtitle')}</p>
-      <button
-        onclick={openAddModal}
-        class="mt-5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors"
-      >
-        {t('notes.addNote')}
-      </button>
-    </div>
+    <EmptyState
+      title={t('notes.noNotes')}
+      description={t('notes.subtitle')}
+      icon="notes"
+      actionLabel={t('notes.addNote')}
+      onaction={openAddModal}
+    />
   {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {#each filteredNotes as note (note.id)}
