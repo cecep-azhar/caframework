@@ -28,15 +28,15 @@ pub mod crash;
 pub mod db;
 pub mod error;
 pub mod feedback;
+pub mod keyring;
+pub mod migrations;
 pub mod notes;
 pub mod paths;
 pub mod prefs;
 pub mod pro;
 pub mod profiles;
 pub mod secret;
-pub mod keyring;
 pub mod vault;
-pub mod migrations;
 
 pub use error::{CafError, CatermError};
 

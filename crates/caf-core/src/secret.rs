@@ -7,15 +7,16 @@ use crate::error::{CatermError, VaultError};
 use aes_gcm::aead::{Aead, KeyInit, OsRng};
 use aes_gcm::{AeadCore, Aes256Gcm, Nonce};
 use base64::Engine;
-use sha2::{Digest, Sha256};
 use secrecy::{ExposeSecret, SecretString};
+use sha2::{Digest, Sha256};
 use zeroize::Zeroize;
 
 // Argon2 utilities for password hashing (used elsewhere in this module).
 use argon2::{
-    Argon2,
-    Params,
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng as ArgonOsRng},
+    Argon2, Params,
+    password_hash::{
+        PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng as ArgonOsRng,
+    },
 };
 
 const DOMAIN: &[u8] = b"caframework-host-secret-v1";
@@ -37,25 +38,34 @@ pub fn encrypt(local_key_hex: &str, plaintext: &SecretString) -> Result<String, 
     let mut key = derive_key(local_key_hex);
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| {
         key.zeroize();
-        CatermError::Vault(VaultError::Generic(format!("gagal inisialisasi cipher: {e}")))
+        CatermError::Vault(VaultError::Generic(format!(
+            "gagal inisialisasi cipher: {e}"
+        )))
     })?;
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-    let ciphertext = cipher.encrypt(&nonce, plaintext.expose_secret().as_bytes()).map_err(|e| {
-        key.zeroize();
-        CatermError::Vault(VaultError::Generic(format!("gagal enkripsi secret: {e}")))
-    })?;
+    let ciphertext = cipher
+        .encrypt(&nonce, plaintext.expose_secret().as_bytes())
+        .map_err(|e| {
+            key.zeroize();
+            CatermError::Vault(VaultError::Generic(format!("gagal enkripsi secret: {e}")))
+        })?;
     // Zero the key now that encryption is done.
     key.zeroize();
     let mut out = Vec::with_capacity(nonce.len() + ciphertext.len());
     out.extend_from_slice(&nonce);
     out.extend_from_slice(&ciphertext);
-    Ok(format!("{PREFIX}{}", base64::engine::general_purpose::STANDARD.encode(out)))
+    Ok(format!(
+        "{PREFIX}{}",
+        base64::engine::general_purpose::STANDARD.encode(out)
+    ))
 }
 
 /// Encrypt raw bytes with a pre‑derived key (used for backup encryption).
 pub fn encrypt_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<String, CatermError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| {
-        CatermError::Vault(VaultError::Generic(format!("gagal inisialisasi cipher: {e}")))
+        CatermError::Vault(VaultError::Generic(format!(
+            "gagal inisialisasi cipher: {e}"
+        )))
     })?;
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
     let ciphertext = cipher.encrypt(&nonce, plaintext).map_err(|e| {
@@ -64,7 +74,10 @@ pub fn encrypt_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<String, CatermE
     let mut out = Vec::with_capacity(nonce.len() + ciphertext.len());
     out.extend_from_slice(&nonce);
     out.extend_from_slice(&ciphertext);
-    Ok(format!("{PREFIX}{}", base64::engine::general_purpose::STANDARD.encode(out)))
+    Ok(format!(
+        "{PREFIX}{}",
+        base64::engine::general_purpose::STANDARD.encode(out)
+    ))
 }
 
 /// Decrypt a blob produced by `encrypt_bytes`.
@@ -74,17 +87,27 @@ pub fn decrypt_bytes(key: &[u8; 32], encoded: &str) -> Result<Vec<u8>, CatermErr
         .ok_or_else(|| CatermError::Vault(VaultError::Generic("unknown secret format".into())))?;
     let raw = base64::engine::general_purpose::STANDARD
         .decode(payload)
-        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("corrupt secret (base64): {e}"))))?;
+        .map_err(|e| {
+            CatermError::Vault(VaultError::Generic(format!("corrupt secret (base64): {e}")))
+        })?;
     if raw.len() < 12 {
-        return Err(CatermError::Vault(VaultError::Generic("corrupt secret (payload too short)".into())));
+        return Err(CatermError::Vault(VaultError::Generic(
+            "corrupt secret (payload too short)".into(),
+        )));
     }
     let (nonce_bytes, ciphertext) = raw.split_at(12);
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|e| {
-        CatermError::Vault(VaultError::Generic(format!("failed to initialize cipher: {e}")))
+        CatermError::Vault(VaultError::Generic(format!(
+            "failed to initialize cipher: {e}"
+        )))
     })?;
     cipher
         .decrypt(Nonce::from_slice(nonce_bytes), ciphertext)
-        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("failed to decrypt secret: {e}"))))
+        .map_err(|e| {
+            CatermError::Vault(VaultError::Generic(format!(
+                "failed to decrypt secret: {e}"
+            )))
+        })
 }
 
 /// Decrypt a blob produced by `encrypt` and return a `SecretString`.
@@ -94,15 +117,21 @@ pub fn decrypt(local_key_hex: &str, encoded: &str) -> Result<SecretString, Cater
         .ok_or_else(|| CatermError::Vault(VaultError::Generic("unknown secret format".into())))?;
     let raw = base64::engine::general_purpose::STANDARD
         .decode(payload)
-        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("secret rusak (base64): {e}"))))?;
+        .map_err(|e| {
+            CatermError::Vault(VaultError::Generic(format!("secret rusak (base64): {e}")))
+        })?;
     if raw.len() < 12 {
-        return Err(CatermError::Vault(VaultError::Generic("secret rusak (terlalu pendek)".into())));
+        return Err(CatermError::Vault(VaultError::Generic(
+            "secret rusak (terlalu pendek)".into(),
+        )));
     }
     let (nonce_bytes, ciphertext) = raw.split_at(12);
     let mut key = derive_key(local_key_hex);
     let cipher = Aes256Gcm::new_from_slice(&key).map_err(|e| {
         key.zeroize();
-        CatermError::Vault(VaultError::Generic(format!("gagal inisialisasi cipher: {e}")))
+        CatermError::Vault(VaultError::Generic(format!(
+            "gagal inisialisasi cipher: {e}"
+        )))
     })?;
     let plaintext = cipher
         .decrypt(Nonce::from_slice(nonce_bytes), ciphertext)
@@ -129,7 +158,9 @@ pub fn hash_password(password: &str) -> Result<String, CatermError> {
     let salt = SaltString::generate(&mut ArgonOsRng);
     let password_hash = argon2
         .hash_password(password.as_bytes(), &salt)
-        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("failed to hash password: {e}"))))?
+        .map_err(|e| {
+            CatermError::Vault(VaultError::Generic(format!("failed to hash password: {e}")))
+        })?
         .to_string();
     Ok(password_hash)
 }
@@ -139,7 +170,9 @@ pub fn verify_password(password: &str, hash: &str) -> Result<bool, CatermError> 
     let parsed_hash = PasswordHash::new(hash).map_err(|e| {
         CatermError::Vault(VaultError::Generic(format!("invalid hash format: {e}")))
     })?;
-    Ok(Argon2::default().verify_password(password.as_bytes(), &parsed_hash).is_ok())
+    Ok(Argon2::default()
+        .verify_password(password.as_bytes(), &parsed_hash)
+        .is_ok())
 }
 
 #[cfg(test)]

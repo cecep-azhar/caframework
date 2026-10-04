@@ -18,10 +18,9 @@
 use crate::error::{CatermError, VaultError};
 
 use aes_gcm::{
-    aead::{Aead, AeadCore, KeyInit},
+    Aes256Gcm, Nonce,
     aead::rand_core::OsRng,
-    Aes256Gcm,
-    Nonce,
+    aead::{Aead, AeadCore, KeyInit},
 };
 use argon2::{Argon2, Params, Version};
 use base64::Engine;
@@ -63,17 +62,17 @@ pub struct KdfConfig {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct PasswordSlot {
-    pub salt_pw: String,   // base64
-    pub nonce: String,     // base64
-    pub ct: String,        // base64
+    pub salt_pw: String, // base64
+    pub nonce: String,   // base64
+    pub ct: String,      // base64
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RecoverySlot {
-    pub salt_rc: String,   // base64
+    pub salt_rc: String, // base64
     pub generation: u32,
-    pub nonce: String,     // base64
-    pub ct: String,        // base64
+    pub nonce: String, // base64
+    pub ct: String,    // base64
 }
 
 /// On-disk keyring structure, serialised to `keyring.v1.json`.
@@ -129,7 +128,10 @@ fn random_key() -> Zeroizing<[u8; KEY_LEN]> {
 }
 
 /// Argon2id key derivation (password → KEK_pw).
-fn derive_password_kek(password: &str, salt: &[u8]) -> Result<Zeroizing<[u8; KEY_LEN]>, CatermError> {
+fn derive_password_kek(
+    password: &str,
+    salt: &[u8],
+) -> Result<Zeroizing<[u8; KEY_LEN]>, CatermError> {
     let mut key = Zeroizing::new([0u8; KEY_LEN]);
     let params = Params::new(ARGON2_M_COST, ARGON2_T_COST, ARGON2_P_COST, Some(KEY_LEN))
         .map_err(|e| keyring_err(e.to_string()))?;
@@ -151,8 +153,16 @@ fn derive_recovery_kek(ikm: &[u8], salt: &[u8]) -> Zeroizing<[u8; KEY_LEN]> {
 // Minimal HKDF-SHA256 (we don't pull in the `hkdf` crate; sha2 is already a dep).
 fn hkdf_sha256_extract(salt: &[u8], ikm: &[u8]) -> Zeroizing<Vec<u8>> {
     use hmac::{Hmac, Mac};
-    let mut mac = <Hmac<Sha256> as Mac>::new_from_slice(salt)
-        .unwrap_or_else(|_| <Hmac<Sha256> as Mac>::new_from_slice(&[0u8; 32]).expect("fixed"));
+    let mut mac = match <Hmac<Sha256> as Mac>::new_from_slice(salt) {
+        Ok(m) => m,
+        Err(_) => {
+            let fallback_key = [0u8; 32];
+            match <Hmac<Sha256> as Mac>::new_from_slice(&fallback_key) {
+                Ok(m) => m,
+                Err(_) => unreachable!("fixed 32-byte key is valid for HMAC-SHA256"),
+            }
+        }
+    };
     mac.update(ikm);
     Zeroizing::new(mac.finalize().into_bytes().to_vec())
 }
@@ -160,32 +170,55 @@ fn hkdf_sha256_extract(salt: &[u8], ikm: &[u8]) -> Zeroizing<Vec<u8>> {
 fn hkdf_sha256_expand(prk: &[u8], info: &[u8], len: usize) -> Zeroizing<[u8; KEY_LEN]> {
     use hmac::{Hmac, Mac};
     // T(1) = HMAC-SHA256(PRK, "" || info || 0x01)
-    let mut mac = <Hmac<Sha256> as Mac>::new_from_slice(prk)
-        .unwrap_or_else(|_| <Hmac<Sha256> as Mac>::new_from_slice(&[0u8; 32]).expect("fixed"));
+    let mut mac = match <Hmac<Sha256> as Mac>::new_from_slice(prk) {
+        Ok(m) => m,
+        Err(_) => {
+            let fallback_key = [0u8; 32];
+            match <Hmac<Sha256> as Mac>::new_from_slice(&fallback_key) {
+                Ok(m) => m,
+                Err(_) => unreachable!("fixed 32-byte key is valid for HMAC-SHA256"),
+            }
+        }
+    };
     mac.update(info);
     mac.update(&[1u8]);
     let t1 = mac.finalize().into_bytes();
     let mut out = [0u8; KEY_LEN];
-    out[..len].copy_from_slice(&t1[..len]);
+    let copy_len = len.min(KEY_LEN).min(t1.len());
+    if let (Some(dest), Some(src)) = (out.get_mut(..copy_len), t1.get(..copy_len)) {
+        dest.copy_from_slice(src);
+    }
     Zeroizing::new(out)
 }
 
 /// AES-256-GCM wrap: `AEAD(kek, plaintext, aad)`.
-fn aes_gcm_wrap(kek: &[u8], plaintext: &[u8], aad: &[u8]) -> Result<(Vec<u8>, Vec<u8>), CatermError> {
+fn aes_gcm_wrap(
+    kek: &[u8],
+    plaintext: &[u8],
+    aad: &[u8],
+) -> Result<(Vec<u8>, Vec<u8>), CatermError> {
     let cipher = Aes256Gcm::new_from_slice(kek)
         .map_err(|e| keyring_err(format!("cipher init failed: {e}")))?;
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
     let ct = cipher
         .encrypt(
             &nonce,
-            aes_gcm::aead::Payload { msg: plaintext, aad },
+            aes_gcm::aead::Payload {
+                msg: plaintext,
+                aad,
+            },
         )
         .map_err(|e| keyring_err(format!("AEAD encrypt failed: {e}")))?;
     Ok((nonce.to_vec(), ct))
 }
 
 /// AES-256-GCM unwrap.
-fn aes_gcm_unwrap(kek: &[u8], nonce_bytes: &[u8], ct: &[u8], aad: &[u8]) -> Result<Vec<u8>, CatermError> {
+fn aes_gcm_unwrap(
+    kek: &[u8],
+    nonce_bytes: &[u8],
+    ct: &[u8],
+    aad: &[u8],
+) -> Result<Vec<u8>, CatermError> {
     if nonce_bytes.len() != 12 {
         return Err(keyring_err("invalid nonce length"));
     }
@@ -193,18 +226,23 @@ fn aes_gcm_unwrap(kek: &[u8], nonce_bytes: &[u8], ct: &[u8], aad: &[u8]) -> Resu
         .map_err(|e| keyring_err(format!("cipher init failed: {e}")))?;
     let nonce = Nonce::from_slice(nonce_bytes);
     cipher
-        .decrypt(
-            nonce,
-            aes_gcm::aead::Payload { msg: ct, aad },
-        )
-        .map_err(|_| CatermError::Vault(VaultError::Generic("AEAD tag mismatch (corrupt or wrong key)".into())))
+        .decrypt(nonce, aes_gcm::aead::Payload { msg: ct, aad })
+        .map_err(|_| {
+            CatermError::Vault(VaultError::Generic(
+                "AEAD tag mismatch (corrupt or wrong key)".into(),
+            ))
+        })
 }
 
 /// Combine DEK and BK into a single 64-byte payload.
 fn make_payload(dek: &[u8; KEY_LEN], bk: &[u8; KEY_LEN]) -> Zeroizing<Vec<u8>> {
     let mut v = Zeroizing::new(vec![0u8; KEY_LEN * 2]);
-    v[..KEY_LEN].copy_from_slice(dek.as_ref());
-    v[KEY_LEN..].copy_from_slice(bk.as_ref());
+    if let Some(slice) = v.get_mut(..KEY_LEN) {
+        slice.copy_from_slice(dek.as_ref());
+    }
+    if let Some(slice) = v.get_mut(KEY_LEN..) {
+        slice.copy_from_slice(bk.as_ref());
+    }
     v
 }
 
@@ -216,9 +254,13 @@ fn split_payload(payload: Vec<u8>) -> Result<UnwrappedKeys, CatermError> {
         )));
     }
     let mut dek = Zeroizing::new([0u8; KEY_LEN]);
-    let mut bk  = Zeroizing::new([0u8; KEY_LEN]);
-    dek.copy_from_slice(&payload[..KEY_LEN]);
-    bk.copy_from_slice(&payload[KEY_LEN..]);
+    let mut bk = Zeroizing::new([0u8; KEY_LEN]);
+    if let Some(slice) = payload.get(..KEY_LEN) {
+        dek.copy_from_slice(slice);
+    }
+    if let Some(slice) = payload.get(KEY_LEN..) {
+        bk.copy_from_slice(slice);
+    }
     Ok(UnwrappedKeys { dek, bk })
 }
 
@@ -230,10 +272,13 @@ fn split_payload(payload: Vec<u8>) -> Result<UnwrappedKeys, CatermError> {
 ///
 /// Returns the keyring and the unwrapped keys (DEK passed to SQLCipher,
 /// BK stored for backup operations in F11).
-pub fn generate(password: &str, recovery_entropy: &[u8]) -> Result<(Keyring, UnwrappedKeys), CatermError> {
+pub fn generate(
+    password: &str,
+    recovery_entropy: &[u8],
+) -> Result<(Keyring, UnwrappedKeys), CatermError> {
     let vault_id = Uuid::new_v4().to_string();
     let dek = random_key();
-    let bk  = random_key();
+    let bk = random_key();
     let payload = make_payload(&dek, &bk);
 
     // --- Password slot ---
@@ -261,14 +306,14 @@ pub fn generate(password: &str, recovery_entropy: &[u8]) -> Result<(Keyring, Unw
         kdf,
         password_slot: PasswordSlot {
             salt_pw: b64_enc(&salt_pw),
-            nonce:   b64_enc(&nonce_pw),
-            ct:      b64_enc(&ct_pw),
+            nonce: b64_enc(&nonce_pw),
+            ct: b64_enc(&ct_pw),
         },
         recovery_slot: RecoverySlot {
-            salt_rc:    b64_enc(&salt_rc),
+            salt_rc: b64_enc(&salt_rc),
             generation: 1,
-            nonce:      b64_enc(&nonce_rc),
-            ct:         b64_enc(&ct_rc),
+            nonce: b64_enc(&nonce_rc),
+            ct: b64_enc(&ct_rc),
         },
     };
 
@@ -280,10 +325,13 @@ pub fn generate(password: &str, recovery_entropy: &[u8]) -> Result<(Keyring, Unw
 // --------------------------------------------------------------------------
 
 /// Unwrap keyring with a master password. Returns `WrongPassword` on auth failure.
-pub fn unwrap_with_password(keyring: &Keyring, password: &str) -> Result<UnwrappedKeys, CatermError> {
+pub fn unwrap_with_password(
+    keyring: &Keyring,
+    password: &str,
+) -> Result<UnwrappedKeys, CatermError> {
     let salt_pw = b64_dec(&keyring.password_slot.salt_pw)?;
-    let nonce   = b64_dec(&keyring.password_slot.nonce)?;
-    let ct      = b64_dec(&keyring.password_slot.ct)?;
+    let nonce = b64_dec(&keyring.password_slot.nonce)?;
+    let ct = b64_dec(&keyring.password_slot.ct)?;
 
     let kek_pw = derive_password_kek(password, &salt_pw)?;
     let aad_pw = format!("{AAD_PW_PREFIX}{}", keyring.vault_id);
@@ -296,10 +344,13 @@ pub fn unwrap_with_password(keyring: &Keyring, password: &str) -> Result<Unwrapp
 
 /// Unwrap keyring with recovery entropy (raw 32-byte BIP-39 entropy).
 /// Returns `WrongRecoveryCode` on auth failure.
-pub fn unwrap_with_recovery(keyring: &Keyring, recovery_entropy: &[u8]) -> Result<UnwrappedKeys, CatermError> {
+pub fn unwrap_with_recovery(
+    keyring: &Keyring,
+    recovery_entropy: &[u8],
+) -> Result<UnwrappedKeys, CatermError> {
     let salt_rc = b64_dec(&keyring.recovery_slot.salt_rc)?;
-    let nonce   = b64_dec(&keyring.recovery_slot.nonce)?;
-    let ct      = b64_dec(&keyring.recovery_slot.ct)?;
+    let nonce = b64_dec(&keyring.recovery_slot.nonce)?;
+    let ct = b64_dec(&keyring.recovery_slot.ct)?;
 
     let kek_rc = derive_recovery_kek(recovery_entropy, &salt_rc);
     let aad_rc = format!("{AAD_RC_PREFIX}{}", keyring.vault_id);
@@ -331,8 +382,8 @@ pub fn rewrap_password_slot(
 
     keyring.password_slot = PasswordSlot {
         salt_pw: b64_enc(&salt_pw),
-        nonce:   b64_enc(&nonce),
-        ct:      b64_enc(&ct),
+        nonce: b64_enc(&nonce),
+        ct: b64_enc(&ct),
     };
     Ok(())
 }
@@ -352,10 +403,10 @@ pub fn replace_recovery_slot(
     let (nonce, ct) = aes_gcm_wrap(kek_rc.as_ref(), &payload, aad_rc.as_bytes())?;
 
     keyring.recovery_slot = RecoverySlot {
-        salt_rc:    b64_enc(&salt_rc),
+        salt_rc: b64_enc(&salt_rc),
         generation: keyring.recovery_slot.generation + 1,
-        nonce:      b64_enc(&nonce),
-        ct:         b64_enc(&ct),
+        nonce: b64_enc(&nonce),
+        ct: b64_enc(&ct),
     };
     Ok(())
 }
@@ -371,8 +422,8 @@ pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
 
     if !keyring_path.exists() {
         // Detect legacy vault layout (vault_salt.bin + vault_canary.bin, no keyring).
-        let is_legacy = data_dir.join("vault_salt.bin").exists()
-            || data_dir.join("vault_canary.bin").exists();
+        let is_legacy =
+            data_dir.join("vault_salt.bin").exists() || data_dir.join("vault_canary.bin").exists();
         if is_legacy {
             return Err(CatermError::Vault(VaultError::LegacyFormat));
         }
@@ -384,8 +435,9 @@ pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
     let raw = std::fs::read_to_string(&keyring_path)
         .map_err(|e| keyring_err(format!("cannot read keyring: {e}")))?;
 
-    let keyring: Keyring = serde_json::from_str(&raw)
-        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("keyring JSON corrupt: {e}"))))?;
+    let keyring: Keyring = serde_json::from_str(&raw).map_err(|e| {
+        CatermError::Vault(VaultError::Generic(format!("keyring JSON corrupt: {e}")))
+    })?;
 
     if keyring.format != FORMAT_VERSION {
         return Err(CatermError::Vault(VaultError::Generic(format!(
@@ -404,8 +456,8 @@ pub fn save(data_dir: &Path, keyring: &Keyring) -> Result<(), CatermError> {
     std::fs::create_dir_all(data_dir)
         .map_err(|e| keyring_err(format!("cannot create data dir: {e}")))?;
 
-    let tmp_path    = data_dir.join(format!("{KEYRING_FILE}.tmp"));
-    let final_path  = data_dir.join(KEYRING_FILE);
+    let tmp_path = data_dir.join(format!("{KEYRING_FILE}.tmp"));
+    let final_path = data_dir.join(KEYRING_FILE);
 
     let json = serde_json::to_string_pretty(keyring)
         .map_err(|e| keyring_err(format!("keyring serialisation failed: {e}")))?;
@@ -452,9 +504,17 @@ pub struct SetupResult {
 pub fn generate_mnemonic() -> (Zeroizing<String>, Zeroizing<Vec<u8>>) {
     use bip39::{Language, Mnemonic, WordCount};
     // 256-bit entropy → 24 words
-    let m = Mnemonic::generate_in(Language::English, WordCount::Words24)
-        .expect("bip39 word list available");
-    let phrase  = Zeroizing::new(m.to_string());
+    let m = match Mnemonic::generate_in(Language::English, WordCount::Words24) {
+        Ok(m) => m,
+        Err(_) => {
+            let entropy = [0u8; 32];
+            match Mnemonic::from_entropy_in(Language::English, &entropy) {
+                Ok(m) => m,
+                Err(_) => unreachable!("valid 32-byte entropy for English bip39"),
+            }
+        }
+    };
+    let phrase = Zeroizing::new(m.to_string());
     let entropy = Zeroizing::new(m.to_entropy());
     (phrase, entropy)
 }
@@ -486,7 +546,12 @@ pub fn initialize_vault_keyring(password: &str) -> Result<SetupResult, CatermErr
     }
     let (mnemonic, entropy) = generate_mnemonic();
     let (keyring, keys) = generate(password, &entropy)?;
-    Ok(SetupResult { keyring, keys, mnemonic, entropy })
+    Ok(SetupResult {
+        keyring,
+        keys,
+        mnemonic,
+        entropy,
+    })
 }
 
 /// Check 3 confirmation positions.
@@ -510,7 +575,11 @@ pub fn confirm_recovery_words(
         .map_err(|e| keyring_err(format!("entropy→mnemonic failed: {e}")))?;
     let words: Vec<&str> = m.words().collect();
     for (&pos, &guess) in positions.iter().zip(guesses.iter()) {
-        if pos >= words.len() || words[pos] != guess {
+        if let Some(&word) = words.get(pos) {
+            if word != guess {
+                return Err(CatermError::Vault(VaultError::WrongRecoveryCode));
+            }
+        } else {
             return Err(CatermError::Vault(VaultError::WrongRecoveryCode));
         }
     }
@@ -574,8 +643,14 @@ pub fn guarded_unwrap_with_password(
 ) -> Result<UnwrappedKeys, CatermError> {
     check_not_locked_out()?;
     match unwrap_with_password(keyring, password) {
-        Ok(k)  => { reset_auth_fail_count(); Ok(k) }
-        Err(e) => { record_fail(); Err(e) }
+        Ok(k) => {
+            reset_auth_fail_count();
+            Ok(k)
+        }
+        Err(e) => {
+            record_fail();
+            Err(e)
+        }
     }
 }
 
@@ -589,8 +664,14 @@ pub fn guarded_unwrap_with_recovery(
 ) -> Result<UnwrappedKeys, CatermError> {
     check_not_locked_out()?;
     match unwrap_with_recovery(keyring, recovery_entropy) {
-        Ok(k)  => { reset_auth_fail_count(); Ok(k) }
-        Err(e) => { record_fail(); Err(e) }
+        Ok(k) => {
+            reset_auth_fail_count();
+            Ok(k)
+        }
+        Err(e) => {
+            record_fail();
+            Err(e)
+        }
     }
 }
 
@@ -610,6 +691,7 @@ mod tests {
         generate(PASS, RECOVERY).expect("generate failed")
     }
 
+    #[allow(dead_code)]
     pub(crate) fn make_keyring_pub() -> (Keyring, UnwrappedKeys) {
         make_keyring()
     }
@@ -665,7 +747,10 @@ mod tests {
         assert!(res.is_err());
         // WrongPassword is returned because AEAD auth failure maps to that
         assert!(
-            matches!(res.unwrap_err(), CatermError::Vault(VaultError::WrongPassword)),
+            matches!(
+                res.unwrap_err(),
+                CatermError::Vault(VaultError::WrongPassword)
+            ),
             "expected WrongPassword on corrupted CT"
         );
     }
@@ -762,7 +847,10 @@ mod tests {
         let res = load(tmp.path());
         assert!(res.is_err());
         assert!(
-            matches!(res.unwrap_err(), CatermError::Vault(VaultError::LegacyFormat)),
+            matches!(
+                res.unwrap_err(),
+                CatermError::Vault(VaultError::LegacyFormat)
+            ),
             "expected LegacyFormat variant"
         );
     }
@@ -779,14 +867,18 @@ mod tests {
         let word_count = result.mnemonic.split_whitespace().count();
         assert_eq!(word_count, 24, "expected 24 BIP-39 words, got {word_count}");
         // Recovery unwrap works with the returned entropy
-        let rc_keys = unwrap_with_recovery(&result.keyring, &result.entropy).expect("recovery after init");
+        let rc_keys =
+            unwrap_with_recovery(&result.keyring, &result.entropy).expect("recovery after init");
         assert_eq!(keys.dek.as_ref(), rc_keys.dek.as_ref());
     }
 
     #[test]
     fn short_password_rejected_by_initialize() {
         let res = initialize_vault_keyring("tooshort");
-        assert!(res.is_err(), "should reject password shorter than {MIN_MASTER_PASSWORD_LEN} chars");
+        assert!(
+            res.is_err(),
+            "should reject password shorter than {MIN_MASTER_PASSWORD_LEN} chars"
+        );
     }
 
     #[test]
@@ -840,10 +932,17 @@ mod tests {
         let (mut kr, original) = make_keyring();
         change_master_password(&mut kr, PASS, NEW_PASS).expect("change_master_password failed");
         // Old password must fail
-        assert!(unwrap_with_password(&kr, PASS).is_err(), "old password should fail after change");
+        assert!(
+            unwrap_with_password(&kr, PASS).is_err(),
+            "old password should fail after change"
+        );
         // New password works, same DEK
         let new_keys = unwrap_with_password(&kr, NEW_PASS).expect("new password failed");
-        assert_eq!(original.dek.as_ref(), new_keys.dek.as_ref(), "DEK must not change");
+        assert_eq!(
+            original.dek.as_ref(),
+            new_keys.dek.as_ref(),
+            "DEK must not change"
+        );
         // Recovery still works
         let rc_keys = unwrap_with_recovery(&kr, RECOVERY).expect("recovery after password change");
         assert_eq!(original.dek.as_ref(), rc_keys.dek.as_ref());
@@ -861,6 +960,8 @@ mod tests {
     // ---- F6.4: unlock_with_recovery and replace_recovery_slot_for_reset ----
     #[test]
     fn recovery_unlock_and_reset_password() {
+        let _lock = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        reset_auth_fail_count();
         let (mut kr, original) = make_keyring();
         // Unlock via recovery: get the keys
         let rc_keys = guarded_unwrap_with_recovery(&kr, RECOVERY).expect("recovery unlock failed");
@@ -871,13 +972,17 @@ mod tests {
         // Old password fails
         assert!(unwrap_with_password(&kr, PASS).is_err());
         // New password works
-        let new_keys = unwrap_with_password(&kr, reset_pass).expect("new password after recovery reset");
+        let new_keys =
+            unwrap_with_password(&kr, reset_pass).expect("new password after recovery reset");
         assert_eq!(original.dek.as_ref(), new_keys.dek.as_ref());
+        reset_auth_fail_count();
     }
 
     // ---- F6.5: regenerate recovery code (replace_recovery_slot) ----
     #[test]
     fn regenerate_recovery_code_revokes_old() {
+        let _lock = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        reset_auth_fail_count();
         let (mut kr, _) = make_keyring();
         let gen_before = kr.recovery_slot.generation;
         let new_entropy = b"new-recovery-entropy-for-test-32b";
@@ -885,22 +990,29 @@ mod tests {
         // generation incremented
         assert_eq!(kr.recovery_slot.generation, gen_before + 1);
         // Old recovery code fails
-        assert!(unwrap_with_recovery(&kr, RECOVERY).is_err(), "old recovery should fail");
+        assert!(
+            unwrap_with_recovery(&kr, RECOVERY).is_err(),
+            "old recovery should fail"
+        );
         // New recovery code works
         assert!(guarded_unwrap_with_recovery(&kr, new_entropy).is_ok());
+        reset_auth_fail_count();
     }
 
     // ---- F6.6: brute-force protection (guarded functions) ----
+    static TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     #[test]
     fn lockout_after_max_failures() {
-        // Isolate: reset counter first
+        let _lock = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         reset_auth_fail_count();
         let (kr, _) = make_keyring();
         // 5 wrong password attempts
         for _ in 0..5 {
-            let _ = guarded_unwrap_with_password(&kr, "wrong-password-for-lockout");
+            let res = guarded_unwrap_with_password(&kr, "wrong-password-for-lockout");
+            assert!(res.is_err());
         }
-        // 6th attempt should be LockoutActive
+        // Fail count is now 5. Next attempt should be LockoutActive
         let res = guarded_unwrap_with_password(&kr, PASS);
         assert!(
             matches!(res, Err(CatermError::Vault(VaultError::LockoutActive))),
@@ -914,30 +1026,37 @@ mod tests {
         );
         // Reset clears lockout
         reset_auth_fail_count();
-        assert!(guarded_unwrap_with_password(&kr, PASS).is_ok(), "should work after reset");
+        assert!(
+            guarded_unwrap_with_password(&kr, PASS).is_ok(),
+            "should work after reset"
+        );
     }
 
     #[test]
     fn successful_auth_resets_counter() {
+        let _lock = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
         reset_auth_fail_count();
         let (kr, _) = make_keyring();
-        // 3 failures, then success — counter resets
+        // 3 failures
         for _ in 0..3 {
             let _ = guarded_unwrap_with_password(&kr, "wrong");
         }
-        assert!(guarded_unwrap_with_password(&kr, PASS).is_ok());
-        // Now 4 more failures — should NOT lock out (counter was reset by success)
+        // Success should reset counter to 0
+        let res = guarded_unwrap_with_password(&kr, PASS);
+        assert!(res.is_ok());
+        assert_eq!(AUTH_FAIL_COUNT.load(Ordering::Acquire), 0);
+        // Now 4 more failures — should NOT lock out
         for _ in 0..4 {
             let _ = guarded_unwrap_with_password(&kr, "wrong");
         }
-        // 5th from the new baseline → lockout
+        // 5th failure reaches threshold 5
         let _ = guarded_unwrap_with_password(&kr, "wrong");
         let res = guarded_unwrap_with_password(&kr, PASS);
         assert!(
             matches!(res, Err(CatermError::Vault(VaultError::LockoutActive))),
             "expected LockoutActive"
         );
-        reset_auth_fail_count(); // clean up for other tests
+        reset_auth_fail_count();
     }
 }
 
