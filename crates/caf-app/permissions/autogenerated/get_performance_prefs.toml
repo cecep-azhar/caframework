@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-get-performance-prefs"
+description = "Enables the get_performance_prefs command without any pre-configured scope."
+commands.allow = ["get_performance_prefs"]
+
+[[permission]]
+identifier = "deny-get-performance-prefs"
+description = "Denies the get_performance_prefs command without any pre-configured scope."
+commands.deny = ["get_performance_prefs"]

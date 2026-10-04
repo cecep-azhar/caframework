@@ -1,0 +1,3 @@
+# Genericity domain terms baseline
+# resolves-in: F2
+frontend/src/lib/i18n/locales/id.ts:72

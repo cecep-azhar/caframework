@@ -6,6 +6,7 @@ version = "0.1.0-dev"
 accent_color = "indigo"
 error_prefix = "CAF"
 description = "Privacy-first modular application starter framework"
+brand = "CAFramework"
 
 [window]
 title = "CAFramework"

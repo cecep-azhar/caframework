@@ -1,0 +1,27 @@
+# Hardcoded strings baseline
+# resolves-in: F15
+frontend/src/lib/components/AboutModal.svelte:91
+frontend/src/lib/components/FeedbackWidget.svelte:99
+frontend/src/lib/components/FeedbackWidget.svelte:100
+frontend/src/lib/components/FeedbackWidget.svelte:157
+frontend/src/lib/components/FeedbackWidget.svelte:202
+frontend/src/lib/components/FeedbackWidget.svelte:216
+frontend/src/lib/components/FeedbackWidget.svelte:232
+frontend/src/lib/components/LockScreen.svelte:497
+frontend/src/lib/components/LockScreen.svelte:511
+frontend/src/lib/components/CommandPalette.svelte:93
+frontend/src/lib/components/AiChatPanel.svelte:49
+frontend/src/lib/components/AiChatPanel.svelte:91
+frontend/src/routes/settings/+page.svelte:142
+frontend/src/routes/settings/+page.svelte:195
+frontend/src/routes/settings/+page.svelte:207
+frontend/src/routes/settings/+page.svelte:217
+frontend/src/routes/settings/+page.svelte:256
+frontend/src/routes/settings/+page.svelte:274
+frontend/src/routes/settings/+page.svelte:344
+frontend/src/routes/settings/+page.svelte:356
+frontend/src/routes/settings/+page.svelte:366
+frontend/src/routes/settings/+page.svelte:423
+frontend/src/routes/+layout.svelte:166
+frontend/src/routes/+layout.svelte:177
+frontend/src/routes/+page.svelte:241

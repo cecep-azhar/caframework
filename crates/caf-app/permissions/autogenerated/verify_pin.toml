@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-verify-pin"
+description = "Enables the verify_pin command without any pre-configured scope."
+commands.allow = ["verify_pin"]
+
+[[permission]]
+identifier = "deny-verify-pin"
+description = "Denies the verify_pin command without any pre-configured scope."
+commands.deny = ["verify_pin"]

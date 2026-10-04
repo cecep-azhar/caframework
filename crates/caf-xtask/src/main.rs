@@ -15,6 +15,9 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
+    /// Generate application icons from base SVG
+    GenerateIcons,
+
     /// Codegen frontend and Rust files from app.toml
     Codegen {
         #[arg(short, long, default_value = "app.toml")]
@@ -216,7 +219,13 @@ export const GENERATED_NAV_ITEMS: GeneratedNavItem[] = [
     Ok(())
 }
 
-fn run_new_app(
+fn run_generate_icons() -> Result<(), Box<dyn std::error::Error>> {
+    // Placeholder: In real implementation, invoke ImageMagick or similar to generate PNG/ICNS from app-icon.svg
+    println!("Generating icons from app-icon.svg (stub)");
+    Ok(())
+}
+
+
     config_path: &Path,
     out_dir: &Path,
     with_sample: bool,
