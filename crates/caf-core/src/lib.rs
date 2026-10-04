@@ -22,6 +22,8 @@
 )]
 
 pub mod ai;
+pub mod ai_context;
+pub mod ai_context_notes;
 pub mod api;
 pub mod audit;
 pub mod backup;
