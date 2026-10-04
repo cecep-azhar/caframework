@@ -12,10 +12,10 @@ Current plan: TASK_FIX.md
 | F4 | DONE | GREEN | Notes/evidence/fix/F4.md | - |
 | F5 | DONE | GREEN | Notes/evidence/fix/F5.md | - |
 | F6 | DONE | GREEN | Notes/evidence/fix/F6.md | 2026-10-04 |
-| F7 | IN_PROGRESS | - | Notes/evidence/fix/F7.md | - |
-| F8 | TODO | - | Notes/evidence/fix/F8.md | - |
-| F9 | TODO | - | Notes/evidence/fix/F9.md | - |
-| F10 | TODO | - | Notes/evidence/fix/F10.md | - |
+| F7 | DONE | GREEN | Notes/evidence/fix/F7.md | 2026-10-04 |
+| F8 | DONE | GREEN | Notes/evidence/fix/F8.md | 2026-10-04 |
+| F9 | DONE | GREEN | Notes/evidence/fix/F9.md | 2026-10-04 |
+| F10 | IN_PROGRESS | - | Notes/evidence/fix/F10.md | - |
 | F11 | TODO | - | Notes/evidence/fix/F11.md | - |
 | F12 | TODO | - | Notes/evidence/fix/F12.md | - |
 | F13 | TODO | - | Notes/evidence/fix/F13.md | - |
@@ -74,21 +74,21 @@ Current plan: TASK_FIX.md
 | F6.2 | DONE | F6.md#f62 | BIP-39 24-word recovery code |
 | F6.3 | DONE | F6.md#f63 | Master password change via DEK re-wrapping |
 | F6.4 | DONE | F6.md#f64 | Recovery code regeneration |
-| F7.1 | TODO | F7.md#f71 | Clean unused/phantom commands |
-| F7.2 | TODO | F7.md#f72 | Parameter & return type alignment |
-| F7.3 | TODO | F7.md#f73 | Policy classes and command metadata |
-| F7.4 | TODO | F7.md#f74 | Generated TypeScript bindings |
-| F7.5 | TODO | F7.md#f75 | Frontend API wrappers |
-| F7.6 | TODO | F7.md#f76 | IPC contract tests |
-| F8.1 | TODO | F8.md#f81 | SessionState in core |
-| F8.2 | TODO | F8.md#f82 | Remove caller_profile_id & is_owner from signatures |
-| F8.3 | TODO | F8.md#f83 | Capability & role checks in core |
-| F8.4 | TODO | F8.md#f84 | Super admin audit log for private access |
-| F8.5 | TODO | F8.md#f85 | Session expiry & activity tracking |
-| F9.1 | TODO | F9.md#f91 | Visibility filter in SQL queries |
-| F9.2 | TODO | F9.md#f92 | Notes visibility isolation |
-| F9.3 | TODO | F9.md#f93 | Row-level ownership checks |
-| F10.1 | TODO | F10.md#f101 | 2-level lock screen UI |
+| F7.1 | DONE | F7.md | Clean unused/phantom commands |
+| F7.2 | DONE | F7.md | Parameter & return type alignment |
+| F7.3 | DONE | F7.md | Policy classes and command metadata |
+| F7.4 | DONE | F7.md | Generated TypeScript bindings |
+| F7.5 | DONE | F7.md | Frontend API wrappers |
+| F7.6 | DONE | F7.md | IPC contract tests |
+| F8.1 | DONE | F8.md | SessionState in core |
+| F8.2 | DONE | F8.md | Remove caller_profile_id & is_owner from signatures |
+| F8.3 | DONE | F8.md | Capability & role checks in core |
+| F8.4 | DONE | F8.md | Super admin audit log for private access |
+| F8.5 | DONE | F8.md | Session expiry & activity tracking |
+| F9.1 | DONE | F9.md | Visibility filter in SQL queries |
+| F9.2 | DONE | F9.md | Notes visibility isolation |
+| F9.3 | DONE | F9.md | Row-level ownership checks |
+| F10.1 | IN_PROGRESS | F10.md | 2-level lock screen UI |
 | F10.2 | TODO | F10.md#f102 | Profile picker with public metadata |
 | F10.3 | TODO | F10.md#f103 | PIN pad input component |
 | F10.4 | TODO | F10.md#f104 | Recovery code unlock flow |

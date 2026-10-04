@@ -21,7 +21,9 @@ impl Permission {
         if self.resource == "*" && self.action == "*" {
             return true;
         }
-        if self.resource == required.resource && (self.action == "*" || self.action == required.action) {
+        if self.resource == required.resource
+            && (self.action == "*" || self.action == required.action)
+        {
             return true;
         }
         false
