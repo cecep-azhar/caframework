@@ -24,8 +24,8 @@ Current plan: TASK_FIX.md
 | F16 | DONE | GREEN | Notes/evidence/fix/F16.md | Notes slice complete with F9 visibility and CRUD |
 | F17 | DONE | GREEN | Notes/evidence/fix/F17.md | Open source hygiene, repository root files, docs set & publication plan |
 | F18 | DONE | GREEN | Notes/evidence/fix/F18.md | new-app generator scaffolding & E2E build verification |
-| F19 | IN_PROGRESS | - | Notes/evidence/fix/F19.md | - |
-| F20 | TODO | - | Notes/evidence/fix/F20.md | - |
+| F19 | DONE | GREEN | Notes/evidence/fix/F19.md | Android build architecture, signing guides & mobile layout specs |
+| F20 | IN_PROGRESS | - | Notes/evidence/fix/F20.md | - |
 
 ## Tasks
 | Task | Status | Evidence anchor | Note |
