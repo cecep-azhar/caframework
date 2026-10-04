@@ -11,8 +11,8 @@ Current plan: TASK_FIX.md
 | F3 | DONE | GREEN | Notes/evidence/fix/F3.md | - |
 | F4 | DONE | GREEN | Notes/evidence/fix/F4.md | - |
 | F5 | DONE | GREEN | Notes/evidence/fix/F5.md | - |
-| F6 | DONE | - | Notes/evidence/fix/F6.md | 2026-10-04 |
-| F7 | TODO | - | Notes/evidence/fix/F7.md | - |
+| F6 | DONE | GREEN | Notes/evidence/fix/F6.md | 2026-10-04 |
+| F7 | IN_PROGRESS | - | Notes/evidence/fix/F7.md | - |
 | F8 | TODO | - | Notes/evidence/fix/F8.md | - |
 | F9 | TODO | - | Notes/evidence/fix/F9.md | - |
 | F10 | TODO | - | Notes/evidence/fix/F10.md | - |
