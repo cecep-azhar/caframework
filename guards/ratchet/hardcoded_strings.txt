@@ -21,6 +21,7 @@ frontend/src/routes/settings/+page.svelte:276
 frontend/src/routes/settings/+page.svelte:346
 frontend/src/routes/settings/+page.svelte:358
 frontend/src/routes/settings/+page.svelte:368
+frontend/src/routes/settings/+page.svelte:413
 frontend/src/routes/settings/+page.svelte:425
 frontend/src/routes/+layout.svelte:166
 frontend/src/routes/+layout.svelte:177

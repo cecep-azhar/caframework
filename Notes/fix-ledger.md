@@ -19,8 +19,8 @@ Current plan: TASK_FIX.md
 | F11 | DONE | GREEN | Notes/evidence/fix/F11.md | 2026-10-04 |
 | F12 | DONE | GREEN | Notes/evidence/fix/F12.md | 2026-10-04 |
 | F13 | DONE | GREEN | Notes/evidence/fix/F13.md | 2026-10-04 |
-| F14 | IN_PROGRESS | - | Notes/evidence/fix/F14.md | - |
-| F15 | TODO | - | Notes/evidence/fix/F15.md | - |
+| F14 | DONE | GREEN | Notes/evidence/fix/F14.md | 2026-10-04 |
+| F15 | IN_PROGRESS | - | Notes/evidence/fix/F15.md | - |
 | F16 | TODO | - | Notes/evidence/fix/F16.md | - |
 | F17 | TODO | - | Notes/evidence/fix/F17.md | - |
 | F18 | TODO | - | Notes/evidence/fix/F18.md | - |
@@ -104,13 +104,13 @@ Current plan: TASK_FIX.md
 | F13.1 | DONE | F13.md#f131 | AI provider abstraction |
 | F13.2 | DONE | F13.md#f132 | AI privacy levels & context scrubber |
 | F13.3 | DONE | F13.md#f133 | AI UI chat rendering |
-| F14.1 | TODO | F14.md#f141 | TitleBar with window controls |
-| F14.2 | TODO | F14.md#f142 | Responsive navigation drawer |
-| F14.3 | TODO | F14.md#f143 | Dynamic dark/light theme |
-| F14.4 | TODO | F14.md#f144 | Dynamic accent color system |
-| F14.5 | TODO | F14.md#f145 | PageContainer & state components |
-| F14.6 | TODO | F14.md#f146 | Settings registry |
-| F15.1 | TODO | F15.md#f151 | Complete i18n dictionaries |
+| F14.1 | DONE | F14.md | TitleBar with window controls |
+| F14.2 | DONE | F14.md | Responsive navigation drawer |
+| F14.3 | DONE | F14.md | Dynamic dark/light theme |
+| F14.4 | DONE | F14.md | Dynamic accent color system |
+| F14.5 | DONE | F14.md | PageContainer & state components |
+| F14.6 | DONE | F14.md | Settings registry |
+| F15.1 | IN_PROGRESS | F15.md#f151 | Complete i18n dictionaries |
 | F15.2 | TODO | F15.md#f152 | Type-safe t() helper |
 | F15.3 | TODO | F15.md#f153 | Locale formatters |
 | F16.1 | TODO | F16.md#f161 | Notes CRUD completion |
