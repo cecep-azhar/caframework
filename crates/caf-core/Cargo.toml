@@ -48,3 +48,5 @@ rusqlite = { version = "0.32", features = ["bundled-sqlcipher-vendored-openssl"]
 
 [dev-dependencies]
 serde_json.workspace = true
+tempfile = "3.10"
+
