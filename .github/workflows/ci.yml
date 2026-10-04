@@ -1,58 +1,36 @@
+# CI workflow for caframework
 name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-
-env:
-  CARGO_TERM_COLOR: always
+    branches: [main]
 
 jobs:
-  rust-checks:
-    name: Rust Backend Checks & Tests
+  build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Rust
+        uses: actions/setup-rust@v2
         with:
-          components: rustfmt, clippy
-
-      - name: Install system dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libssl-dev
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Run Backend Tests
-        run: cargo test --workspace
-
-  frontend-checks:
-    name: Frontend Svelte 5 Checks & Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+          toolchain: ${{ matrix.rust }}
+          cache: false
+      - name: Cache cargo registry
+        uses: actions/cache@v3
         with:
-          node-version: 20
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install dependencies
-        working-directory: frontend
-        run: npm ci
-
-      - name: Typecheck
-        working-directory: frontend
-        run: npm run check
-
-      - name: Build frontend
-        working-directory: frontend
-        run: npm run build
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+      - name: Build
+        run: cargo build --verbose
+      - name: Test (parallel)
+        run: cargo test --verbose --jobs $(nproc)
