@@ -37,11 +37,18 @@ pub fn submit_feedback(
         "content": content.trim(),
     });
 
-    if let Some(n) = name.map(str::trim).filter(|s| !s.is_empty()) {
-        payload["name"] = serde_json::Value::String(n.to_string());
+    if let Some(n) = name.map(str::trim).filter(|s| !s.is_empty())
+        && let Some(map) = payload.as_object_mut()
+    {
+        map.insert("name".to_string(), serde_json::Value::String(n.to_string()));
     }
-    if let Some(p) = profession.map(str::trim).filter(|s| !s.is_empty()) {
-        payload["profession"] = serde_json::Value::String(p.to_string());
+    if let Some(p) = profession.map(str::trim).filter(|s| !s.is_empty())
+        && let Some(map) = payload.as_object_mut()
+    {
+        map.insert(
+            "profession".to_string(),
+            serde_json::Value::String(p.to_string()),
+        );
     }
 
     let agent = ureq::Agent::new_with_defaults();

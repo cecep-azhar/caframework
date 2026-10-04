@@ -1,0 +1,170 @@
+crates/caf-core/src/ai.rs:5:use crate::error::{AiError, CatermError, DbError};
+crates/caf-core/src/ai.rs:60:pub fn get_settings() -> Result<AiSettings, CatermError> {
+crates/caf-core/src/ai.rs:79:pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
+crates/caf-core/src/ai.rs:82:        .map_err(|e| CatermError::Ai(AiError::Generic(e.to_string())))?;
+crates/caf-core/src/ai.rs:88:    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/ai.rs:116:pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, CatermError> {
+crates/caf-core/src/ai.rs:168:            CatermError::Ai(AiError::Generic(format!("Ollama request failed: {e}")))
+crates/caf-core/src/ai.rs:172:            CatermError::Ai(AiError::Generic(format!(
+crates/caf-core/src/ai.rs:207:        .map_err(|e| CatermError::Ai(AiError::Generic(format!("AI request failed: {e}"))))?;
+crates/caf-core/src/ai.rs:212:        .map_err(|e| CatermError::Ai(AiError::Generic(format!("AI response parse failed: {e}"))))?;
+crates/caf-core/src/audit.rs:1:use crate::error::{CatermError, DbError};
+crates/caf-core/src/audit.rs:40:) -> Result<(), CatermError> {
+crates/caf-core/src/audit.rs:50:    .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to log event: {e}"))))?;
+crates/caf-core/src/audit.rs:59:) -> Result<Vec<CommandLog>, CatermError> {
+crates/caf-core/src/audit.rs:84:        .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to prepare query: {e}"))))?;
+crates/caf-core/src/audit.rs:96:        .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to query logs: {e}"))))?
+crates/caf-core/src/audit.rs:98:        .map_err(|e| CatermError::Db(DbError::Generic(format!("Row read error: {e}"))))?;
+crates/caf-core/src/backup.rs:4:use crate::error::{CatermError, VaultError};
+crates/caf-core/src/backup.rs:17:pub fn export_backup(passphrase: &str) -> Result<Vec<u8>, CatermError> {
+crates/caf-core/src/backup.rs:19:        return Err(CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/backup.rs:41:        .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
+crates/caf-core/src/backup.rs:45:        .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
+crates/caf-core/src/backup.rs:50:        .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
+crates/caf-core/src/backup.rs:56:pub fn import_backup(data: &[u8], passphrase: &str) -> Result<(), CatermError> {
+crates/caf-core/src/backup.rs:58:        CatermError::Vault(VaultError::Generic(format!("Invalid backup data: {e}")))
+crates/caf-core/src/backup.rs:63:        .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
+crates/caf-core/src/backup.rs:68:        .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
+crates/caf-core/src/backup.rs:71:        .map_err(|_| CatermError::Vault(VaultError::Generic("Password backup salah.".into())))?;
+crates/caf-core/src/backup.rs:74:        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("Corrupt backup: {e}"))))?;
+crates/caf-core/src/crash.rs:13:use crate::error::{CatermError, IoError, ValidationError};
+crates/caf-core/src/crash.rs:41:fn save_prefs(dir: &Path, prefs: &CrashReportingPrefs) -> Result<(), CatermError> {
+crates/caf-core/src/crash.rs:43:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs dir: {e}"))))?;
+crates/caf-core/src/crash.rs:45:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs encode: {e}"))))?;
+crates/caf-core/src/crash.rs:47:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs write: {e}"))))
+crates/caf-core/src/crash.rs:97:fn try_record_panic(info: &std::panic::PanicHookInfo<'_>) -> Result<(), CatermError> {
+crates/caf-core/src/crash.rs:104:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dumps dir: {e}"))))?;
+crates/caf-core/src/crash.rs:130:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump encode: {e}"))))?;
+crates/caf-core/src/crash.rs:146:fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CatermError> {
+crates/caf-core/src/crash.rs:155:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump open: {e}"))))?;
+crates/caf-core/src/crash.rs:157:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump write: {e}"))))
+crates/caf-core/src/crash.rs:161:fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CatermError> {
+crates/caf-core/src/crash.rs:163:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump write: {e}"))))
+crates/caf-core/src/crash.rs:318:fn dump_path(dumps_dir: &Path, id: &str) -> Result<PathBuf, CatermError> {
+crates/caf-core/src/crash.rs:320:        return Err(CatermError::Validation(ValidationError::Generic(
+crates/caf-core/src/crash.rs:356:pub fn pending_crash_report() -> Result<Option<ScrubbedCrashReport>, CatermError> {
+crates/caf-core/src/crash.rs:405:pub fn submit_crash_report(id: &str) -> Result<(), CatermError> {
+crates/caf-core/src/crash.rs:410:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump not found: {e}"))))?;
+crates/caf-core/src/crash.rs:412:        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump corrupt: {e}"))))?;
+crates/caf-core/src/crash.rs:422:            CatermError::Io(IoError::Generic(format!(
+crates/caf-core/src/crash.rs:430:        return Err(CatermError::Io(IoError::Generic(format!(
+crates/caf-core/src/crash.rs:442:pub fn dismiss_crash_report(id: &str, never_again: bool) -> Result<(), CatermError> {
+crates/caf-core/src/db.rs:4:use crate::error::{CatermError, DbError};
+crates/caf-core/src/db.rs:10:pub fn open_encrypted(data_dir: &Path, passphrase: &str) -> Result<Connection, CatermError> {
+crates/caf-core/src/db.rs:12:        CatermError::Db(DbError::Generic(format!("failed to create data dir: {e}")))
+crates/caf-core/src/db.rs:23:                        CatermError::Db(DbError::Generic(format!(
+crates/caf-core/src/db.rs:50:fn open_keyed(db_path: &Path, key_literal: &str) -> Result<Connection, CatermError> {
+crates/caf-core/src/db.rs:52:        .map_err(|e| CatermError::Db(DbError::Generic(format!("failed to open database: {e}"))))?;
+crates/caf-core/src/db.rs:57:    .map_err(|e| CatermError::Db(DbError::Generic(format!("failed to set vault key: {e}"))))?;
+crates/caf-core/src/db.rs:61:            CatermError::Db(DbError::Generic(
+crates/caf-core/src/db.rs:69:pub fn init_schema(conn: &Connection) -> Result<(), CatermError> {
+crates/caf-core/src/db.rs:126:        CatermError::Db(DbError::Generic(format!(
+crates/caf-core/src/db.rs:135:pub fn open() -> Result<Connection, CatermError> {
+crates/caf-core/src/error.rs:118:pub type CatermError = CafError;
+crates/caf-core/src/feedback.rs:6://! proxy accepted it, a non-2xx surfaces a human-readable error via `CatermError`.
+crates/caf-core/src/feedback.rs:8:use crate::error::{CatermError, IoError};
+crates/caf-core/src/feedback.rs:23:) -> Result<(), CatermError> {
+crates/caf-core/src/feedback.rs:25:        return Err(CatermError::Io(IoError::Generic(
+crates/caf-core/src/feedback.rs:30:        return Err(CatermError::Io(IoError::Generic(
+crates/caf-core/src/feedback.rs:53:            CatermError::Io(IoError::Generic(format!("Failed to submit feedback: {e}")))
+crates/caf-core/src/feedback.rs:59:        return Err(CatermError::Io(IoError::Generic(format!(
+crates/caf-core/src/lib.rs:39:pub use error::{CafError, CatermError};
+crates/caf-core/src/notes.rs:4:use crate::error::{CatermError, DbError};
+crates/caf-core/src/notes.rs:34:pub fn list_notes(caller_profile_id: &str, is_owner: bool) -> Result<Vec<NoteRecord>, CatermError> {
+crates/caf-core/src/notes.rs:43:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:63:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:67:        let note = row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:79:pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord, CatermError> {
+crates/caf-core/src/notes.rs:83:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:98:            .map_err(|e| CatermError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
+crates/caf-core/src/notes.rs:105:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:128:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:158:    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:161:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:178:pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CatermError> {
+crates/caf-core/src/notes.rs:182:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:193:        .map_err(|e| CatermError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
+crates/caf-core/src/notes.rs:200:    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:217:    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/notes.rs:220:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/paths.rs:3:use crate::error::{CatermError, IoError};
+crates/caf-core/src/paths.rs:29:fn portable_marker_present() -> Result<bool, CatermError> {
+crates/caf-core/src/paths.rs:31:        .map_err(|e| CatermError::Io(IoError::Generic(format!("current_exe failed: {e}"))))?;
+crates/caf-core/src/paths.rs:38:pub fn resolve_data_dir() -> Result<DataDirInfo, CatermError> {
+crates/caf-core/src/paths.rs:43:pub fn data_dir() -> Result<PathBuf, CatermError> {
+crates/caf-core/src/paths.rs:47:fn resolve_data_dir_with(env_override: Option<&str>) -> Result<DataDirInfo, CatermError> {
+crates/caf-core/src/paths.rs:63:        CatermError::Io(IoError::Generic(
+crates/caf-core/src/paths.rs:81:pub fn device_id() -> Result<String, CatermError> {
+crates/caf-core/src/paths.rs:86:            CatermError::Io(IoError::Generic(format!("failed to read device id: {e}")))
+crates/caf-core/src/paths.rs:95:        CatermError::Io(IoError::Generic(format!("failed to create data dir: {e}")))
+crates/caf-core/src/paths.rs:100:        CatermError::Io(IoError::Generic(format!("failed to write device id: {e}")))
+crates/caf-core/src/prefs.rs:7:use crate::error::{CatermError, IoError};
+crates/caf-core/src/prefs.rs:43:pub fn load_performance_prefs() -> Result<PerformancePrefs, CatermError> {
+crates/caf-core/src/prefs.rs:48:pub fn save_performance_prefs(prefs: &PerformancePrefs) -> Result<(), CatermError> {
+crates/caf-core/src/prefs.rs:59:fn save_to(dir: &Path, prefs: &PerformancePrefs) -> Result<(), CatermError> {
+crates/caf-core/src/prefs.rs:61:        .map_err(|e| CatermError::Io(IoError::Generic(format!("create data dir: {e}"))))?;
+crates/caf-core/src/prefs.rs:63:        .map_err(|e| CatermError::Io(IoError::Generic(format!("serialize prefs: {e}"))))?;
+crates/caf-core/src/prefs.rs:65:        .map_err(|e| CatermError::Io(IoError::Generic(format!("write {FILE_NAME}: {e}"))))
+crates/caf-core/src/pro.rs:3:use crate::error::CatermError;
+crates/caf-core/src/pro.rs:14:pub fn get_pro_status() -> Result<ProStatus, CatermError> {
+crates/caf-core/src/profiles.rs:4:use crate::error::{AuthError, CatermError, DbError};
+crates/caf-core/src/profiles.rs:40:pub fn list_profiles() -> Result<Vec<ProfileRecord>, CatermError> {
+crates/caf-core/src/profiles.rs:49:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:72:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:76:        list.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
+crates/caf-core/src/profiles.rs:85:) -> Result<ProfileRecord, CatermError> {
+crates/caf-core/src/profiles.rs:89:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:102:                        CatermError::Auth(AuthError::Generic(format!("PIN hash failed: {e}")))
+crates/caf-core/src/profiles.rs:120:            .map_err(|e| CatermError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
+crates/caf-core/src/profiles.rs:129:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:151:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:157:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:181:pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CatermError> {
+crates/caf-core/src/profiles.rs:189:        .map_err(|e| CatermError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
+crates/caf-core/src/profiles.rs:200:        .map_err(|e| CatermError::Auth(AuthError::Generic(format!("Corrupt PIN hash: {e}"))))?;
+crates/caf-core/src/profiles.rs:206:pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CatermError> {
+crates/caf-core/src/profiles.rs:214:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:237:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:241:            CatermError::Db(DbError::Generic(e.to_string()))
+crates/caf-core/src/profiles.rs:248:pub fn delete_profile(id: &str, caller_profile_id: &str) -> Result<(), CatermError> {
+crates/caf-core/src/profiles.rs:252:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:259:    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/profiles.rs:262:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/secret.rs:9:use crate::error::{CatermError, VaultError};
+crates/caf-core/src/secret.rs:27:pub fn encrypt(local_key_hex: &str, plaintext: &str) -> Result<String, CatermError> {
+crates/caf-core/src/secret.rs:30:        CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/secret.rs:36:        CatermError::Vault(VaultError::Generic(format!("gagal enkripsi secret: {e}")))
+crates/caf-core/src/secret.rs:49:pub fn encrypt_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<String, CatermError> {
+crates/caf-core/src/secret.rs:51:        CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/secret.rs:57:        CatermError::Vault(VaultError::Generic(format!("gagal enkripsi secret: {e}")))
+crates/caf-core/src/secret.rs:69:pub fn decrypt_bytes(key: &[u8; 32], encoded: &str) -> Result<Vec<u8>, CatermError> {
+crates/caf-core/src/secret.rs:72:        .ok_or_else(|| CatermError::Vault(VaultError::Generic("unknown secret format".into())))?;
+crates/caf-core/src/secret.rs:76:            CatermError::Vault(VaultError::Generic(format!("corrupt secret (base64): {e}")))
+crates/caf-core/src/secret.rs:79:        return Err(CatermError::Vault(VaultError::Generic(
+crates/caf-core/src/secret.rs:85:        CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/secret.rs:92:            CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/secret.rs:97:pub fn decrypt(local_key_hex: &str, encoded: &str) -> Result<String, CatermError> {
+crates/caf-core/src/secret.rs:100:        .ok_or_else(|| CatermError::Vault(VaultError::Generic("unknown secret format".into())))?;
+crates/caf-core/src/secret.rs:104:            CatermError::Vault(VaultError::Generic(format!("secret rusak (base64): {e}")))
+crates/caf-core/src/secret.rs:107:        return Err(CatermError::Vault(VaultError::Generic(
+crates/caf-core/src/secret.rs:114:        CatermError::Vault(VaultError::Generic(format!(
+crates/caf-core/src/secret.rs:121:            CatermError::Vault(VaultError::Generic(format!("gagal dekripsi secret: {e}")))
+crates/caf-core/src/secret.rs:124:        .map_err(|e| CatermError::Vault(VaultError::Generic(format!("secret bukan utf-8: {e}"))))
+crates/caf-core/src/vault.rs:3:use crate::error::{CatermError, DbError, VaultError};
+crates/caf-core/src/vault.rs:25:fn vault_err(msg: impl Into<String>) -> CatermError {
+crates/caf-core/src/vault.rs:26:    CatermError::Vault(VaultError::Generic(msg.into()))
+crates/caf-core/src/vault.rs:29:pub fn is_unlocked() -> Result<bool, CatermError> {
+crates/caf-core/src/vault.rs:34:pub fn ensure_unlocked_key() -> Result<String, CatermError> {
+crates/caf-core/src/vault.rs:44:pub fn is_vault_initialized() -> Result<bool, CatermError> {
+crates/caf-core/src/vault.rs:56:pub fn reset_vault() -> Result<(), CatermError> {
+crates/caf-core/src/vault.rs:86:fn check_password_len(password: &str) -> Result<(), CatermError> {
+crates/caf-core/src/vault.rs:95:fn derive_key(master_password: &str, salt: &[u8]) -> Result<[u8; 32], CatermError> {
+crates/caf-core/src/vault.rs:109:fn load_or_create_salt(data_dir: &std::path::Path) -> Result<[u8; SALT_LEN], CatermError> {
+crates/caf-core/src/vault.rs:124:fn verify_canary(key: &[u8; 32], canary_path: &std::path::Path) -> Result<(), CatermError> {
+crates/caf-core/src/vault.rs:136:pub fn validate_password(password: &str) -> Result<bool, CatermError> {
+crates/caf-core/src/vault.rs:172:pub fn change_master_password(old_pass: &str, new_pass: &str) -> Result<(), CatermError> {
+crates/caf-core/src/vault.rs:192:        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+crates/caf-core/src/vault.rs:206:pub fn load_or_create_local_key(data_dir: &std::path::Path) -> Result<String, CatermError> {
+crates/caf-core/tests/error_codes_unique.rs:19:    let codes: Vec<&'static str> = caf_core::CatermError::all_known_for_registry()
+crates/caf-core/tests/error_codes_unique.rs:21:        .map(caf_core::CatermError::code)
+crates/caf-core/tests/error_codes_unique.rs:33:    let generated = caf_core::CatermError::generate_registry_markdown();

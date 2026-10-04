@@ -12,7 +12,7 @@ name = "caframeworkctl"
 path = "src/main.rs"
 
 [dependencies]
-caf-core = { path = "../caf-core" }
+caf-core = { path = "../caf-core", version = "=0.1.0-dev" }
 clap.workspace = true
 serde.workspace = true
 serde_json.workspace = true

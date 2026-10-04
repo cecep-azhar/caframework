@@ -1,0 +1,28 @@
+Finding:     let key = "[1;3;m0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef[0m"
+Secret:      [1;3;m0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef[0m
+RuleID:      generic-api-key
+Entropy:     4.000000
+File:        crates/caf-core/src/db.rs
+Line:        148
+Commit:      9a7b516532f75ff9723552670fd55e2f2508bf2d
+Author:      Cecep Saeful Azhar Hidayat, ST
+Email:       122300501+cecep-azhar@users.noreply.github.com
+Date:        2026-10-01T16:00:11Z
+Fingerprint: 9a7b516532f75ff9723552670fd55e2f2508bf2d:crates/caf-core/src/db.rs:generic-api-key:148
+Link:        https://github.com/cecep-azhar/caframework/blob/9a7b516532f75ff9723552670fd55e2f2508bf2d/crates/caf-core/src/db.rs#L148
+
+Finding:     [1;3;m-----BEGIN OPENSSH PRIVATE KEY-----\nabc123\n-----END OPENSSH PRIVATE KEY-----\n\[0m
+[1;3;m                  ...[0m                                                            \nabc123"),
+Secret:      [1;3;m-----BEGIN OPENSSH PRIVATE KEY-----\nabc123\n-----END OPENSSH PRIVATE KEY-----\n\[0m
+[1;3;m                  ...[0m                                                            
+RuleID:      private-key
+Entropy:     4.699192
+File:        crates/caf-core/src/crash.rs
+Line:        474
+Commit:      67d5643bfc717f3a60a68ee766294de8c038446b
+Author:      Cecep Saeful Azhar Hidayat, ST
+Email:       122300501+cecep-azhar@users.noreply.github.com
+Date:        2026-10-01T15:44:36Z
+Fingerprint: 67d5643bfc717f3a60a68ee766294de8c038446b:crates/caf-core/src/crash.rs:private-key:474
+Link:        https://github.com/cecep-azhar/caframework/blob/67d5643bfc717f3a60a68ee766294de8c038446b/crates/caf-core/src/crash.rs#L474-L497
+

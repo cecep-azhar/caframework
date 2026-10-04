@@ -133,8 +133,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if ok {
                     println!("Vault unlocked successfully.");
                 } else {
-                    eprintln!("Invalid master password.");
-                    std::process::exit(1);
+                    return Err("Invalid master password.".into());
                 }
             }
             VaultAction::Lock => {

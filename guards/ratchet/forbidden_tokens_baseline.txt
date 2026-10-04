@@ -1,0 +1,75 @@
+crates/caf-app/src/window.rs:40:/// app (dropping every SSH session and locking the vault), Ctrl+P opens a print dialog, Ctrl+F
+crates/caf-app/src/window.rs:79:    /// immediate. SSH sessions keep running either way — this only trims caches.
+crates/caf-app/src/window.rs:149:    /// immediate. SSH sessions keep running either way; this only trims caches.
+crates/caf-core/src/crash.rs:171:/// (`audit::mask_secrets`, `s3`, `webdav`): a missing redaction is a bug to fix, never a reason
+crates/caf-core/src/crash.rs:469:        let raw = "panic at /home/cecepazhar/Project/caframework/crates/caf-core/src/ssh.rs:412\n\
+crates/caf-core/src/crash.rs:471:                   key_path: /home/cecepazhar/.ssh/id_ed25519\n\
+crates/caf-core/src/crash.rs:474:                   -----BEGIN OPENSSH PRIVATE KEY-----\nabc123\n-----END OPENSSH PRIVATE KEY-----\n\
+crates/caf-core/src/crash.rs:497:            !scrubbed.contains("BEGIN OPENSSH PRIVATE KEY-----\nabc123"),
+crates/caf-core/src/crash.rs:590:                "assertion failed: key_len == 32 at /home/{}/.ssh/id_ed25519",
+crates/caf-core/src/prefs.rs:21:    /// Max scrollback history lines stored in memory per terminal session.
+crates/caf-core/src/prefs.rs:23:    /// Sleep/throttle background inactive terminal sessions to reduce CPU usage.
+crates/caf-core/src/secret.rs:1://! At-rest encryption for host credentials (passwords, SSH key passphrases). This is an
+crates/caf-core/tests/arch.rs:242:/// is how `ssh_read` (blank terminal) and `list_remote_dir` (dead SFTP panel) shipped broken in
+docker-compose.test.yml:4:  openssh-server:
+docker-compose.test.yml:5:    image: lscr.io/linuxserver/openssh-server:latest
+docker-compose.test.yml:6:    container_name: caframework-openssh-test
+flatpak/cargo-sources.json:2839:        "url": "https://static.crates.io/crates/is_terminal_polyfill/is_terminal_polyfill-1.70.2.crate",
+flatpak/cargo-sources.json:2841:        "dest": "cargo/vendor/is_terminal_polyfill-1.70.2"
+flatpak/cargo-sources.json:2846:        "dest": "cargo/vendor/is_terminal_polyfill-1.70.2",
+flatpak/cargo-sources.json:3268:        "url": "https://static.crates.io/crates/libssh2-sys/libssh2-sys-0.3.3.crate",
+flatpak/cargo-sources.json:3270:        "dest": "cargo/vendor/libssh2-sys-0.3.3"
+flatpak/cargo-sources.json:3275:        "dest": "cargo/vendor/libssh2-sys-0.3.3",
+flatpak/cargo-sources.json:5621:        "url": "https://static.crates.io/crates/ssh-cipher/ssh-cipher-0.2.0.crate",
+flatpak/cargo-sources.json:5623:        "dest": "cargo/vendor/ssh-cipher-0.2.0"
+flatpak/cargo-sources.json:5628:        "dest": "cargo/vendor/ssh-cipher-0.2.0",
+flatpak/cargo-sources.json:5634:        "url": "https://static.crates.io/crates/ssh-encoding/ssh-encoding-0.2.0.crate",
+flatpak/cargo-sources.json:5636:        "dest": "cargo/vendor/ssh-encoding-0.2.0"
+flatpak/cargo-sources.json:5641:        "dest": "cargo/vendor/ssh-encoding-0.2.0",
+flatpak/cargo-sources.json:5647:        "url": "https://static.crates.io/crates/ssh-key/ssh-key-0.6.7.crate",
+flatpak/cargo-sources.json:5649:        "dest": "cargo/vendor/ssh-key-0.6.7"
+flatpak/cargo-sources.json:5654:        "dest": "cargo/vendor/ssh-key-0.6.7",
+flatpak/cargo-sources.json:5660:        "url": "https://static.crates.io/crates/ssh2/ssh2-0.9.6.crate",
+flatpak/cargo-sources.json:5662:        "dest": "cargo/vendor/ssh2-0.9.6"
+flatpak/cargo-sources.json:5667:        "dest": "cargo/vendor/ssh2-0.9.6",
+flatpak/com.fathforce.caterm.desktop:5:Comment=Zero-Knowledge SSH Terminal & SFTP Client
+flatpak/com.fathforce.caterm.desktop:8:Terminal=false
+flatpak/com.fathforce.caterm.desktop:10:Keywords=SSH;Terminal;SFTP;
+flatpak/com.fathforce.caterm.metainfo.xml:7:  <summary>Zero-Knowledge SSH Terminal and SFTP Client</summary>
+flatpak/com.fathforce.caterm.metainfo.xml:10:      CAFramework is a secure, high-performance terminal and SFTP client powered by Rust and SQLite.
+flatpak/com.fathforce.caterm.yml:20:  # SQLite Vault Storage (Zero-Knowledge) & SFTP Sync
+flatpak/node-sources.json:511:        "contents": "8b6f3efba809ed09d490cd798f80ec3714ca7e3b\t{\"key\": \"make-fetch-happen:request-cache:https://registry.npmjs.org/lightningcss-freebsd-x64/-/lightningcss-freebsd-x64-1.32.0.tgz\", \"integrity\": \"sha512-JCTigedEksZk3tHTTthnMdVfGf61Fky8Ji2E4YjUTEQX14xiy/lTzXnu1vwiZe3bYe0q+SpsSH/CTeDXK6WHig==\", \"time\": 0, \"size\": 3856640, \"metadata\": {\"url\": \"https://registry.npmjs.org/lightningcss-freebsd-x64/-/lightningcss-freebsd-x64-1.32.0.tgz\", \"reqHeaders\": {}, \"resHeaders\": {}}}",
+frontend/src/lib/api/vault.ts:19:/** Zeroizes the in-memory vault key and stops tunnels. The next unlock re-derives it. */
+frontend/src/lib/components/PageContainer.svelte:3:    /** Skip internal padding — use for full-bleed layouts like terminal grid */
+frontend/src/lib/components/ProfileAvatar.svelte:10:    { id: 'terminal', label: 'Terminal', from: '#525252', to: '#171717' },
+frontend/src/lib/components/ProfileAvatar.svelte:81:      {:else if preset.id === 'terminal'}
+frontend/src/lib/nav.ts:4: * Navigates to the Session route asking it to open a terminal for each host.
+frontend/src/lib/shortcuts.ts:4:// Rules that keep the terminal usable: plain Ctrl+<letter> belongs to the shell (Ctrl+C, Ctrl+D,
+frontend/src/lib/shortcuts.ts:5:// Ctrl+K, Ctrl+W, …), so app shortcuts that must work while a terminal has focus use Ctrl+Shift,
+frontend/src/lib/shortcuts.ts:6:// Ctrl+digit, Ctrl+Tab or Ctrl+comma. Ctrl+K opens the palette everywhere *except* in a terminal.
+frontend/src/lib/shortcuts.ts:25:/** True when the key event comes from xterm's hidden textarea. */
+frontend/src/lib/shortcuts.ts:26:export function isTerminalTarget(target: EventTarget | null): boolean {
+frontend/src/lib/shortcuts.ts:27:  return target instanceof Element && target.closest('.xterm') !== null;
+frontend/src/lib/shortcuts.ts:30:/** An element where typing text is the point (inputs, editors) — not the terminal. */
+frontend/src/lib/shortcuts.ts:33:  if (isTerminalTarget(target)) return false;
+frontend/src/lib/shortcuts.ts:61:  if (key === 'k') return isTerminalTarget(e.target) ? null : { type: 'palette' };
+frontend/src/lib/shortcuts.ts:72:/** Keys the terminal pane handles itself (they only make sense with a terminal focused). */
+frontend/src/lib/shortcuts.ts:73:export type TerminalKeyAction = 'copy' | 'paste' | 'fontUp' | 'fontDown' | 'fontReset';
+frontend/src/lib/shortcuts.ts:75:export function terminalKeyAction(e: KeyboardEvent, hasSelection: boolean): TerminalKeyAction | null {
+frontend/src/lib/shortcuts.ts:125:    title: 'terminal',
+frontend/src/lib/shortcuts.ts:136:    title: 'sftp',
+frontend/src/lib/shortcuts.ts:138:      { label: 'sftpCopy', keys: [['F5']] },
+frontend/src/lib/shortcuts.ts:139:      { label: 'sftpNewFolder', keys: [['F7']] },
+frontend/src/lib/shortcuts.ts:140:      { label: 'sftpDelete', keys: [['F8'], ['Delete']] },
+frontend/src/lib/shortcuts.ts:141:      { label: 'sftpRename', keys: [['F2']] },
+frontend/src/lib/shortcuts.ts:142:      { label: 'sftpEdit', keys: [['F4']] }
+frontend/src/lib/stores/commandPalette.svelte.ts:2:// open a terminal; `all` (Ctrl+K / Ctrl+Shift+P) adds open sessions, pages and actions.
+frontend/src/lib/stores/theme.svelte.ts:3:// that paints its own colours in JavaScript — xterm.js being the one that matters: the
+frontend/src/lib/stores/theme.svelte.ts:4:// terminal stayed black in light mode because nothing ever told it the theme had changed.
+frontend/src/lib/stores/theme.svelte.ts:52: * xterm.js paints on a canvas and knows nothing about CSS, so it needs the palette handed to
+frontend/src/lib/stores/theme.svelte.ts:54: * stay recognisably the same terminal.
+frontend/src/lib/stores/theme.svelte.ts:56:export function terminalTheme(name: ThemeName) {
+snap/snapcraft.yaml:4:summary: Zero-Knowledge SSH Terminal & SFTP Client
+snap/snapcraft.yaml:6:  CAFramework is a secure, high-performance terminal and SFTP client powered by Rust
+snap/snapcraft.yaml:22:      - ssh-keys
+snap/snapcraft.yaml:23:      - ssh-public-keys

@@ -4,6 +4,13 @@
 
 use crate::error::{AiError, CatermError, DbError};
 use serde::{Deserialize, Serialize};
+use std::sync::LazyLock;
+
+static CARD_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
+    LazyLock::new(|| regex::Regex::new(r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b"));
+
+static EMAIL_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
+    LazyLock::new(|| regex::Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"));
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AiSettings {
@@ -67,10 +74,10 @@ pub fn get_settings() -> Result<AiSettings, CatermError> {
         )
         .ok();
 
-    if let Some(json_str) = row {
-        if let Ok(settings) = serde_json::from_str(&json_str) {
-            return Ok(settings);
-        }
+    if let Some(json_str) = row
+        && let Ok(settings) = serde_json::from_str(&json_str)
+    {
+        return Ok(settings);
     }
 
     Ok(AiSettings::default())
@@ -96,18 +103,19 @@ pub fn redact_context(text: &str) -> (String, usize) {
     let mut count = 0;
 
     // Redact 16-digit card / account numbers
-    let card_regex = regex::Regex::new(r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b").unwrap();
-    for mat in card_regex.find_iter(text) {
-        redacted = redacted.replace(mat.as_str(), "[REDACTED_ACCOUNT]");
-        count += 1;
+    if let Ok(card_regex) = CARD_REGEX.as_ref() {
+        for mat in card_regex.find_iter(text) {
+            redacted = redacted.replace(mat.as_str(), "[REDACTED_ACCOUNT]");
+            count += 1;
+        }
     }
 
     // Redact email addresses
-    let email_regex =
-        regex::Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b").unwrap();
-    for mat in email_regex.find_iter(text) {
-        redacted = redacted.replace(mat.as_str(), "[REDACTED_EMAIL]");
-        count += 1;
+    if let Ok(email_regex) = EMAIL_REGEX.as_ref() {
+        for mat in email_regex.find_iter(text) {
+            redacted = redacted.replace(mat.as_str(), "[REDACTED_EMAIL]");
+            count += 1;
+        }
     }
 
     (redacted, count)
@@ -242,6 +250,12 @@ mod tests {
         assert!(!redacted.contains("4111-2222-3333-4444"));
         assert!(redacted.contains("[REDACTED_EMAIL]"));
         assert!(redacted.contains("[REDACTED_ACCOUNT]"));
+    }
+
+    #[test]
+    fn test_regex_compilation() {
+        assert!(CARD_REGEX.is_ok(), "CARD_REGEX must compile");
+        assert!(EMAIL_REGEX.is_ok(), "EMAIL_REGEX must compile");
     }
 
     #[test]

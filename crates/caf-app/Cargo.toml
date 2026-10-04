@@ -15,7 +15,7 @@ crate-type = ["staticlib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-caf-core = { path = "../caf-core" }
+caf-core = { path = "../caf-core", version = "=0.1.0-dev" }
 tauri = { version = "2", features = [] }
 serde.workspace = true
 serde_json.workspace = true

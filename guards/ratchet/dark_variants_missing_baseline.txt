@@ -1,0 +1,13 @@
+src/routes/settings/+page.svelte
+src/routes/+layout.svelte
+src/routes/+page.svelte
+src/lib/components/Logo.svelte
+src/lib/components/OsIcon.svelte
+src/lib/components/ProfileAvatar.svelte
+src/lib/components/PageHeader.svelte
+src/lib/components/CommandPalette.svelte
+src/lib/components/AiChatPanel.svelte
+src/lib/components/GridFlowBackground.svelte
+src/lib/components/EmptyState.svelte
+src/lib/components/LoadingState.svelte
+src/lib/components/ErrorState.svelte
