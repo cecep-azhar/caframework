@@ -1,18 +1,16 @@
-//! Generic AI module for CAFramework.
-//! Supports BYO OpenAI-compatible endpoint, Ollama, Anthropic, or Hosted proxy.
-//! Includes privacy-mode data redaction and app-specific guardrails.
+//! Generic AI module for CAFramework (FR-7).
+//! Supports Off, BYO (OpenAI-compatible endpoints / Ollama / LM Studio), and Hosted modes.
+//! Provides privacy level scoping (Summary, Detailed, Full), context scrubbing, compiled guardrails,
+//! and secure API key management (keys are stored in vault and never returned to frontend).
 
 use crate::error::{AiError, CatermError, DbError};
 use serde::{Deserialize, Serialize};
-use std::sync::LazyLock;
+use ts_rs::TS;
 
-static CARD_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
-    LazyLock::new(|| regex::Regex::new(r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b"));
+pub const GUARDRAILS_TEXT: &str = include_str!("ai/guardrails.txt");
 
-static EMAIL_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
-    LazyLock::new(|| regex::Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"));
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
 #[serde(rename_all = "lowercase")]
 pub enum AiMode {
     #[default]
@@ -21,81 +19,126 @@ pub enum AiMode {
     Hosted,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
+#[serde(rename_all = "lowercase")]
+pub enum PrivacyLevel {
+    #[default]
+    Summary,
+    Detailed,
+    Full,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct AiSettings {
     #[serde(default)]
     pub mode: AiMode,
-    #[serde(default = "default_provider")]
-    pub provider: String,
+    #[serde(default = "default_base_url")]
+    pub base_url: String,
     #[serde(default = "default_model")]
     pub model: String,
-    #[serde(default)]
-    pub endpoint: String,
-    #[serde(default)]
-    pub api_key: String,
-    #[serde(default)]
-    pub privacy_redaction_enabled: bool,
     #[serde(default = "default_temperature")]
-    pub temperature: u8,
+    pub temperature: u8, // 0 - 200 (representing 0.0 - 2.0)
+    #[serde(default = "default_response_language")]
+    pub response_language: String, // "auto" | "id" | "en"
+    #[serde(default = "default_tone")]
+    pub tone: String, // "neutral" | "friendly" | "formal" | "concise"
+    #[serde(default)]
+    pub custom_instructions: String, // <= 2000 chars
+    #[serde(default)]
+    pub privacy_level_default: PrivacyLevel,
+    #[serde(default)]
+    pub allow_full_detail_for_local: bool,
+    #[serde(default)]
+    pub has_api_key: bool,
 }
 
-impl AiSettings {
-    pub fn validate(&self) -> Result<(), AiError> {
-        match self.mode {
-            AiMode::Off => Ok(()),
-            AiMode::Byo => {
-                if self.api_key.trim().is_empty() && self.provider != "ollama" {
-                    return Err(AiError::Generic("API key is required for BYO mode (except Ollama)".to_string()));
-                }
-                if self.endpoint.trim().is_empty() {
-                    return Err(AiError::Generic("Endpoint is required for BYO mode".to_string()));
-                }
-                Ok(())
-            }
-            AiMode::Hosted => {
-                if self.endpoint.is_empty() {
-                    return Err(AiError::Generic("Endpoint is required for Hosted mode".to_string()));
-                }
-                Ok(())
-            }
-        }
-    }
-}
-
-fn default_provider() -> String {
-    "openai".to_string()
+fn default_base_url() -> String {
+    "http://localhost:11434/v1".to_string()
 }
 
 fn default_model() -> String {
-    "gpt-4o-mini".to_string()
+    "llama3.2".to_string()
 }
 
 fn default_temperature() -> u8 {
     70
 }
 
+fn default_response_language() -> String {
+    "auto".to_string()
+}
+
+fn default_tone() -> String {
+    "neutral".to_string()
+}
+
 impl Default for AiSettings {
     fn default() -> Self {
         Self {
-            mode: AiMode::default(),
-            provider: default_provider(),
+            mode: AiMode::Off,
+            base_url: default_base_url(),
             model: default_model(),
-            endpoint: String::new(),
-            api_key: String::new(),
-            privacy_redaction_enabled: true,
             temperature: default_temperature(),
+            response_language: default_response_language(),
+            tone: default_tone(),
+            custom_instructions: String::new(),
+            privacy_level_default: PrivacyLevel::Summary,
+            allow_full_detail_for_local: false,
+            has_api_key: false,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+struct StoredAiConfig {
+    pub mode: AiMode,
+    pub base_url: String,
+    pub model: String,
+    pub temperature: u8,
+    pub response_language: String,
+    pub tone: String,
+    pub custom_instructions: String,
+    pub privacy_level_default: PrivacyLevel,
+    pub allow_full_detail_for_local: bool,
+    pub api_key: String,
+}
+
+impl From<StoredAiConfig> for AiSettings {
+    fn from(c: StoredAiConfig) -> Self {
+        Self {
+            mode: c.mode,
+            base_url: c.base_url,
+            model: c.model,
+            temperature: c.temperature,
+            response_language: c.response_language,
+            tone: c.tone,
+            custom_instructions: c.custom_instructions,
+            privacy_level_default: c.privacy_level_default,
+            allow_full_detail_for_local: c.allow_full_detail_for_local,
+            has_api_key: !c.api_key.trim().is_empty(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct AiChatResponse {
     pub message: String,
     pub redactions_applied: usize,
     pub tokens_used: Option<u32>,
 }
 
-pub fn get_settings() -> Result<AiSettings, CatermError> {
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ContextPayload {
+    pub level: PrivacyLevel,
+    pub content: String,
+    pub redacted_count: usize,
+}
+
+fn get_stored_config() -> Result<StoredAiConfig, CatermError> {
     let conn = crate::db::open()?;
     let row: Option<String> = conn
         .query_row(
@@ -106,29 +149,29 @@ pub fn get_settings() -> Result<AiSettings, CatermError> {
         .ok();
 
     if let Some(json_str) = row
-        && let Ok(settings) = serde_json::from_str(&json_str)
+        && let Ok(cfg) = serde_json::from_str::<StoredAiConfig>(&json_str)
     {
-        return Ok(settings);
+        return Ok(cfg);
     }
 
-    Ok(AiSettings::default())
+    Ok(StoredAiConfig {
+        mode: AiMode::Off,
+        base_url: default_base_url(),
+        model: default_model(),
+        temperature: default_temperature(),
+        response_language: default_response_language(),
+        tone: default_tone(),
+        custom_instructions: String::new(),
+        privacy_level_default: PrivacyLevel::Summary,
+        allow_full_detail_for_local: false,
+        api_key: String::new(),
+    })
 }
 
-pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
-    // Validate before saving
-    settings.validate().map_err(|e| CatermError::Ai(e))?;
-
-    // If switching modes, ensure key security
-    let mut settings_to_save = settings.clone();
-    
-    // Clear key if switching to Off
-    if settings_to_save.mode == AiMode::Off {
-        settings_to_save.api_key = String::new();
-    }
-
+fn save_stored_config(cfg: &StoredAiConfig) -> Result<(), CatermError> {
     let conn = crate::db::open()?;
-    let json_str = serde_json::to_string(&settings_to_save)
-        .map_err(|e| CatermError::Ai(AiError::Generic(e.to_string())))?;
+    let json_str =
+        serde_json::to_string(cfg).map_err(|e| CatermError::Ai(AiError::Generic(e.to_string())))?;
 
     conn.execute(
         "INSERT OR REPLACE INTO app_kv (key, value) VALUES ('ai_settings', ?1)",
@@ -139,128 +182,318 @@ pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
     Ok(())
 }
 
-/// Scrub sensitive PII details (names, raw numbers) if privacy redaction is enabled.
-pub fn redact_context(text: &str) -> (String, usize) {
-    let mut redacted = text.to_string();
-    let mut count = 0;
-
-    // Redact 16-digit card / account numbers
-    if let Ok(card_regex) = CARD_REGEX.as_ref() {
-        for mat in card_regex.find_iter(text) {
-            redacted = redacted.replace(mat.as_str(), "[REDACTED_ACCOUNT]");
-            count += 1;
-        }
-    }
-
-    // Redact email addresses
-    if let Ok(email_regex) = EMAIL_REGEX.as_ref() {
-        for mat in email_regex.find_iter(text) {
-            redacted = redacted.replace(mat.as_str(), "[REDACTED_EMAIL]");
-            count += 1;
-        }
-    }
-
-    (redacted, count)
+/// Helper to parse host from base_url without pulling external crates
+fn parse_host(url_str: &str) -> Option<String> {
+    let trimmed = url_str.trim();
+    let after_scheme = if let Some(idx) = trimmed.find("://") {
+        &trimmed[idx + 3..]
+    } else {
+        trimmed
+    };
+    let host_port = after_scheme.split('/').next().unwrap_or("");
+    let host = host_port.split(':').next().unwrap_or("").to_lowercase();
+    if host.is_empty() { None } else { Some(host) }
 }
 
-pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, CatermError> {
-    let settings = get_settings()?;
-    
-    if settings.mode == AiMode::Off {
-        return Err(CatermError::Ai(AiError::Generic("AI is disabled".to_string())));
+pub fn is_loopback(url_str: &str) -> bool {
+    if let Some(host) = parse_host(url_str) {
+        host == "localhost" || host == "127.0.0.1" || host == "::1" || host == "[::1]"
+    } else {
+        false
     }
-    
-    // Validate to ensure we don't proceed with bad settings
-    settings.validate().map_err(|e| CatermError::Ai(e))?;
+}
 
-    let (safe_context, redactions) = if settings.privacy_redaction_enabled {
-        if let Some(ctx) = context {
-            redact_context(ctx)
-        } else {
-            (String::new(), 0)
+pub fn get_settings() -> Result<AiSettings, CatermError> {
+    let cfg = get_stored_config()?;
+    Ok(cfg.into())
+}
+
+pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
+    // Validation
+    if settings.temperature > 200 {
+        return Err(CatermError::Validation(
+            crate::error::ValidationError::InvalidFormat,
+        ));
+    }
+    if settings.custom_instructions.len() > 2000 {
+        return Err(CatermError::Validation(
+            crate::error::ValidationError::InvalidFormat,
+        ));
+    }
+
+    let mut current = get_stored_config()?;
+
+    // If base_url changed to a different host, clear the stored api key
+    let old_host = parse_host(&current.base_url);
+    let new_host = parse_host(&settings.base_url);
+    if old_host != new_host {
+        current.api_key.clear();
+    }
+
+    current.mode = settings.mode.clone();
+    current.base_url = settings.base_url.clone();
+    current.model = settings.model.clone();
+    current.temperature = settings.temperature;
+    current.response_language = settings.response_language.clone();
+    current.tone = settings.tone.clone();
+    current.custom_instructions = settings.custom_instructions.clone();
+    current.privacy_level_default = settings.privacy_level_default.clone();
+    current.allow_full_detail_for_local = settings.allow_full_detail_for_local;
+
+    save_stored_config(&current)?;
+    Ok(())
+}
+
+pub fn set_ai_api_key(key: &str) -> Result<(), CatermError> {
+    let mut current = get_stored_config()?;
+    current.api_key = key.trim().to_string();
+    save_stored_config(&current)?;
+    Ok(())
+}
+
+pub fn clear_ai_api_key() -> Result<(), CatermError> {
+    let mut current = get_stored_config()?;
+    current.api_key.clear();
+    save_stored_config(&current)?;
+    Ok(())
+}
+
+/// Compose the AI system prompt following the strict order:
+/// Guardrails -> Framework format rules -> User custom instructions -> Context -> User message
+pub fn compose_prompt(
+    guardrails: &str,
+    tone: &str,
+    response_language: &str,
+    custom_instructions: &str,
+    context: &str,
+    user_prompt: &str,
+) -> (String, String) {
+    let mut system_builder = String::new();
+
+    // 1. Guardrail
+    system_builder.push_str(guardrails.trim());
+    system_builder.push_str("\n\n");
+
+    // 2. Framework format rules
+    system_builder.push_str("Framework Format Rules:\n");
+    system_builder.push_str(&format!("- Tone: {}\n", tone));
+    system_builder.push_str(&format!("- Response Language: {}\n", response_language));
+    system_builder.push_str("- Format responses cleanly using markdown when appropriate.\n\n");
+
+    // 3. User custom instructions
+    if !custom_instructions.trim().is_empty() {
+        system_builder.push_str("User Custom Instructions:\n");
+        system_builder.push_str(custom_instructions.trim());
+        system_builder.push_str("\n\n");
+    }
+
+    // 4. Context
+    if !context.trim().is_empty() {
+        system_builder.push_str("Context Data (Scrubbed):\n");
+        system_builder.push_str(context.trim());
+        system_builder.push_str("\n\n");
+    }
+
+    (system_builder.trim().to_string(), user_prompt.to_string())
+}
+
+/// Scrub PII using the central PII scrubber from pii.rs
+pub fn scrub_text(text: &str) -> (String, usize) {
+    let scrubber = crate::pii::PiiScrubber::new();
+    scrubber.scrub_text(text)
+}
+
+/// Build context for a given privacy level
+pub fn build_context(
+    session: &crate::session::Session,
+    level: &PrivacyLevel,
+    consent_given: bool,
+    allow_full_local: bool,
+    base_url: &str,
+) -> Result<ContextPayload, CatermError> {
+    match level {
+        PrivacyLevel::Summary => {
+            // Aggregate only: profile count, enabled modules, note count
+            let conn = crate::db::open()?;
+            let note_count: i64 = conn
+                .query_row("SELECT COUNT(*) FROM notes", [], |r| r.get(0))
+                .unwrap_or(0);
+            let profile_count: i64 = conn
+                .query_row("SELECT COUNT(*) FROM profiles", [], |r| r.get(0))
+                .unwrap_or(1);
+
+            let content = format!(
+                "Application Summary:\n- Active Profiles: {}\n- Total Notes: {}\n- Modules: Notes, AI",
+                profile_count, note_count
+            );
+            let (scrubbed, count) = scrub_text(&content);
+            Ok(ContextPayload {
+                level: PrivacyLevel::Summary,
+                content: scrubbed,
+                redacted_count: count,
+            })
         }
-    } else {
-        (context.unwrap_or("").to_string(), 0)
-    };
+        PrivacyLevel::Detailed => {
+            if !consent_given {
+                return Err(CatermError::Ai(AiError::ConsentRequired));
+            }
 
-    let url = if settings.provider == "ollama" {
-        let base = if settings.endpoint.is_empty() {
-            "http://localhost:11434"
-        } else {
-            &settings.endpoint
-        };
-        format!("{base}/api/generate")
-    } else {
-        let base = if settings.endpoint.is_empty() {
-            "https://api.openai.com/v1"
-        } else {
-            &settings.endpoint
-        };
-        format!("{base}/chat/completions")
-    };
+            let is_super = session.role == "super_admin";
+            let scope = crate::visibility::scope(&session.profile_id, is_super);
+            let conn = crate::db::open()?;
+            let query = format!(
+                "SELECT title, content FROM notes WHERE {} ORDER BY updated_at DESC LIMIT 10",
+                scope.sql_clause
+            );
+            let mut stmt = conn
+                .prepare(&query)
+                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+            let rows = stmt
+                .query_map([], |r| {
+                    let title: String = r.get(0)?;
+                    let content: String = r.get(1)?;
+                    Ok(format!("Note: {}\n{}", title, content))
+                })
+                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-    let system_guardrail = "You are an AI assistant within CAFramework desktop app. Keep responses helpful, objective, and concise. Never emit religious fatwas or bypass user privacy limits.";
+            let mut notes_text = String::new();
+            for r in rows {
+                if let Ok(entry) = r {
+                    notes_text.push_str(&entry);
+                    notes_text.push_str("\n\n");
+                }
+            }
 
-    if settings.provider == "ollama" {
-        let full_prompt =
-            format!("System: {system_guardrail}\nContext: {safe_context}\nUser: {prompt}");
-        let body = serde_json::json!({
-            "model": settings.model,
-            "prompt": full_prompt,
-            "stream": false
-        });
+            let (scrubbed, count) = scrub_text(&notes_text);
+            Ok(ContextPayload {
+                level: PrivacyLevel::Detailed,
+                content: scrubbed,
+                redacted_count: count,
+            })
+        }
+        PrivacyLevel::Full => {
+            if !allow_full_local || !is_loopback(base_url) {
+                return Err(CatermError::Ai(AiError::Generic(
+                    "Full privacy level only allowed for local loopback endpoints with allow_full_detail_for_local enabled".to_string(),
+                )));
+            }
 
-        let mut resp = ureq::post(&url).send_json(body).map_err(|e| {
-            CatermError::Ai(AiError::Generic(format!("Ollama request failed: {e}")))
-        })?;
+            let is_super = session.role == "super_admin";
+            let scope = crate::visibility::scope(&session.profile_id, is_super);
+            let conn = crate::db::open()?;
+            let query = format!(
+                "SELECT title, content FROM notes WHERE {} ORDER BY updated_at DESC LIMIT 20",
+                scope.sql_clause
+            );
+            let mut stmt = conn
+                .prepare(&query)
+                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+            let rows = stmt
+                .query_map([], |r| {
+                    let title: String = r.get(0)?;
+                    let content: String = r.get(1)?;
+                    Ok(format!("Note: {}\n{}", title, content))
+                })
+                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-        let json_val: serde_json::Value = resp.body_mut().read_json().map_err(|e| {
-            CatermError::Ai(AiError::Generic(format!(
-                "Ollama response parse failed: {e}"
-            )))
-        })?;
+            let mut notes_text = String::new();
+            for r in rows {
+                if let Ok(entry) = r {
+                    notes_text.push_str(&entry);
+                    notes_text.push_str("\n\n");
+                }
+            }
 
-        let text = json_val
-            .get("response")
-            .and_then(|v| v.as_str())
-            .unwrap_or("No response")
-            .to_string();
-        return Ok(AiChatResponse {
-            message: text,
-            redactions_applied: redactions,
-            tokens_used: None,
-        });
+            // In Full mode, still run basic scrubber for high sensitivity tokens
+            let (scrubbed, count) = scrub_text(&notes_text);
+            Ok(ContextPayload {
+                level: PrivacyLevel::Full,
+                content: scrubbed,
+                redacted_count: count,
+            })
+        }
+    }
+}
+
+pub fn chat(
+    session: &crate::session::Session,
+    prompt: &str,
+    privacy_level: Option<PrivacyLevel>,
+    consent_given: bool,
+) -> Result<AiChatResponse, CatermError> {
+    let cfg = get_stored_config()?;
+
+    if cfg.mode == AiMode::Off {
+        return Err(CatermError::Ai(AiError::Disabled));
     }
 
-    // OpenAI Compatible
+    if cfg.mode == AiMode::Hosted {
+        // Hosted requires modules.pro & valid license
+        let pro_status = crate::pro::get_pro_status()?;
+        if !pro_status.is_pro {
+            return Err(CatermError::Ai(AiError::QuotaExceeded));
+        }
+    }
+
+    let level = privacy_level.unwrap_or(cfg.privacy_level_default.clone());
+    let context_payload = build_context(
+        session,
+        &level,
+        consent_given,
+        cfg.allow_full_detail_for_local,
+        &cfg.base_url,
+    )?;
+
+    // Scrub user prompt
+    let (scrubbed_prompt, prompt_redactions) = scrub_text(prompt);
+    let total_redactions = context_payload.redacted_count + prompt_redactions;
+
+    let (system_msg, user_msg) = compose_prompt(
+        GUARDRAILS_TEXT,
+        &cfg.tone,
+        &cfg.response_language,
+        &cfg.custom_instructions,
+        &context_payload.content,
+        &scrubbed_prompt,
+    );
+
+    // Call OpenAI-compatible completions endpoint
+    let url = format!("{}/chat/completions", cfg.base_url.trim_end_matches('/'));
+
     let body = serde_json::json!({
-        "model": settings.model,
+        "model": cfg.model,
         "messages": [
-            {"role": "system", "content": system_guardrail},
-            {"role": "system", "content": format!("Data Context (Anonymised): {}", safe_context)},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
         ],
-        "temperature": (settings.temperature as f32) / 100.0
+        "temperature": (cfg.temperature as f32) / 100.0
     });
 
     let mut req = ureq::post(&url);
-    if !settings.api_key.is_empty() {
-        req = req.header("Authorization", &format!("Bearer {}", settings.api_key));
+    if !cfg.api_key.is_empty() {
+        req = req.header("Authorization", &format!("Bearer {}", cfg.api_key));
     }
 
-    let mut resp = req
-        .send_json(body)
-        .map_err(|e| CatermError::Ai(AiError::Generic(format!("AI request failed: {e}"))))?;
+    let mut resp = req.send_json(body).map_err(|e| match e {
+        ureq::Error::StatusCode(401) | ureq::Error::StatusCode(403) => {
+            CatermError::Ai(AiError::ApiKeyMissing)
+        }
+        ureq::Error::StatusCode(402) | ureq::Error::StatusCode(429) => {
+            CatermError::Ai(AiError::QuotaExceeded)
+        }
+        ureq::Error::StatusCode(_) => CatermError::Ai(AiError::ProviderUnavailable),
+        _ => CatermError::Ai(AiError::Timeout),
+    })?;
 
     let json_val: serde_json::Value = resp
         .body_mut()
         .read_json()
-        .map_err(|e| CatermError::Ai(AiError::Generic(format!("AI response parse failed: {e}"))))?;
+        .map_err(|_| CatermError::Ai(AiError::ProviderUnavailable))?;
 
     let text = json_val
         .pointer("/choices/0/message/content")
         .and_then(|v| v.as_str())
-        .unwrap_or("Tidak ada respon dari AI.")
+        .unwrap_or("")
         .to_string();
 
     let tokens = json_val
@@ -270,31 +503,14 @@ pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, Cater
 
     Ok(AiChatResponse {
         message: text,
-        redactions_applied: redactions,
+        redactions_applied: total_redactions,
         tokens_used: tokens,
     })
 }
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
-
-    #[test]
-    fn test_redaction_removes_emails_and_cards() {
-        let input = "Hubungi support@fathforce.com untuk tagihan 4111-2222-3333-4444 hari ini.";
-        let (redacted, count) = redact_context(input);
-        assert_eq!(count, 2);
-        assert!(!redacted.contains("support@fathforce.com"));
-        assert!(!redacted.contains("4111-2222-3333-4444"));
-        assert!(redacted.contains("[REDACTED_EMAIL]"));
-        assert!(redacted.contains("[REDACTED_ACCOUNT]"));
-    }
-
-    #[test]
-    fn test_regex_compilation() {
-        assert!(CARD_REGEX.is_ok(), "CARD_REGEX must compile");
-        assert!(EMAIL_REGEX.is_ok(), "EMAIL_REGEX must compile");
-    }
 
     #[test]
     fn test_ai_settings_save_and_get() {
@@ -303,43 +519,104 @@ mod tests {
 
         let initial = get_settings().expect("default settings");
         assert_eq!(initial.mode, AiMode::Off);
+        assert!(!initial.has_api_key);
 
-        let custom = AiSettings {
-            mode: AiMode::Byo,
-            provider: "ollama".into(),
-            model: "llama3.2".into(),
-            endpoint: "http://localhost:11434".into(),
-            api_key: "".into(),
-            privacy_redaction_enabled: true,
-            temperature: 80,
-        };
+        let mut custom = initial;
+        custom.mode = AiMode::Byo;
+        custom.base_url = "http://localhost:11434/v1".into();
+        custom.model = "llama3.2".into();
+        custom.temperature = 80;
+        custom.custom_instructions = "Be concise".into();
 
         save_settings(&custom).expect("save custom");
+        set_ai_api_key("sk-test-secret-12345").expect("set key");
+
         let fetched = get_settings().expect("get saved");
         assert_eq!(fetched.mode, AiMode::Byo);
-        assert_eq!(fetched.provider, "ollama");
         assert_eq!(fetched.model, "llama3.2");
         assert_eq!(fetched.temperature, 80);
+        assert!(fetched.has_api_key);
+
+        // Switching base_url to another host should clear the stored api key
+        let mut switched = fetched.clone();
+        switched.base_url = "https://api.openai.com/v1".into();
+        save_settings(&switched).expect("save switched");
+
+        let fetched_after_switch = get_settings().expect("get after switch");
+        assert!(!fetched_after_switch.has_api_key);
     }
-    
+
     #[test]
-    fn test_key_clearing_on_mode_switch() {
-        let _guard = crate::test_support::isolated_data_dir("key_clearing_test");
+    fn test_compose_prompt_order() {
+        let guardrails = "Strict Guardrails: No religion.";
+        let (sys, user) = compose_prompt(
+            guardrails,
+            "formal",
+            "en",
+            "Be precise.",
+            "Summary Context",
+            "Hello AI",
+        );
+
+        assert!(sys.starts_with("Strict Guardrails: No religion."));
+        assert!(sys.contains("Framework Format Rules:\n- Tone: formal\n- Response Language: en"));
+        assert!(sys.contains("User Custom Instructions:\nBe precise."));
+        assert!(sys.contains("Context Data (Scrubbed):\nSummary Context"));
+        assert_eq!(user, "Hello AI");
+    }
+
+    #[test]
+    fn test_privacy_levels_context() {
+        let _guard = crate::test_support::isolated_data_dir("ai_context_test");
         let _key = crate::vault::ensure_unlocked_key().expect("vault key");
-        
-        let mut settings = AiSettings::default();
-        settings.mode = AiMode::Byo;
-        settings.endpoint = "https://example.com/v1".to_string();
-        settings.api_key = "secret".to_string();
-        
-        save_settings(&settings).unwrap();
-        
-        // Switch to Off
-        settings.mode = AiMode::Off;
-        save_settings(&settings).unwrap();
-        
-        let fetched = get_settings().unwrap();
-        assert_eq!(fetched.mode, AiMode::Off);
-        assert!(fetched.api_key.is_empty(), "API key should be cleared");
+
+        let session = crate::session::Session::new("prof-1", "member");
+
+        // Summary level should not include names or note texts
+        let summary = build_context(
+            &session,
+            &PrivacyLevel::Summary,
+            false,
+            false,
+            "http://localhost:11434",
+        )
+        .expect("summary context");
+        assert!(!summary.content.contains("Budi Santoso"));
+        assert!(!summary.content.contains("Siti Aminah"));
+        assert!(summary.content.contains("Application Summary:"));
+
+        // Detailed level without consent fails
+        let detailed_err = build_context(
+            &session,
+            &PrivacyLevel::Detailed,
+            false,
+            false,
+            "http://localhost:11434",
+        );
+        assert!(matches!(
+            detailed_err,
+            Err(CatermError::Ai(AiError::ConsentRequired))
+        ));
+
+        // Full level on non-loopback fails
+        let full_err = build_context(
+            &session,
+            &PrivacyLevel::Full,
+            true,
+            true,
+            "https://api.openai.com/v1",
+        );
+        assert!(full_err.is_err());
+    }
+
+    #[test]
+    fn test_mode_off_returns_disabled() {
+        let _guard = crate::test_support::isolated_data_dir("ai_mode_off_test");
+        let _key = crate::vault::ensure_unlocked_key().expect("vault key");
+
+        let session = crate::session::Session::new("prof-1", "member");
+
+        let res = chat(&session, "ping", None, false);
+        assert!(matches!(res, Err(CatermError::Ai(AiError::Disabled))));
     }
 }

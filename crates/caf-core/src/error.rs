@@ -75,6 +75,12 @@ domain_error!(
     ProviderUnavailable = ("001", "AI provider service is unavailable"),
     ApiKeyMissing = ("002", "AI provider API key is not configured"),
     GuardrailTriggered = ("003", "input or output violated system guardrails"),
+    Disabled = ("004", "AI module is disabled"),
+    UnsupportedProvider = ("005", "unsupported AI provider"),
+    ConsentRequired = ("006", "user consent required for detailed context"),
+    QuotaExceeded = ("007", "AI quota exceeded"),
+    Timeout = ("008", "AI request timed out"),
+    InvalidBaseUrl = ("009", "invalid AI base URL"),
 );
 
 domain_error!(

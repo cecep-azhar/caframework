@@ -6,6 +6,12 @@
 | `CAF-AI-001` | `AI` | ai: AI provider service is unavailable |
 | `CAF-AI-002` | `AI` | ai: AI provider API key is not configured |
 | `CAF-AI-003` | `AI` | ai: input or output violated system guardrails |
+| `CAF-AI-004` | `AI` | ai: AI module is disabled |
+| `CAF-AI-005` | `AI` | ai: unsupported AI provider |
+| `CAF-AI-006` | `AI` | ai: user consent required for detailed context |
+| `CAF-AI-007` | `AI` | ai: AI quota exceeded |
+| `CAF-AI-008` | `AI` | ai: AI request timed out |
+| `CAF-AI-009` | `AI` | ai: invalid AI base URL |
 | `CAF-AUTH-000` | `AUTH` | auth: sample error |
 | `CAF-AUTH-001` | `AUTH` | auth: unauthorized profile access |
 | `CAF-AUTH-002` | `AUTH` | auth: invalid profile PIN |

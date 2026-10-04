@@ -1,7 +1,7 @@
+use crate::error::CatermError;
+use crate::visibility::VisibilityScope;
 use async_trait::async_trait;
 use serde::Serialize;
-use crate::error::CatermError;
-use crate::visibility::{VisibilityScope};
 
 /// Defines a provider that can supply context for AI operations,
 /// honoring visibility scopes.
@@ -23,7 +23,9 @@ pub struct ContextManager {
 
 impl ContextManager {
     pub fn new() -> Self {
-        Self { registry: Vec::new() }
+        Self {
+            registry: Vec::new(),
+        }
     }
 
     pub fn register(&mut self, provider: Box<dyn ContextProvider>) {
@@ -36,7 +38,11 @@ impl ContextManager {
         for provider in &self.registry {
             if let Ok(ctx) = provider.get_context(scope).await {
                 if !ctx.is_empty() {
-                    aggregated.push_str(&format!("\n--- Provider: {} ---\n{}\n", provider.name(), ctx));
+                    aggregated.push_str(&format!(
+                        "\n--- Provider: {} ---\n{}\n",
+                        provider.name(),
+                        ctx
+                    ));
                 }
             }
         }
