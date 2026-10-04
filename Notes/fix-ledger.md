@@ -40,7 +40,7 @@ Current plan: TASK_FIX.md
 | F1.3 | IN_PROGRESS | F1.md#f13 | caf-xtask guard subcommand implementation |
 | F1.4 | TODO | F1.md#f14 | Hard-coded strings and sync writes scanner |
 | F1.5 | TODO | F1.md#f15 | CI workflow rewrite |
-| F1.6 | TODO | F1.md#f16 | Vitest test runner |
+| F1.6 | DONE | F1.md#f16 | Vitest test runner |
 | F1.7 | TODO | F1.md#f17 | Quality-bar tooling and lints |
 | F2.1 | TODO | F2.md#f21 | Stale permissions cleanup |
 | F2.2 | TODO | F2.md#f22 | Frontend leftovers cleanup |

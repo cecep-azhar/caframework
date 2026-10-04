@@ -253,7 +253,7 @@ The agent copies this table into the ledger. A decision changes only when the ow
   **Accept:** workflow file passes `actionlint` (install via the package manager or `go install`; if unavailable, record NOT VERIFIED and the owner command); if a remote and push rights exist (`prompt-fix.md` §0), a CI run on the work branch is linked with all jobs green; otherwise add an OWNER-VERIFY entry.
   **Verify:** `actionlint .github/workflows/ci.yml` · CI run URL or OWNER-VERIFY ID.
 
-- [ ] **F1.6 Frontend test runner.**
+- [x] **F1.6 Frontend test runner.**
   **Do:** add `vitest` (+ `@testing-library/svelte`, `jsdom`) and `npm run test` (`vitest run`). Add a smoke test for `errorText()` parsing `{ code, message, domain }` and a non-object error.
   **Accept:** `npm run test` passes with ≥ 2 tests; dependency licences recorded.
   **Verify:** VS-F log.
