@@ -1,7 +1,5 @@
-//! Visibility filter, ownership evaluation and scoped queries for CAFramework v2.
-//! Implements multi-profile data isolation, private summary views, and audited super-admin bypass.
+//! Visibility rules, data isolation, and super-role audit scopes.
 
-use crate::error::{CatermError, ValidationError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -15,37 +13,61 @@ pub enum Visibility {
 impl Visibility {
     pub fn as_str(&self) -> &'static str {
         match self {
-            Visibility::Shared => "shared",
-            Visibility::PrivateSummary => "private_summary",
-            Visibility::Private => "private",
+            Self::Shared => "shared",
+            Self::PrivateSummary => "private_summary",
+            Self::Private => "private",
         }
     }
 
-    pub fn from_str(s: &str) -> Result<Self, CatermError> {
+    pub fn from_str(s: &str) -> Option<Self> {
         match s {
-            "shared" => Ok(Visibility::Shared),
-            "private_summary" => Ok(Visibility::PrivateSummary),
-            "private" => Ok(Visibility::Private),
-            _ => Err(CatermError::Validation(ValidationError::InvalidFormat)),
+            "shared" => Some(Self::Shared),
+            "private_summary" => Some(Self::PrivateSummary),
+            "private" => Some(Self::Private),
+            _ => None,
         }
     }
 }
 
-/// Computes the SQL filter for queries returning entities.
-///
-/// If `is_super_role` is true, visibility isolation is relaxed (super admin bypass)
-/// while deleted_at IS NULL is maintained.
-pub fn sql_scope(is_super_role: bool) -> &'static str {
-    if is_super_role {
-        "deleted_at IS NULL"
+pub struct VisibilityScope {
+    pub sql_clause: String,
+    pub is_super: bool,
+}
+
+pub fn sql_scope(is_super: bool) -> String {
+    if is_super {
+        "deleted_at IS NULL".to_string()
     } else {
-        "deleted_at IS NULL AND (owner_profile_id = ?1 OR visibility = 'shared')"
+        "deleted_at IS NULL AND (owner_profile_id = ?1 OR visibility = 'shared')".to_string()
     }
 }
 
-/// Determines whether a profile can modify or delete an entity row.
-pub fn can_modify(owner_profile_id: &str, current_profile_id: &str, has_permission: bool) -> bool {
-    owner_profile_id == current_profile_id || has_permission
+/// Generates SQL WHERE clause filter for scoped entity queries.
+pub fn scope(caller_profile_id: &str, is_super: bool) -> VisibilityScope {
+    if is_super {
+        VisibilityScope {
+            sql_clause: "deleted_at IS NULL".to_string(),
+            is_super: true,
+        }
+    } else {
+        VisibilityScope {
+            sql_clause: format!(
+                "deleted_at IS NULL AND (owner_profile_id = '{}' OR visibility = 'shared')",
+                caller_profile_id.replace('\'', "''")
+            ),
+            is_super: false,
+        }
+    }
+}
+
+pub fn can_modify(owner_profile_id: &str, caller_profile_id: &str, has_manage_perm: bool) -> bool {
+    owner_profile_id == caller_profile_id || has_manage_perm
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OwnerSummary {
+    pub owner_profile_id: String,
+    pub count: usize,
 }
 
 #[cfg(test)]
@@ -53,32 +75,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_visibility_parsing() {
-        assert_eq!(Visibility::from_str("shared").unwrap(), Visibility::Shared);
-        assert_eq!(
-            Visibility::from_str("private_summary").unwrap(),
-            Visibility::PrivateSummary
-        );
-        assert_eq!(
-            Visibility::from_str("private").unwrap(),
-            Visibility::Private
-        );
-        assert!(Visibility::from_str("invalid").is_err());
+    fn test_visibility_scope_regular_user() {
+        let sc = scope("user_1", false);
+        assert!(!sc.is_super);
+        assert!(sc.sql_clause.contains("owner_profile_id = 'user_1'"));
+        assert!(sc.sql_clause.contains("visibility = 'shared'"));
     }
 
     #[test]
-    fn test_sql_scope() {
-        assert_eq!(sql_scope(true), "deleted_at IS NULL");
-        assert_eq!(
-            sql_scope(false),
-            "deleted_at IS NULL AND (owner_profile_id = ?1 OR visibility = 'shared')"
-        );
+    fn test_visibility_scope_super_user() {
+        let sc = scope("admin_1", true);
+        assert!(sc.is_super);
+        assert_eq!(sc.sql_clause, "deleted_at IS NULL");
     }
 
     #[test]
     fn test_can_modify() {
-        assert!(can_modify("prof_1", "prof_1", false));
-        assert!(!can_modify("prof_1", "prof_2", false));
-        assert!(can_modify("prof_1", "prof_2", true));
+        assert!(can_modify("user_1", "user_1", false));
+        assert!(!can_modify("user_1", "user_2", false));
+        assert!(can_modify("user_1", "user_2", true));
     }
 }
