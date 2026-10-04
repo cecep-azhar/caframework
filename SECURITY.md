@@ -1,16 +1,15 @@
 # Security Policy
 
-## Reporting Security Vulnerabilities
+## Supported Versions
+| Version | Supported          |
+| ------- | ------------------ |
+| 0.1.x   | :white_check_mark: |
 
-We take security vulnerabilities seriously in **CAFramework**. If you discover a vulnerability, please do NOT create a public issue.
+## Reporting a Vulnerability
+If you discover a security vulnerability in CAFramework, please report it privately:
 
-### Reporting Process
-- Email our security team directly: `security@fathforce.com` (or contact Prof. Cecep Azhar).
-- Please include:
-  - Description of vulnerability and impact.
-  - Steps to reproduce or proof-of-concept.
-  - Suggested remediation if available.
+- **Contact**: Cecep Saeful Azhar Hidayat, ST
+- **Email**: hi@cecepazhar.com
+- **Website**: https://www.cecepazhar.com
 
-### Scope & Response
-- We will acknowledge receipt of your report within 48 hours.
-- We will provide a coordinated disclosure timeline and publish a security advisory alongside the patch release.
+Please allow up to 48 hours for an acknowledgment. We ask you not to disclose security issues publicly until a patch or mitigation is released.

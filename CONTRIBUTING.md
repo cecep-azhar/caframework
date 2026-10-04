@@ -1,36 +1,12 @@
 # Contributing to CAFramework
 
-Thank you for your interest in contributing to **CAFramework**! We welcome contributions, bug fixes, documentation improvements, and architectural suggestions.
+Thank you for your interest in contributing to CAFramework!
 
----
-
-## 1. Development Workflow
-1. Fork the repository and create your feature branch: `git checkout -b feat/my-new-feature`.
-2. Ensure you have Rust (Edition 2024 / 1.85+) and Node.js (v20+) installed.
-3. Install frontend dependencies:
-   ```bash
-   cd frontend && npm install
-   ```
-4. Run tests and verify formatting before submitting PR:
-   ```bash
-   cargo fmt --all
-   cargo test --workspace
-   cd frontend && npm run check && npm run build
-   ```
-
----
-
-## 2. Commit Message Convention
-We follow Conventional Commits:
-- `feat(scope): ...` for new features
-- `fix(scope): ...` for bug fixes
-- `docs(scope): ...` for documentation changes
-- `refactor(scope): ...` for code refactoring
-- `test(scope): ...` for test suites
-
----
-
-## 3. Submitting Pull Requests
-- Open a PR against the `main` branch.
-- Clearly describe the problem solved or feature added.
-- Link any relevant issues.
+## Guidelines
+1. **Branching & PRs**: Create feature/bugfix branches and submit pull requests.
+2. **Quality Bars**:
+   - Run `cargo test --workspace` to ensure all unit and architectural tests pass.
+   - Run `cargo clippy --workspace --all-targets` without warnings.
+   - Run `cargo run -p caf-xtask -- guard` to check architectural invariants and security ratchets.
+   - Frontend changes must pass `npm test` and Svelte checks.
+3. **Security**: Do not hardcode credentials, tokens, or PII. Review [SECURITY.md](SECURITY.md) for vulnerability reporting.

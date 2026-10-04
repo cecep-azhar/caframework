@@ -3,6 +3,6 @@
 crates/caf-core/src/profiles.rs:126: INSERT INTO PROFILES
 crates/caf-core/src/profiles.rs:136: UPDATE PROFILES
 crates/caf-core/src/profiles.rs:256: DELETE FROM PROFILES
-crates/caf-core/src/notes.rs:102: INSERT INTO NOTES
-crates/caf-core/src/notes.rs:113: UPDATE NOTES
-crates/caf-core/src/notes.rs:197: DELETE FROM NOTES
+crates/caf-core/src/notes.rs:110: UPDATE NOTES
+crates/caf-core/src/notes.rs:121: INSERT INTO NOTES
+crates/caf-core/src/notes.rs:205: UPDATE NOTES
