@@ -21,8 +21,8 @@ static_regex!(card_re, r"\b(?:\d[ -]*?){13,19}\b");
 pub fn is_luhn_valid(number: &str) -> bool {
     let digits: Vec<u32> = number
         .chars()
-        .filter(|c| c.is_digit(10))
-        .map(|c| c.to_digit(10).unwrap())
+        .filter(|c| c.is_ascii_digit())
+        .filter_map(|c| c.to_digit(10))
         .collect();
 
     if digits.is_empty() {
@@ -174,7 +174,7 @@ impl PiiScrubber {
                     // Let's add basic province validation for NIK. (Province codes in Indo are 11-94).
                     let s = &caps[0];
                     let prov: u32 = s[0..2].parse().unwrap_or(0);
-                    if prov >= 11 && prov <= 94 {
+                    if (11..=94).contains(&prov) {
                         redactions_applied += 1;
                         "[REDACTED_NIK]".to_string()
                     } else {
@@ -231,19 +231,15 @@ impl PiiScrubber {
                 .to_string();
         }
 
-        if !self.home_dir.is_empty() {
-            if text.contains(&self.home_dir) {
-                text = text.replace(&self.home_dir, "~");
-                // Don't count home dir as one of the new main redactions maybe?
-                // Actually crash.rs didn't count it. We'll count it.
-                redactions_applied += 1;
-            }
+        if !self.home_dir.is_empty() && text.contains(&self.home_dir) {
+            text = text.replace(&self.home_dir, "~");
+            // Don't count home dir as one of the new main redactions maybe?
+            // Actually crash.rs didn't count it. We'll count it.
+            redactions_applied += 1;
         }
-        if self.username.len() > 2 {
-            if text.contains(&self.username) {
-                text = text.replace(&self.username, "[USER]");
-                redactions_applied += 1;
-            }
+        if self.username.len() > 2 && text.contains(&self.username) {
+            text = text.replace(&self.username, "[USER]");
+            redactions_applied += 1;
         }
 
         (text, redactions_applied)

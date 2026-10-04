@@ -254,16 +254,16 @@ fn run_new_app(
         .arg("ls-files")
         .current_dir(&template_root)
         .output()?;
-        
+
     let files_list = String::from_utf8_lossy(&output.stdout);
-    
+
     for rel_str in files_list.lines() {
         if rel_str.is_empty() {
             continue;
         }
-        
+
         let path = template_root.join(rel_str);
-        
+
         if rel_str.starts_with(".git")
             || rel_str.starts_with("target")
             || rel_str.starts_with("dist/")
@@ -278,7 +278,10 @@ fn run_new_app(
         }
 
         // Apply `--with-sample` logic correctly
-        if !with_sample && (rel_str.contains("sample") || rel_str.contains("fixture")) && !rel_str.contains("guard_tests") {
+        if !with_sample
+            && (rel_str.contains("sample") || rel_str.contains("fixture"))
+            && !rel_str.contains("guard_tests")
+        {
             continue;
         }
 
@@ -286,7 +289,7 @@ fn run_new_app(
         if let Some(parent) = dest.parent() {
             fs::create_dir_all(parent)?;
         }
-        
+
         if path.is_file() {
             let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
             if file_name.ends_with(".rs")

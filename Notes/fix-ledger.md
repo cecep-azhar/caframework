@@ -6,9 +6,9 @@ Current plan: TASK_FIX.md
 | Stage | Status | Gate | Evidence | Handoff |
 |---|---|---|---|---|
 | F0 | DONE | GREEN | Notes/evidence/fix/F0.md | Scaffolding and baseline verified, logs recorded (commit `6c95d1a`) |
-| F1 | IN_PROGRESS | - | Notes/evidence/fix/F1.md | Toolchain fixes done (F1.1, F1.2), working on F1.3 caf-xtask guard |
-| F2 | TODO | - | Notes/evidence/fix/F2.md | - |
-| F3 | TODO | - | Notes/evidence/fix/F3.md | - |
+| F1 | DONE | GREEN | Notes/evidence/fix/F1.md | Toolchain fixes done and CI rewritten |
+| F2 | DONE | GREEN | Notes/evidence/fix/F2.md | Leftovers & artifacts cleanup complete |
+| F3 | IN_PROGRESS | - | Notes/evidence/fix/F3.md | - |
 | F4 | TODO | - | Notes/evidence/fix/F4.md | - |
 | F5 | TODO | - | Notes/evidence/fix/F5.md | - |
 | F6 | TODO | - | Notes/evidence/fix/F6.md | - |
@@ -37,19 +37,19 @@ Current plan: TASK_FIX.md
 | F0.5 | DONE | F0.md#f05-classify-commit-message-claims | T-9 commit claims classification |
 | F1.1 | DONE | F1.md#f11 | Clippy unwrap_used fixed via LazyLock in ai.rs & main.rs |
 | F1.2 | DONE | F1.md#f12 | Format and cargo-deny policy green (yoke-derive updated, deny.toml configured) |
-| F1.3 | IN_PROGRESS | F1.md#f13 | caf-xtask guard subcommand implementation |
-| F1.4 | TODO | F1.md#f14 | Hard-coded strings and sync writes scanner |
-| F1.5 | TODO | F1.md#f15 | CI workflow rewrite |
+| F1.3 | DONE | F1.md#f13 | caf-xtask guard subcommand implementation |
+| F1.4 | DONE | F1.md#f14 | Hard-coded strings and sync writes scanner |
+| F1.5 | DONE | F1.md#f15 | CI workflow rewrite |
 | F1.6 | DONE | F1.md#f16 | Vitest test runner |
-| F1.7 | TODO | F1.md#f17 | Quality-bar tooling and lints |
-| F2.1 | TODO | F2.md#f21 | Stale permissions cleanup |
-| F2.2 | TODO | F2.md#f22 | Frontend leftovers cleanup |
-| F2.3 | TODO | F2.md#f23 | Rust leftovers cleanup |
-| F2.4 | TODO | F2.md#f24 | Packaging and root files cleanup |
-| F2.5 | TODO | F2.md#f25 | Absolute paths in docs |
-| F2.6 | TODO | F2.md#f26 | Untracked CATerm artefacts |
-| F2.7 | TODO | F2.md#f27 | Genericity guard |
-| F3.1 | TODO | F3.md#f31 | Schema types v1.1 |
+| F1.7 | DONE | F1.md#f17 | Quality-bar tooling and lints |
+| F2.1 | DONE | F2.md#f21 | Stale permissions cleanup |
+| F2.2 | DONE | F2.md#f22 | Frontend leftovers cleanup |
+| F2.3 | DONE | F2.md#f23 | Rust leftovers cleanup |
+| F2.4 | DONE | F2.md#f24 | Packaging and root files cleanup |
+| F2.5 | DONE | F2.md#f25 | Absolute paths in docs |
+| F2.6 | DONE | F2.md#f26 | Untracked CATerm artefacts |
+| F2.7 | DONE | F2.md#f27 | Genericity guard |
+| F3.1 | IN_PROGRESS | F3.md#f31 | Schema types v1.1 |
 | F3.2 | TODO | F3.md#f32 | Validation with readable errors |
 | F3.3 | TODO | F3.md#f33 | Framework app.toml |
 | F3.4 | TODO | F3.md#f34 | Codegen outputs and --check |

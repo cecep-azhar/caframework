@@ -1,3 +1,30 @@
+# Unregistered invokes baseline
+# resolves-in: F12
+export_encrypted_backup
+import_encrypted_backup
+get_pending_crash_report
+dismiss_crash_report
+submit_feedback
+get_performance_prefs
+set_performance_prefs
+validate_vault_password
+is_vault_initialized
+reset_vault
+lock_vault
+change_master_password
+list_notes
+save_note
+delete_note
+list_profiles
+save_profile
+verify_pin
+get_ai_settings
+save_ai_settings
+ai_chat
+window_minimize
+window_maximize
+window_close
+window_start_dragging
 export_vault_backup
 import_vault_backup
 is_vault_unlocked

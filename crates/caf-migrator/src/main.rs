@@ -42,11 +42,9 @@ fn main() -> Result<(), MigrateError> {
 }
 
 fn current_version(conn: &Connection) -> Result<i64, rusqlite::Error> {
-    let v: Option<i64> = conn.query_row(
-        "SELECT MAX(version) FROM schema_version",
-        [],
-        |row| row.get(0),
-    )?;
+    let v: Option<i64> = conn.query_row("SELECT MAX(version) FROM schema_version", [], |row| {
+        row.get(0)
+    })?;
     Ok(v.unwrap_or(0))
 }
 
@@ -59,7 +57,7 @@ pub fn run_migrations(conn: &Connection, migrations_dir: &PathBuf) -> Result<usi
     )?;
     let mut entries: Vec<_> = std::fs::read_dir(migrations_dir)?
         .filter_map(|e| e.ok())
-        .filter(|e| e.path().extension().map_or(false, |ext| ext == "sql"))
+        .filter(|e| e.path().extension().is_some_and(|ext| ext == "sql"))
         .collect();
     // sort by filename (assumes numeric prefix)
     entries.sort_by_key(|e| e.file_name());

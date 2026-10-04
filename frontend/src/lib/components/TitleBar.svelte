@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Window } from '@tauri-apps/api/window';
   import { onMount } from 'svelte';
+  import { t } from '$lib/i18n/index.svelte';
   
   const appWindow = new Window('main');
   
@@ -63,12 +64,12 @@
     {/if}
   </div>
   <div class="titlebar-right">
-    <button class="titlebar-button" id="titlebar-minimize" on:click={minimize} aria-label="Minimize">
+    <button class="titlebar-button" id="titlebar-minimize" on:click={minimize} aria-label={t('lock.minimize')}>
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
         <rect x="0" y="4" width="10" height="1" fill="currentColor"/>
       </svg>
     </button>
-    <button class="titlebar-button" id="titlebar-maximize" on:click={toggleMaximize} aria-label="Maximize">
+    <button class="titlebar-button" id="titlebar-maximize" on:click={toggleMaximize} aria-label={t('lock.maximize')}>
       {#if isMaximized}
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="0.5" y="2.5" width="7" height="7" stroke="currentColor"/>
@@ -80,7 +81,7 @@
         </svg>
       {/if}
     </button>
-    <button class="titlebar-button titlebar-close" id="titlebar-close" on:click={close} aria-label="Close">
+    <button class="titlebar-button titlebar-close" id="titlebar-close" on:click={close} aria-label={t('lock.close')}>
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.5"/>
       </svg>
