@@ -16,6 +16,8 @@
 | `CAF-DB-002` | `DB` | database: database query execution failed |
 | `CAF-DB-003` | `DB` | database: database migration failed |
 | `CAF-DB-004` | `DB` | database: record not found |
+| `CAF-DB-005` | `DB` | database: migration checksum does not match stored snapshot |
+| `CAF-DB-006` | `DB` | database: database schema version is newer than the application understands |
 | `CAF-IO-000` | `IO` | io: sample error |
 | `CAF-IO-001` | `IO` | io: file not found |
 | `CAF-IO-002` | `IO` | io: permission denied |

@@ -57,6 +57,8 @@ domain_error!(
     QueryFailed = ("002", "database query execution failed"),
     MigrationFailed = ("003", "database migration failed"),
     RecordNotFound = ("004", "record not found"),
+    MigrationChecksum = ("005", "migration checksum does not match stored snapshot"),
+    SchemaTooNew = ("006", "database schema version is newer than the application understands"),
 );
 
 domain_error!(

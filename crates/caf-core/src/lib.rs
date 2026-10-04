@@ -35,6 +35,7 @@ pub mod pro;
 pub mod profiles;
 pub mod secret;
 pub mod vault;
+pub mod migrations;
 
 pub use error::{CafError, CatermError};
 
