@@ -31,6 +31,11 @@ enum Commands {
         #[arg(long)]
         dry_run: bool,
     },
+    /// Run CI quality and architecture guards
+    Guard {
+        #[arg(long)]
+        only: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -214,7 +219,7 @@ export const GENERATED_NAV_ITEMS: GeneratedNavItem[] = [
 fn run_new_app(
     config_path: &Path,
     out_dir: &Path,
-    _with_sample: bool,
+    with_sample: bool,
     dry_run: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let cfg = load_config(config_path)?;
@@ -232,7 +237,6 @@ fn run_new_app(
         return Ok(());
     }
 
-    // Recursively copy base repo, excluding git and build targets
     let template_root = match std::env::var("CARGO_MANIFEST_DIR") {
         Ok(dir) => {
             let p = PathBuf::from(dir);
@@ -245,14 +249,26 @@ fn run_new_app(
     };
     fs::create_dir_all(out_dir)?;
 
-    for entry in walkdir::WalkDir::new(&template_root) {
-        let entry = entry?;
-        let path = entry.path();
-        let rel_path = path.strip_prefix(&template_root)?;
-
-        let rel_str = rel_path.to_string_lossy();
+    // Use git ls-files to whitelist files (ignores git-ignored heavy dirs like node_modules, target)
+    let output = std::process::Command::new("git")
+        .arg("ls-files")
+        .current_dir(&template_root)
+        .output()?;
+        
+    let files_list = String::from_utf8_lossy(&output.stdout);
+    
+    for rel_str in files_list.lines() {
+        if rel_str.is_empty() {
+            continue;
+        }
+        
+        let path = template_root.join(rel_str);
+        
         if rel_str.starts_with(".git")
             || rel_str.starts_with("target")
+            || rel_str.starts_with("dist/")
+            || rel_str.starts_with("gen/")
+            || rel_str.starts_with("build/bin/")
             || rel_str.starts_with("frontend/node_modules")
             || rel_str.starts_with("frontend/.svelte-kit")
             || rel_str.starts_with("frontend/build")
@@ -261,10 +277,17 @@ fn run_new_app(
             continue;
         }
 
-        let dest = out_dir.join(rel_path);
-        if path.is_dir() {
-            fs::create_dir_all(&dest)?;
-        } else if path.is_file() {
+        // Apply `--with-sample` logic correctly
+        if !with_sample && (rel_str.contains("sample") || rel_str.contains("fixture")) && !rel_str.contains("guard_tests") {
+            continue;
+        }
+
+        let dest = out_dir.join(rel_str);
+        if let Some(parent) = dest.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        
+        if path.is_file() {
             let file_name = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
             if file_name.ends_with(".rs")
                 || file_name.ends_with(".toml")
@@ -273,7 +296,7 @@ fn run_new_app(
                 || file_name.ends_with(".ts")
                 || file_name.ends_with(".md")
             {
-                let content = fs::read_to_string(path)?;
+                let content = fs::read_to_string(&path)?;
                 let replaced = content
                     .replace("CAFramework", &cfg.app.name)
                     .replace("caframework", &cfg.app.slug)
@@ -281,7 +304,7 @@ fn run_new_app(
                     .replace("CAF", &cfg.app.error_prefix);
                 fs::write(&dest, replaced)?;
             } else {
-                fs::copy(path, &dest)?;
+                fs::copy(&path, &dest)?;
             }
         }
     }
@@ -306,6 +329,9 @@ fn run_new_app(
     Ok(())
 }
 
+mod guard;
+mod scanner;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     match cli.command {
@@ -316,5 +342,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             with_sample,
             dry_run,
         } => run_new_app(&config, &out, with_sample, dry_run),
+        Commands::Guard { only } => guard::run_guard(only.as_deref()),
     }
 }
