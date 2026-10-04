@@ -19,7 +19,7 @@ directories.workspace = true
 rand = "0.8"
 argon2 = "0.5"
 secrecy = "0.8"
-zeroize = "1.8"
+zeroize = { version = "1.8", features = ["zeroize_derive"] }
 hex = "0.4"
 aes-gcm = "0.10"
 sha2 = "0.10"

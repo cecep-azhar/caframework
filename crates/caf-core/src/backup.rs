@@ -50,6 +50,8 @@ pub fn export_backup(passphrase: &str) -> Result<Vec<u8>, CatermError> {
         .map_err(|e| CatermError::Vault(VaultError::Generic(e.to_string())))?;
 
     let encrypted = crate::secret::encrypt_bytes(&derived_key, &json_bytes)?;
+    use zeroize::Zeroize;
+    derived_key.zeroize();
     Ok(encrypted.into_bytes())
 }
 
@@ -89,7 +91,7 @@ pub fn import_backup(data: &[u8], passphrase: &str) -> Result<(), CatermError> {
     for n in payload.notes {
         let _ = notes::save_note(
             notes::NoteInput {
-                id: Some(n.id),
+                id: Some(n.id.clone()),
                 title: n.title,
                 content: n.content,
                 tags: n.tags,
