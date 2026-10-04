@@ -1,0 +1,12 @@
+REPO_DIR: ~/Project/caframework
+BASE_COMMIT: auto
+WORK_BRANCH: main
+FEATURE_BRANCH: main
+PLANS: [TASK_FIX.md, TASK_FEATURES.md]
+STOP_AFTER_PLAN: ""
+RUNNER: any
+HAS_TAURI_DEPS: false
+CAN_PUSH: true
+REMOTE: origin
+OWNER_CHANNEL: telegram
+MAX_TASK_ATTEMPTS: 3
