@@ -15,8 +15,8 @@ Current plan: TASK_FIX.md
 | F7 | DONE | GREEN | Notes/evidence/fix/F7.md | 2026-10-04 |
 | F8 | DONE | GREEN | Notes/evidence/fix/F8.md | 2026-10-04 |
 | F9 | DONE | GREEN | Notes/evidence/fix/F9.md | 2026-10-04 |
-| F10 | IN_PROGRESS | - | Notes/evidence/fix/F10.md | - |
-| F11 | TODO | - | Notes/evidence/fix/F11.md | - |
+| F10 | DONE | GREEN | Notes/evidence/fix/F10.md | 2026-10-04 |
+| F11 | IN_PROGRESS | - | Notes/evidence/fix/F11.md | - |
 | F12 | TODO | - | Notes/evidence/fix/F12.md | - |
 | F13 | TODO | - | Notes/evidence/fix/F13.md | - |
 | F14 | TODO | - | Notes/evidence/fix/F14.md | - |
@@ -88,12 +88,12 @@ Current plan: TASK_FIX.md
 | F9.1 | DONE | F9.md | Visibility filter in SQL queries |
 | F9.2 | DONE | F9.md | Notes visibility isolation |
 | F9.3 | DONE | F9.md | Row-level ownership checks |
-| F10.1 | IN_PROGRESS | F10.md | 2-level lock screen UI |
-| F10.2 | TODO | F10.md#f102 | Profile picker with public metadata |
-| F10.3 | TODO | F10.md#f103 | PIN pad input component |
-| F10.4 | TODO | F10.md#f104 | Recovery code unlock flow |
-| F10.5 | TODO | F10.md#f105 | Auto-lock timers |
-| F11.1 | TODO | F11.md#f111 | Backup format v2 |
+| F10.1 | DONE | F10.md | 2-level lock screen UI |
+| F10.2 | DONE | F10.md | Profile picker with public metadata |
+| F10.3 | DONE | F10.md | PIN pad input component |
+| F10.4 | DONE | F10.md | Recovery code unlock flow |
+| F10.5 | DONE | F10.md | Auto-lock timers |
+| F11.1 | IN_PROGRESS | F11.md | Backup format v2 |
 | F11.2 | TODO | F11.md#f112 | Restore transaction & conflict handling |
 | F11.3 | TODO | F11.md#f113 | Round-trip backup/restore tests |
 | F11.4 | TODO | F11.md#f114 | Scheduled backup engine |
