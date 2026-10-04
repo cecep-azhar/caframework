@@ -23,8 +23,8 @@ Current plan: TASK_FIX.md
 | F15 | DONE | GREEN | Notes/evidence/fix/F15.md | 2026-10-04 |
 | F16 | DONE | GREEN | Notes/evidence/fix/F16.md | Notes slice complete with F9 visibility and CRUD |
 | F17 | DONE | GREEN | Notes/evidence/fix/F17.md | Open source hygiene, repository root files, docs set & publication plan |
-| F18 | IN_PROGRESS | - | Notes/evidence/fix/F18.md | - |
-| F19 | TODO | - | Notes/evidence/fix/F19.md | - |
+| F18 | DONE | GREEN | Notes/evidence/fix/F18.md | new-app generator scaffolding & E2E build verification |
+| F19 | IN_PROGRESS | - | Notes/evidence/fix/F19.md | - |
 | F20 | TODO | - | Notes/evidence/fix/F20.md | - |
 
 ## Tasks
