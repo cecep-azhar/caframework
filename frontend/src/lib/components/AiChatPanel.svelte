@@ -23,7 +23,7 @@
 
     try {
       const response = await chatWithAi(prompt);
-      messages.push({ role: 'assistant', content: response });
+      messages.push({ role: 'assistant', content: response.message });
     } catch (e: any) {
       showToast(e?.message || 'Failed to get AI response', 'error');
       messages.push({

@@ -70,8 +70,11 @@ pub async fn lock_vault() -> Result<(), CafError> {
 }
 
 #[tauri::command]
-pub async fn change_master_password(old: String, new: String) -> Result<(), CafError> {
-    run_blocking(move || vault::change_master_password(&old, &new)).await
+pub async fn change_master_password(
+    old_password: String,
+    new_password: String,
+) -> Result<(), CafError> {
+    run_blocking(move || vault::change_master_password(&old_password, &new_password)).await
 }
 
 #[tauri::command]
@@ -159,8 +162,8 @@ pub async fn get_pending_crash_report() -> Result<Option<crash::ScrubbedCrashRep
 }
 
 #[tauri::command]
-pub async fn dismiss_crash_report(id: String) -> Result<(), CafError> {
-    run_blocking(move || crash::dismiss_crash_report(&id, false)).await
+pub async fn dismiss_crash_report(id: String, never_again: Option<bool>) -> Result<(), CafError> {
+    run_blocking(move || crash::dismiss_crash_report(&id, never_again.unwrap_or(false))).await
 }
 
 // Backup commands

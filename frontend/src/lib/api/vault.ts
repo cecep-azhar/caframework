@@ -1,27 +1,31 @@
-// JS <-> Rust binding for vault password policy. Backed by `caf_core::vault` — see
-// crates/caf-core/src/vault.rs for the source of truth.
-import { invoke } from '@tauri-apps/api/core';
+import {
+  cmdIsVaultInitialized,
+  cmdValidateVaultPassword,
+  cmdLockVault,
+  cmdChangeMasterPassword,
+  cmdResetVault
+} from '$lib/generated/commands';
 
 export const MIN_VAULT_PASSWORD_LEN = 8;
 
-export function validateVaultPassword(password: string): Promise<void> {
-  return invoke('validate_vault_password', { password });
+export function validateVaultPassword(password: string): Promise<boolean> {
+  return cmdValidateVaultPassword({ password });
 }
 
 export function isVaultInitialized(): Promise<boolean> {
-  return invoke('is_vault_initialized');
+  return cmdIsVaultInitialized();
 }
 
 export function resetVault(): Promise<void> {
-  return invoke('reset_vault');
+  return cmdResetVault();
 }
 
 /** Zeroizes the in-memory vault key and stops tunnels. The next unlock re-derives it. */
 export function lockVault(): Promise<void> {
-  return invoke('lock_vault');
+  return cmdLockVault();
 }
 
-/** Re-keys the encrypted database and canary to `newPassword`. Fails if `currentPassword` is wrong. */
-export function changeMasterPassword(currentPassword: string, newPassword: string): Promise<void> {
-  return invoke('change_master_password', { currentPassword, newPassword });
+/** Re-keys the encrypted database and canary to `newPassword`. Fails if `oldPassword` is wrong. */
+export function changeMasterPassword(oldPassword: string, newPassword: string): Promise<void> {
+  return cmdChangeMasterPassword({ oldPassword, newPassword });
 }

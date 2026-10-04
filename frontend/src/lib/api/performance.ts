@@ -1,18 +1,15 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  cmdGetPerformancePrefs,
+  cmdSetPerformancePrefs,
+  type PerformancePrefs
+} from '$lib/generated/commands';
 
-/** Stored outside the vault (it is read before unlock, when the window is created). */
-export interface PerformancePrefs {
-	gpuAcceleration: boolean;
-	backgroundMemorySaving: boolean;
-	scrollbackLines: number;
-	inactiveSessionSleep: boolean;
-	lowPowerMode: boolean;
-}
+export type { PerformancePrefs };
 
 export function getPerformancePrefs(): Promise<PerformancePrefs> {
-	return invoke('get_performance_prefs');
+  return cmdGetPerformancePrefs();
 }
 
 export function setPerformancePrefs(prefs: PerformancePrefs): Promise<void> {
-	return invoke('set_performance_prefs', { prefs });
+  return cmdSetPerformancePrefs({ prefs });
 }

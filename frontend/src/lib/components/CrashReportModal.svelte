@@ -8,7 +8,7 @@
     report,
     onClose
   }: {
-    report: ScrubbedCrashReport;
+    report: any;
     onClose: () => void;
   } = $props();
 

@@ -21,13 +21,13 @@
   let currentProfileId = $state('018e0000-0000-7000-8000-000000000001'); // Default Owner profile
 
   let filteredNotes = $derived(
-    notes.filter((n) => {
+    notes.filter((n: any) => {
       const q = searchQuery.toLowerCase().trim();
       if (!q) return true;
       return (
         n.title.toLowerCase().includes(q) ||
         n.content.toLowerCase().includes(q) ||
-        n.tags.some((t) => t.toLowerCase().includes(q))
+        (n.tags && n.tags.some((t: string) => t.toLowerCase().includes(q)))
       );
     })
   );
@@ -52,12 +52,12 @@
     isAddModalOpen = true;
   }
 
-  function openEditModal(note: NoteRecord) {
+  function editNote(note: any) {
     editingId = note.id;
     formTitle = note.title;
     formContent = note.content;
-    formTags = note.tags.join(', ');
-    formVisibility = note.visibility;
+    formTags = note.tags && Array.isArray(note.tags) ? note.tags.join(', ') : '';
+    formVisibility = note.visibility as any;
     isAddModalOpen = true;
   }
 
@@ -73,12 +73,9 @@
       .filter(Boolean);
 
     const input: NoteInput = {
-      id: editingId ?? undefined,
       title: formTitle.trim(),
       content: formContent.trim(),
-      tags,
-      visibility: formVisibility,
-      owner_profile_id: currentProfileId
+      visibility: formVisibility
     };
 
     try {
@@ -166,17 +163,17 @@
           </div>
 
           <div class="mt-4 pt-3 border-t border-neutral-800/60 flex items-center justify-between">
-            <div class="flex flex-wrap gap-1">
-              {#each note.tags as tag}
+            <div>
+              {#if note.category}
                 <span class="text-xs px-2 py-0.5 rounded bg-neutral-800/60 text-neutral-400">
-                  #{tag}
+                  {note.category}
                 </span>
-              {/each}
+              {/if}
             </div>
 
             <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
-                onclick={() => openEditModal(note)}
+                onclick={() => editNote(note)}
                 class="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-800 rounded-md transition-colors"
                 title={t('common.edit')}
               >

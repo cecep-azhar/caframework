@@ -1,4 +1,6 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  cmdSubmitFeedback
+} from '$lib/generated/commands';
 
 /** `rating` 1-5, `content` feedback text, optional `name` and `profession` (activity). */
 export function submitFeedback(
@@ -7,7 +9,7 @@ export function submitFeedback(
   name?: string,
   profession?: string
 ): Promise<void> {
-  return invoke('submit_feedback', {
+  return cmdSubmitFeedback({
     rating,
     content,
     name: name?.trim() || null,

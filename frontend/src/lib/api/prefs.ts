@@ -1,21 +1,25 @@
-import { invoke } from '@tauri-apps/api/core';
+import {
+  cmdGetPerformancePrefs,
+  cmdSetPerformancePrefs,
+  cmdExportEncryptedBackup,
+  cmdImportEncryptedBackup,
+  type PerformancePrefs
+} from '$lib/generated/commands';
 
-export interface PerformancePrefs {
-  hardware_acceleration: boolean;
-}
+export type { PerformancePrefs };
 
 export async function getPerformancePrefs(): Promise<PerformancePrefs> {
-  return await invoke<PerformancePrefs>('get_performance_prefs');
+  return await cmdGetPerformancePrefs();
 }
 
 export async function savePerformancePrefs(prefs: PerformancePrefs): Promise<void> {
-  await invoke('save_performance_prefs', { prefs });
+  await cmdSetPerformancePrefs({ prefs });
 }
 
-export async function exportEncryptedBackup(password: string): Promise<string> {
-  return await invoke<string>('export_vault_backup', { password });
+export async function exportEncryptedBackup(password: string): Promise<number[]> {
+  return await cmdExportEncryptedBackup({ password });
 }
 
-export async function importEncryptedBackup(encryptedData: string, password: string): Promise<boolean> {
-  return await invoke<boolean>('import_vault_backup', { encryptedData, password });
+export async function importEncryptedBackup(data: number[], password: string): Promise<void> {
+  await cmdImportEncryptedBackup({ data, password });
 }

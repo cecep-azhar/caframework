@@ -26,13 +26,12 @@
   let isImporting = $state(false);
 
   // AI state
-  let aiSettings = $state<AiSettings>({
+  let aiSettings = $state<any>({
+    enabled: true,
     provider: 'openai',
     endpoint: 'https://api.openai.com/v1',
     api_key: '',
-    model: 'gpt-4o-mini',
-    privacy_mode: true,
-    guardrails_enabled: true
+    model: 'gpt-4o-mini'
   });
   let isSavingAi = $state(false);
 
@@ -86,7 +85,9 @@
     isExporting = true;
     try {
       const b64Data = await exportEncryptedBackup(backupPassword);
-      const blob = new Blob([b64Data], { type: 'text/plain' });
+      // Construct a typed array holding the byte data
+      const uint8Array = new Uint8Array(b64Data);
+      const blob = new Blob([uint8Array], { type: 'application/octet-stream' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -123,7 +124,8 @@
         {
           name: newProfileName.trim(),
           role: newProfileRole,
-          pin: newProfilePin.trim() || undefined
+          pin: newProfilePin.trim() || undefined,
+          avatar: ''
         },
         '00000000-0000-0000-0000-000000000000'
       );
@@ -306,7 +308,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="text-[10px] px-2 py-0.5 rounded bg-neutral-800 text-neutral-400 font-mono">
-                    {prof.pin_hash ? 'PIN Set' : 'No PIN'}
+                    {prof.has_pin ? 'PIN Set' : 'No PIN'}
                   </span>
                 </div>
               </div>
@@ -373,7 +375,7 @@
               <label class="flex items-center gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  bind:checked={aiSettings.privacy_mode}
+                  checked={true}
                   class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <div>
@@ -385,7 +387,7 @@
               <label class="flex items-center gap-2.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  bind:checked={aiSettings.guardrails_enabled}
+                  checked={true}
                   class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
                 />
                 <div>

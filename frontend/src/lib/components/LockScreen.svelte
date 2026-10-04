@@ -9,7 +9,12 @@
   import { getProfile, saveProfile, DEFAULT_AVATAR } from '$lib/stores/profile.svelte';
   import { APP_VERSION } from '$lib/appInfo';
   import { getCurrentWindow } from '@tauri-apps/api/window';
-  import { invoke } from '@tauri-apps/api/core';
+  import {
+    cmdWindowMinimize,
+    cmdWindowMaximize,
+    cmdWindowClose,
+    cmdWindowStartDragging
+  } from '$lib/generated/commands';
   import { t } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
   import ProLoginForm from './ProLoginForm.svelte';
@@ -103,7 +108,7 @@
 
   async function minimizeWindow() {
     try {
-      await invoke('window_minimize');
+      await cmdWindowMinimize();
     } catch {
       try {
         if (appWindow) {
@@ -119,7 +124,7 @@
 
   async function maximizeWindow() {
     try {
-      await invoke('window_maximize');
+      await cmdWindowMaximize();
     } catch {
       try {
         if (appWindow) {
@@ -135,7 +140,7 @@
 
   async function closeWindow() {
     try {
-      await invoke('window_close');
+      await cmdWindowClose();
     } catch {
       try {
         if (appWindow) {
@@ -154,7 +159,7 @@
     const target = e.target as HTMLElement | null;
     if (target?.closest('button, input, textarea, a, select, [role="button"], .no-drag')) return;
     try {
-      await invoke('window_start_dragging');
+      await cmdWindowStartDragging();
     } catch {
       try {
         if (appWindow) {

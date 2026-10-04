@@ -17,3 +17,7 @@ minisign = "0.7"
 rand = "0.8"
 walkdir = "2"
 chrono = { version = "0.4", features = ["serde"] }
+syn = { version = "2.0.119", features = ["full"] }
+quote = "1.0.47"
+proc-macro2 = "1.0.107"
+convert_case = "0.6.0"

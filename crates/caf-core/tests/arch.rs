@@ -330,4 +330,22 @@ fn tauri_command_registry_build_script_and_acl_agree() {
         "capabilities/default.json men-grant permission untuk command yang tidak ada: \
          {granted_without_command:?}"
     );
+
+    // Guard: Every command must also have a declared entry in CORE's COMMAND_POLICIES
+    let policy_commands: HashSet<String> = caf_core::api::policy::COMMAND_POLICIES
+        .iter()
+        .map(|cp| cp.name.to_string())
+        .collect();
+
+    let missing_policy = sorted(&declared, &policy_commands);
+    assert!(
+        missing_policy.is_empty(),
+        "command terdaftar tetapi tidak memiliki policy entry di caf_core::api::policy: {missing_policy:?}"
+    );
+
+    let excess_policy = sorted(&policy_commands, &declared);
+    assert!(
+        excess_policy.is_empty(),
+        "policy terdaftar untuk command yang tidak ada di caf-app: {excess_policy:?}"
+    );
 }

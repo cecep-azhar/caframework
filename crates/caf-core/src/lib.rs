@@ -22,6 +22,7 @@
 )]
 
 pub mod ai;
+pub mod api;
 pub mod audit;
 pub mod backup;
 pub mod crash;
