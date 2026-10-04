@@ -29,6 +29,9 @@ const COMMANDS: &[&str] = &[
     // Generic AI
     "get_ai_settings",
     "save_ai_settings",
+    "set_ai_api_key",
+    "clear_ai_api_key",
+    "ai_preview_context",
     "ai_chat",
     // Feedback & Crash Reporting
     "submit_feedback",

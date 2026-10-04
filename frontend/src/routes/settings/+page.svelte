@@ -383,18 +383,6 @@
                   <span class="text-[10px] text-neutral-400 block">Redacts personal identifiable info and masks account details before sending prompts to the AI provider.</span>
                 </div>
               </label>
-
-              <label class="flex items-center gap-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={true}
-                  class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500"
-                />
-                <div>
-                  <span class="text-xs font-medium text-white block">Enforce System Guardrails</span>
-                  <span class="text-[10px] text-neutral-400 block">Restricts model output to safe family & financial domain parameters.</span>
-                </div>
-              </label>
             </div>
 
             <div class="flex justify-end pt-2">

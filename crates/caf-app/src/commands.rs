@@ -135,11 +135,33 @@ pub async fn save_ai_settings(settings: ai::AiSettings) -> Result<(), CafError> 
 }
 
 #[tauri::command]
+pub async fn set_ai_api_key(api_key: String) -> Result<(), CafError> {
+    run_blocking(move || ai::set_ai_api_key(&api_key)).await
+}
+
+#[tauri::command]
+pub async fn clear_ai_api_key() -> Result<(), CafError> {
+    run_blocking(ai::clear_ai_api_key).await
+}
+
+#[tauri::command]
+pub async fn ai_preview_context(level: ai::PrivacyLevel) -> Result<ai::ContextPayload, CafError> {
+    run_blocking(move || ai::preview_context_for_current_session(level)).await
+}
+
+#[tauri::command]
 pub async fn ai_chat(
     prompt: String,
-    context: Option<String>,
+    privacy_level: Option<ai::PrivacyLevel>,
+    consent_given: Option<bool>,
 ) -> Result<ai::AiChatResponse, CafError> {
-    run_blocking(move || ai::chat(&prompt, context.as_deref())).await
+    run_blocking(move || {
+        let session = caf_core::session::get_current_session().unwrap_or_else(|_| {
+            caf_core::session::Session::new("default", "member")
+        });
+        ai::chat(&session, &prompt, privacy_level, consent_given.unwrap_or(false))
+    })
+    .await
 }
 
 // Feedback & Crash commands

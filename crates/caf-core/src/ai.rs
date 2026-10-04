@@ -303,6 +303,21 @@ pub fn scrub_text(text: &str) -> (String, usize) {
     scrubber.scrub_text(text)
 }
 
+/// Preview context for current session with given privacy level
+pub fn preview_context_for_current_session(level: PrivacyLevel) -> Result<ContextPayload, CatermError> {
+    let session = crate::session::get_current_session().unwrap_or_else(|_| {
+        crate::session::Session::new("default", "member")
+    });
+    let cfg = get_stored_config()?;
+    build_context(
+        &session,
+        &level,
+        true, // consent is implied when user requests a preview
+        cfg.allow_full_detail_for_local,
+        &cfg.base_url,
+    )
+}
+
 /// Build context for a given privacy level
 pub fn build_context(
     session: &crate::session::Session,

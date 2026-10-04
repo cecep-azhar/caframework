@@ -39,6 +39,14 @@ export interface NoteRecord {
   owner_profile_id: string;
 }
 
+export type PrivacyLevel = 'summary' | 'detailed' | 'full';
+
+export interface ContextPayload {
+  level: PrivacyLevel;
+  content: string;
+  redacted_count: number;
+}
+
 export interface AiSettings {
   enabled: boolean;
   provider: string;
@@ -138,8 +146,28 @@ export async function cmdSaveAiSettings(args: { settings: AiSettings }): Promise
   return await invoke<void>('save_ai_settings', args);
 }
 
-export async function cmdAiChat(args: { prompt: string; context?: string | null }): Promise<AiChatResponse> {
-  return await invoke<AiChatResponse>('ai_chat', args);
+export async function cmdSetAiApiKey(args: { apiKey: string }): Promise<void> {
+  return await invoke<void>('set_ai_api_key', { api_key: args.apiKey });
+}
+
+export async function cmdClearAiApiKey(): Promise<void> {
+  return await invoke<void>('clear_ai_api_key');
+}
+
+export async function cmdAiPreviewContext(args: { level: PrivacyLevel }): Promise<ContextPayload> {
+  return await invoke<ContextPayload>('ai_preview_context', args);
+}
+
+export async function cmdAiChat(args: {
+  prompt: string;
+  privacyLevel?: PrivacyLevel | null;
+  consentGiven?: boolean | null;
+}): Promise<AiChatResponse> {
+  return await invoke<AiChatResponse>('ai_chat', {
+    prompt: args.prompt,
+    privacy_level: args.privacyLevel,
+    consent_given: args.consentGiven,
+  });
 }
 
 // Feedback & Crash commands

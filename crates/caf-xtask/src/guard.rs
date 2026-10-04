@@ -273,7 +273,10 @@ fn check_invoke_registry(
                 for i in 0..lines.len() {
                     if lines[i].contains("#[tauri::command]") && i + 1 < lines.len() {
                         let next_line = lines[i + 1].trim();
-                        if next_line.starts_with("pub fn ") || next_line.starts_with("fn ") {
+                        if next_line.starts_with("pub fn ")
+                            || next_line.starts_with("pub async fn ")
+                            || next_line.starts_with("fn ")
+                            || next_line.starts_with("async fn ") {
                             let parts: Vec<&str> = next_line.split('(').collect();
                             if let Some(sig) = parts.first() {
                                 let name = sig.split_whitespace().last().unwrap_or("");

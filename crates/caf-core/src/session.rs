@@ -38,6 +38,32 @@ pub struct SessionManager {
     active_session: Option<Session>,
 }
 
+static CURRENT_SESSION: std::sync::RwLock<Option<Session>> = std::sync::RwLock::new(None);
+
+pub fn get_current_session() -> Result<Session, CatermError> {
+    let lock = CURRENT_SESSION
+        .read()
+        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+    lock.clone()
+        .ok_or_else(|| CatermError::Auth(AuthError::Unauthorized))
+}
+
+pub fn set_current_session(session: Session) -> Result<(), CatermError> {
+    let mut lock = CURRENT_SESSION
+        .write()
+        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+    *lock = Some(session);
+    Ok(())
+}
+
+pub fn clear_current_session() -> Result<(), CatermError> {
+    let mut lock = CURRENT_SESSION
+        .write()
+        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+    *lock = None;
+    Ok(())
+}
+
 impl SessionManager {
     pub fn set_session(&mut self, session: Session) {
         self.active_session = Some(session);

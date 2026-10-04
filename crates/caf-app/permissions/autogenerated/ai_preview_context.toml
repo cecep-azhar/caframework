@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-preview-context"
+description = "Enables the ai_preview_context command without any pre-configured scope."
+commands.allow = ["ai_preview_context"]
+
+[[permission]]
+identifier = "deny-ai-preview-context"
+description = "Denies the ai_preview_context command without any pre-configured scope."
+commands.deny = ["ai_preview_context"]
