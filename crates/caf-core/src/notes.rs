@@ -31,47 +31,55 @@ pub struct NoteInput {
     pub owner_profile_id: String,
 }
 
-pub fn list_notes(caller_profile_id: &str, is_owner: bool) -> Result<Vec<NoteRecord>, CatermError> {
+pub fn list_notes(caller_profile_id: &str, is_super: bool) -> Result<Vec<NoteRecord>, CatermError> {
     let conn = db::open()?;
+    let scope_clause = crate::visibility::sql_scope(is_super);
+    let sql = format!(
+        "SELECT id, title, content, tags, rev, created_at, updated_at, deleted_at, origin_device_id, owner_profile_id, visibility 
+         FROM notes 
+         WHERE {}
+         ORDER BY updated_at DESC",
+        scope_clause
+    );
+
     let mut stmt = conn
-        .prepare(
-            "SELECT id, title, content, tags, rev, created_at, updated_at, deleted_at, origin_device_id, owner_profile_id, visibility 
-             FROM notes 
-             WHERE deleted_at IS NULL
-             ORDER BY updated_at DESC",
-        )
+        .prepare(&sql)
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-    let rows = stmt
-        .query_map([], |row| {
-            let tags_str: String = row.get(3)?;
-            let tags: Vec<String> = serde_json::from_str(&tags_str).unwrap_or_default();
-            Ok(NoteRecord {
-                id: row.get(0)?,
-                title: row.get(1)?,
-                content: row.get(2)?,
-                tags,
-                rev: row.get(4)?,
-                created_at: row.get(5)?,
-                updated_at: row.get(6)?,
-                deleted_at: row.get(7)?,
-                origin_device_id: row.get(8)?,
-                owner_profile_id: row.get(9)?,
-                visibility: row.get(10)?,
-            })
+    let map_fn = |row: &rusqlite::Row| -> rusqlite::Result<NoteRecord> {
+        let tags_str: String = row.get(3)?;
+        let tags: Vec<String> = serde_json::from_str(&tags_str).unwrap_or_default();
+        Ok(NoteRecord {
+            id: row.get(0)?,
+            title: row.get(1)?,
+            content: row.get(2)?,
+            tags,
+            rev: row.get(4)?,
+            created_at: row.get(5)?,
+            updated_at: row.get(6)?,
+            deleted_at: row.get(7)?,
+            origin_device_id: row.get(8)?,
+            owner_profile_id: row.get(9)?,
+            visibility: row.get(10)?,
         })
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    };
 
     let mut notes = Vec::new();
-    for row in rows {
-        let note = row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
-        // Visibility filter:
-        // 'shared': everyone sees
-        // 'private_summary' or 'private': only creator or system owner sees
-        if note.visibility == "shared" || note.owner_profile_id == caller_profile_id || is_owner {
-            notes.push(note);
+    if is_super {
+        let rows = stmt
+            .query_map([], map_fn)
+            .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        for row in rows {
+            notes.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
         }
-    }
+    } else {
+        let rows = stmt
+            .query_map([caller_profile_id], map_fn)
+            .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        for row in rows {
+            notes.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
+        }
+    };
 
     Ok(notes)
 }

@@ -1,7 +1,6 @@
 use crate::error::CatermError;
 use crate::visibility::VisibilityScope;
 use async_trait::async_trait;
-use serde::Serialize;
 
 /// Defines a provider that can supply context for AI operations,
 /// honoring visibility scopes.
