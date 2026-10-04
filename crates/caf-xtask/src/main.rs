@@ -39,6 +39,11 @@ enum Commands {
         #[arg(long)]
         only: Option<String>,
     },
+    /// Validate app.toml config schema
+    Check {
+        #[arg(short, long, default_value = "app.toml")]
+        config: PathBuf,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -225,7 +230,7 @@ fn run_generate_icons() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
+fn run_new_app(
     config_path: &Path,
     out_dir: &Path,
     with_sample: bool,
@@ -344,9 +349,17 @@ fn run_generate_icons() -> Result<(), Box<dyn std::error::Error>> {
 mod guard;
 mod scanner;
 
+fn run_check(config_path: &Path) -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = load_config(config_path)?;
+    println!("app.toml validation succeeded for {}", cfg.app.name);
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::GenerateIcons => run_generate_icons(),
+        Commands::Check { config } => run_check(&config),
         Commands::Codegen { config } => run_codegen(&config),
         Commands::NewApp {
             config,
