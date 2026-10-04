@@ -91,14 +91,34 @@ fn has_tauri_command_attr(attrs: &[syn::Attribute]) -> bool {
 fn rust_type_to_ts(ty: &syn::Type) -> String {
     match ty {
         syn::Type::Path(type_path) => {
-            let seg = type_path.path.segments.last().unwrap().ident.to_string();
-            match seg.as_str() {
+            let seg = type_path.path.segments.last().unwrap();
+            let ident = seg.ident.to_string();
+            match ident.as_str() {
                 "String" | "str" => "string".to_string(),
                 "u8" | "u16" | "u32" | "u64" | "i8" | "i16" | "i32" | "i64" | "f32" | "f64"
                 | "usize" | "isize" => "number".to_string(),
                 "bool" => "boolean".to_string(),
                 "serde_json::Value" | "Value" => "any".to_string(),
-                other => other.to_string(), // Trust ts-rs to have exported this type
+                "Vec" => {
+                    if let syn::PathArguments::AngleBracketed(args) = &seg.arguments
+                        && let Some(syn::GenericArgument::Type(inner)) = args.args.first()
+                    {
+                        format!("{}[]", rust_type_to_ts(inner))
+                    } else {
+                        "any[]".to_string()
+                    }
+                }
+                "Option" => {
+                    if let syn::PathArguments::AngleBracketed(args) = &seg.arguments
+                        && let Some(syn::GenericArgument::Type(inner)) = args.args.first()
+                    {
+                        format!("{} | null", rust_type_to_ts(inner))
+                    } else {
+                        "any | null".to_string()
+                    }
+                }
+                "Window" | "AppHandle" => "any".to_string(),
+                _ => "any".to_string(),
             }
         }
         syn::Type::Reference(type_ref) => rust_type_to_ts(&type_ref.elem),

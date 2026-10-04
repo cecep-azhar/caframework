@@ -20,8 +20,8 @@ Current plan: TASK_FIX.md
 | F12 | DONE | GREEN | Notes/evidence/fix/F12.md | 2026-10-04 |
 | F13 | DONE | GREEN | Notes/evidence/fix/F13.md | 2026-10-04 |
 | F14 | DONE | GREEN | Notes/evidence/fix/F14.md | 2026-10-04 |
-| F15 | IN_PROGRESS | - | Notes/evidence/fix/F15.md | - |
-| F16 | TODO | - | Notes/evidence/fix/F16.md | - |
+| F15 | DONE | GREEN | Notes/evidence/fix/F15.md | 2026-10-04 |
+| F16 | IN_PROGRESS | - | Notes/evidence/fix/F16.md | - |
 | F17 | TODO | - | Notes/evidence/fix/F17.md | - |
 | F18 | TODO | - | Notes/evidence/fix/F18.md | - |
 | F19 | TODO | - | Notes/evidence/fix/F19.md | - |
@@ -110,9 +110,9 @@ Current plan: TASK_FIX.md
 | F14.4 | DONE | F14.md | Dynamic accent color system |
 | F14.5 | DONE | F14.md | PageContainer & state components |
 | F14.6 | DONE | F14.md | Settings registry |
-| F15.1 | IN_PROGRESS | F15.md#f151 | Complete i18n dictionaries |
-| F15.2 | TODO | F15.md#f152 | Type-safe t() helper |
-| F15.3 | TODO | F15.md#f153 | Locale formatters |
+| F15.1 | DONE | F15.md#f151 | Complete i18n dictionaries |
+| F15.2 | DONE | F15.md#f152 | Type-safe t() helper |
+| F15.3 | DONE | F15.md#f153 | Locale formatters |
 | F16.1 | TODO | F16.md#f161 | Notes CRUD completion |
 | F16.2 | TODO | F16.md#f162 | Notes export/import JSON |
 | F17.1 | TODO | F17.md#f171 | Open source documentation |
