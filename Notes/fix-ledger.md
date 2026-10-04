@@ -17,7 +17,7 @@ Current plan: TASK_FIX.md
 | F9 | DONE | GREEN | Notes/evidence/fix/F9.md | 2026-10-04 |
 | F10 | DONE | GREEN | Notes/evidence/fix/F10.md | 2026-10-04 |
 | F11 | DONE | GREEN | Notes/evidence/fix/F11.md | 2026-10-04 |
-| F12 | IN_PROGRESS | - | Notes/evidence/fix/F12.md | - |
+| F12 | DONE | GREEN | Notes/evidence/fix/F12.md | 2026-10-04 |
 | F13 | TODO | - | Notes/evidence/fix/F13.md | - |
 | F14 | TODO | - | Notes/evidence/fix/F14.md | - |
 | F15 | TODO | - | Notes/evidence/fix/F15.md | - |
@@ -97,10 +97,10 @@ Current plan: TASK_FIX.md
 | F11.2 | DONE | F11.md | Restore transaction & conflict handling |
 | F11.3 | DONE | F11.md | Round-trip backup/restore tests |
 | F11.4 | DONE | F11.md | Scheduled backup engine |
-| F12.1 | IN_PROGRESS | F12.md | Module toggle enforcement |
-| F12.2 | TODO | F12.md#f122 | Pro licensing client |
-| F12.3 | TODO | F12.md#f123 | Feedback and crash report scrubber |
-| F12.4 | TODO | F12.md#f124 | Updater integration |
+| F12.1 | DONE | F12.md | Module toggle enforcement |
+| F12.2 | DONE | F12.md#f122 | Pro licensing client |
+| F12.3 | DONE | F12.md#f123 | Feedback and crash report scrubber |
+| F12.4 | DONE | F12.md#f124 | Updater integration |
 | F13.1 | TODO | F13.md#f131 | AI provider abstraction |
 | F13.2 | TODO | F13.md#f132 | AI privacy levels & context scrubber |
 | F13.3 | TODO | F13.md#f133 | AI UI chat rendering |

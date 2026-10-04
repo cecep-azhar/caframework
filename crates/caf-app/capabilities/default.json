@@ -34,7 +34,6 @@
     "allow-set-performance-prefs",
     "dialog:default",
     "process:default",
-    "updater:default",
     "fs:default"
   ]
 }

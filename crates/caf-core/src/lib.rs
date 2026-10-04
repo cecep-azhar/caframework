@@ -29,6 +29,7 @@ pub mod crash;
 pub mod db;
 pub mod error;
 pub mod feedback;
+pub mod http;
 pub mod keyring;
 pub mod migrations;
 pub mod notes;

@@ -7,7 +7,7 @@
 
 use crate::error::{CatermError, IoError};
 
-const PROXY_URL: &str = "https://caframework.fathforce.com/api/feedback";
+const PROXY_URL: &str = "";
 
 /// Submit user feedback. `rating` must be 1-5; `content` is optional but the
 /// proxy will reject an empty string — we enforce it here first so the error

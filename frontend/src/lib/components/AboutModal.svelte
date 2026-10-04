@@ -48,7 +48,9 @@
       <div class="flex justify-between py-2">
         <dt class="text-neutral-500">{t('about.website')}</dt>
         <dd>
-          <a href={WEBSITE_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">caframework.fathforce.com</a>
+          {#if WEBSITE_URL}
+            <a href={WEBSITE_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">{WEBSITE_URL}</a>
+          {/if}
         </dd>
       </div>
       <div class="flex justify-between py-2">
@@ -88,7 +90,7 @@
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
         <span>{t('about.fromIndonesia')}</span>
-        <span class="inline-flex items-center justify-center overflow-hidden rounded-sm border border-neutral-300 dark:border-neutral-700 w-4 h-2.5 shrink-0" title="Indonesia">
+        <span class="inline-flex items-center justify-center overflow-hidden rounded-sm border border-neutral-300 dark:border-neutral-700 w-4 h-2.5 shrink-0" title={t('about.indonesia') || 'Indonesia'}>
           <svg viewBox="0 0 3 2" class="w-full h-full">
             <rect width="3" height="1" fill="#e70011"/>
             <rect y="1" width="3" height="1" fill="#ffffff"/>

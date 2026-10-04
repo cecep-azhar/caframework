@@ -48,7 +48,7 @@ pub fn is_luhn_valid(number: &str) -> bool {
 }
 
 // 3. Indonesian Mobile Numbers (+62, 62, 08, 9-13 digits)
-static_regex!(id_phone_re, r"\b(\+62|62|08)\d{7,11}\b");
+static_regex!(id_phone_re, r"(\+62|62|08)[0-9]{7,11}\b");
 
 // 4. NIK: 16 digits (plausible province/date format logic check can be added if needed, but regex 16 digits is base)
 static_regex!(id_nik_re, r"\b\d{16}\b");
@@ -243,5 +243,78 @@ impl PiiScrubber {
         }
 
         (text, redactions_applied)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_email_redaction() {
+        let scrubber = PiiScrubber::default();
+        let (res, count) = scrubber.scrub_text("Contact user@example.com for help");
+        assert_eq!(res, "Contact [REDACTED_EMAIL] for help");
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_luhn_algorithm() {
+        assert!(is_luhn_valid("49927398716"));
+        assert!(is_luhn_valid("4111111111111111"));
+        assert!(!is_luhn_valid("49927398717"));
+        assert!(!is_luhn_valid("1234567812345678"));
+    }
+
+    #[test]
+    fn test_card_redaction_luhn_valid() {
+        let scrubber = PiiScrubber::default();
+        let (res, count) = scrubber.scrub_text("Card number: 4111 1111 1111 1111");
+        assert_eq!(res, "Card number: [REDACTED_CARD]");
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_card_non_luhn_not_redacted() {
+        let scrubber = PiiScrubber::default();
+        let (res, _count) = scrubber.scrub_text("Order ID: 1234567812345678");
+        // Non-luhn 16 digits should not be redacted as card
+        assert!(!res.contains("[REDACTED_CARD]"));
+    }
+
+    #[test]
+    fn test_indonesian_phone_redaction() {
+        let scrubber = PiiScrubber::default();
+        let (res1, c1) = scrubber.scrub_text("Call +6281234567890 now");
+        assert_eq!(res1, "Call [REDACTED_PHONE] now");
+        assert_eq!(c1, 1);
+
+        let (res2, c2) = scrubber.scrub_text("Call 085220696117 now");
+        assert_eq!(res2, "Call [REDACTED_PHONE] now");
+        assert_eq!(c2, 1);
+    }
+
+    #[test]
+    fn test_api_keys_and_tokens() {
+        let scrubber = PiiScrubber::default();
+        let (res, count) = scrubber.scrub_text("My key is sk-123456789012345678901234567890");
+        assert_eq!(res, "My key is [REDACTED_API_KEY]");
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_ipv4_redaction() {
+        let scrubber = PiiScrubber::default();
+        let (res, count) = scrubber.scrub_text("Server at 192.168.1.50 and 127.0.0.1");
+        assert_eq!(res, "Server at [REDACTED_IP] and 127.0.0.1");
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn test_iban_redaction() {
+        let scrubber = PiiScrubber::default();
+        let (res, count) = scrubber.scrub_text("Transfer to DE89370400440532013000");
+        assert_eq!(res, "Transfer to [REDACTED_IBAN]");
+        assert_eq!(count, 1);
     }
 }

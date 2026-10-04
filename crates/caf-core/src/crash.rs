@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 const PREFS_FILE: &str = "crash_reporting.json";
-const PROXY_URL: &str = "https://caframework.fathforce.com/api/crash-report";
+const PROXY_URL: &str = "";
 /// A dump older than this is almost certainly from a version so old the stack trace is no
 /// longer useful, and keeping it around only risks an unbounded pile of unread dumps.
 const MAX_DUMP_AGE_SECS: i64 = 30 * 24 * 3600;
