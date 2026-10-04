@@ -34,6 +34,7 @@ pub mod prefs;
 pub mod pro;
 pub mod profiles;
 pub mod secret;
+pub mod keyring;
 pub mod vault;
 pub mod migrations;
 

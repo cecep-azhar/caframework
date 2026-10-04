@@ -48,6 +48,11 @@ domain_error!(
         "account is temporarily locked out due to too many failed attempts"
     ),
     CorruptedHeader = ("005", "vault database header is corrupted"),
+    RecoveryUnconfirmed = ("006", "recovery code has not been confirmed"),
+    PasswordResetRequired = ("007", "master password reset is required"),
+    WrongPassword = ("008", "wrong master password"),
+    WrongRecoveryCode = ("009", "wrong recovery code"),
+    LegacyFormat = ("010", "legacy vault format detected"),
 );
 
 domain_error!(

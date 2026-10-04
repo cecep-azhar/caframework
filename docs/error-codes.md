@@ -32,3 +32,8 @@
 | `CAF-VAULT-003` | `VAULT` | vault: invalid master password |
 | `CAF-VAULT-004` | `VAULT` | vault: account is temporarily locked out due to too many failed attempts |
 | `CAF-VAULT-005` | `VAULT` | vault: vault database header is corrupted |
+| `CAF-VAULT-006` | `VAULT` | vault: recovery code has not been confirmed |
+| `CAF-VAULT-007` | `VAULT` | vault: master password reset is required |
+| `CAF-VAULT-008` | `VAULT` | vault: wrong master password |
+| `CAF-VAULT-009` | `VAULT` | vault: wrong recovery code |
+| `CAF-VAULT-010` | `VAULT` | vault: legacy vault format detected |

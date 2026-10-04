@@ -8,10 +8,10 @@ Current plan: TASK_FIX.md
 | F0 | DONE | GREEN | Notes/evidence/fix/F0.md | Scaffolding and baseline verified, logs recorded (commit `6c95d1a`) |
 | F1 | DONE | GREEN | Notes/evidence/fix/F1.md | Toolchain fixes done and CI rewritten |
 | F2 | DONE | GREEN | Notes/evidence/fix/F2.md | Leftovers & artifacts cleanup complete |
-| F3 | IN_PROGRESS | - | Notes/evidence/fix/F3.md | - |
-| F4 | TODO | - | Notes/evidence/fix/F4.md | - |
-| F5 | TODO | - | Notes/evidence/fix/F5.md | - |
-| F6 | TODO | - | Notes/evidence/fix/F6.md | - |
+| F3 | DONE | GREEN | Notes/evidence/fix/F3.md | - |
+| F4 | DONE | GREEN | Notes/evidence/fix/F4.md | - |
+| F5 | DONE | GREEN | Notes/evidence/fix/F5.md | - |
+| F6 | DONE | - | Notes/evidence/fix/F6.md | 2026-10-04 |
 | F7 | TODO | - | Notes/evidence/fix/F7.md | - |
 | F8 | TODO | - | Notes/evidence/fix/F8.md | - |
 | F9 | TODO | - | Notes/evidence/fix/F9.md | - |
@@ -70,10 +70,10 @@ Current plan: TASK_FIX.md
 | F5.6 | TODO | F5.md#f56 | Command logs audit table |
 | F5.7 | TODO | F5.md#f57 | Database convention guard tests |
 | F5.8 | TODO | F5.md#f58 | Quality bars on data layer |
-| F6.1 | TODO | F6.md#f61 | DEK 32-byte and dual key wrapping |
-| F6.2 | TODO | F6.md#f62 | BIP-39 24-word recovery code |
-| F6.3 | TODO | F6.md#f63 | Master password change via DEK re-wrapping |
-| F6.4 | TODO | F6.md#f64 | Recovery code regeneration |
+| F6.1 | DONE | F6.md#f61 | DEK 32-byte and dual key wrapping |
+| F6.2 | DONE | F6.md#f62 | BIP-39 24-word recovery code |
+| F6.3 | DONE | F6.md#f63 | Master password change via DEK re-wrapping |
+| F6.4 | DONE | F6.md#f64 | Recovery code regeneration |
 | F7.1 | TODO | F7.md#f71 | Clean unused/phantom commands |
 | F7.2 | TODO | F7.md#f72 | Parameter & return type alignment |
 | F7.3 | TODO | F7.md#f73 | Policy classes and command metadata |

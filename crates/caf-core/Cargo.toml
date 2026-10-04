@@ -36,6 +36,8 @@ hmac = "0.12"
 md-5 = "0.10"
 notify = { version = "7", features = ["macos_kqueue"] }
 ed25519-dalek = "2"
+hkdf = "0.13.0"
+bip39 = { version = "3.0.0", features = ["rand"] }
 
 [target.'cfg(not(target_os = "android"))'.dependencies]
 machine-uid = "0.5"
@@ -49,4 +51,5 @@ rusqlite = { version = "0.32", features = ["bundled-sqlcipher-vendored-openssl"]
 [dev-dependencies]
 serde_json.workspace = true
 tempfile = "3.10"
+proptest = "1"
 
