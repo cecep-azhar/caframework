@@ -26,17 +26,40 @@ pub struct AiSettings {
     #[serde(default)]
     pub mode: AiMode,
     #[serde(default = "default_provider")]
-    pub provider: String, // 'openai' | 'anthropic' | 'ollama' | 'hosted'
+    pub provider: String,
     #[serde(default = "default_model")]
     pub model: String,
     #[serde(default)]
     pub endpoint: String,
     #[serde(default)]
     pub api_key: String,
-    #[serde(default = "default_true")]
+    #[serde(default)]
     pub privacy_redaction_enabled: bool,
     #[serde(default = "default_temperature")]
     pub temperature: u8,
+}
+
+impl AiSettings {
+    pub fn validate(&self) -> Result<(), AiError> {
+        match self.mode {
+            AiMode::Off => Ok(()),
+            AiMode::Byo => {
+                if self.api_key.trim().is_empty() && self.provider != "ollama" {
+                    return Err(AiError::Generic("API key is required for BYO mode (except Ollama)".to_string()));
+                }
+                if self.endpoint.trim().is_empty() {
+                    return Err(AiError::Generic("Endpoint is required for BYO mode".to_string()));
+                }
+                Ok(())
+            }
+            AiMode::Hosted => {
+                if self.endpoint.is_empty() {
+                    return Err(AiError::Generic("Endpoint is required for Hosted mode".to_string()));
+                }
+                Ok(())
+            }
+        }
+    }
 }
 
 fn default_provider() -> String {
@@ -45,10 +68,6 @@ fn default_provider() -> String {
 
 fn default_model() -> String {
     "gpt-4o-mini".to_string()
-}
-
-fn default_true() -> bool {
-    true
 }
 
 fn default_temperature() -> u8 {
@@ -61,7 +80,7 @@ impl Default for AiSettings {
             mode: AiMode::default(),
             provider: default_provider(),
             model: default_model(),
-            endpoint: "https://api.openai.com/v1".to_string(),
+            endpoint: String::new(),
             api_key: String::new(),
             privacy_redaction_enabled: true,
             temperature: default_temperature(),
@@ -96,8 +115,19 @@ pub fn get_settings() -> Result<AiSettings, CatermError> {
 }
 
 pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
+    // Validate before saving
+    settings.validate().map_err(|e| CatermError::Ai(e))?;
+
+    // If switching modes, ensure key security
+    let mut settings_to_save = settings.clone();
+    
+    // Clear key if switching to Off
+    if settings_to_save.mode == AiMode::Off {
+        settings_to_save.api_key = String::new();
+    }
+
     let conn = crate::db::open()?;
-    let json_str = serde_json::to_string(settings)
+    let json_str = serde_json::to_string(&settings_to_save)
         .map_err(|e| CatermError::Ai(AiError::Generic(e.to_string())))?;
 
     conn.execute(
@@ -135,6 +165,13 @@ pub fn redact_context(text: &str) -> (String, usize) {
 
 pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, CatermError> {
     let settings = get_settings()?;
+    
+    if settings.mode == AiMode::Off {
+        return Err(CatermError::Ai(AiError::Generic("AI is disabled".to_string())));
+    }
+    
+    // Validate to ensure we don't proceed with bad settings
+    settings.validate().map_err(|e| CatermError::Ai(e))?;
 
     let (safe_context, redactions) = if settings.privacy_redaction_enabled {
         if let Some(ctx) = context {
@@ -145,17 +182,6 @@ pub fn chat(prompt: &str, context: Option<&str>) -> Result<AiChatResponse, Cater
     } else {
         (context.unwrap_or("").to_string(), 0)
     };
-
-    if settings.api_key.trim().is_empty() && settings.provider != "ollama" {
-        return Ok(AiChatResponse {
-            message: format!(
-                "AI Assistant siap. Masukkan API key di Settings > AI untuk mulai berinteraksi secara cerdas.\n\nPrompt diterima: \"{}\"",
-                prompt
-            ),
-            redactions_applied: redactions,
-            tokens_used: Some(0),
-        });
-    }
 
     let url = if settings.provider == "ollama" {
         let base = if settings.endpoint.is_empty() {
@@ -276,7 +302,7 @@ mod tests {
         let _key = crate::vault::ensure_unlocked_key().expect("vault key");
 
         let initial = get_settings().expect("default settings");
-        assert_eq!(initial.provider, "openai");
+        assert_eq!(initial.mode, AiMode::Off);
 
         let custom = AiSettings {
             mode: AiMode::Byo,
@@ -290,8 +316,30 @@ mod tests {
 
         save_settings(&custom).expect("save custom");
         let fetched = get_settings().expect("get saved");
+        assert_eq!(fetched.mode, AiMode::Byo);
         assert_eq!(fetched.provider, "ollama");
         assert_eq!(fetched.model, "llama3.2");
         assert_eq!(fetched.temperature, 80);
+    }
+    
+    #[test]
+    fn test_key_clearing_on_mode_switch() {
+        let _guard = crate::test_support::isolated_data_dir("key_clearing_test");
+        let _key = crate::vault::ensure_unlocked_key().expect("vault key");
+        
+        let mut settings = AiSettings::default();
+        settings.mode = AiMode::Byo;
+        settings.endpoint = "https://example.com/v1".to_string();
+        settings.api_key = "secret".to_string();
+        
+        save_settings(&settings).unwrap();
+        
+        // Switch to Off
+        settings.mode = AiMode::Off;
+        save_settings(&settings).unwrap();
+        
+        let fetched = get_settings().unwrap();
+        assert_eq!(fetched.mode, AiMode::Off);
+        assert!(fetched.api_key.is_empty(), "API key should be cleared");
     }
 }
