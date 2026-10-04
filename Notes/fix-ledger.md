@@ -5,8 +5,8 @@ Current plan: TASK_FIX.md
 ## Status
 | Stage | Status | Gate | Evidence | Handoff |
 |---|---|---|---|---|
-| F0 | DONE | GREEN | Notes/evidence/fix/F0.md | Scaffolding and baseline verified, logs recorded |
-| F1 | IN_PROGRESS | - | Notes/evidence/fix/F1.md | - |
+| F0 | DONE | GREEN | Notes/evidence/fix/F0.md | Scaffolding and baseline verified, logs recorded (commit `6c95d1a`) |
+| F1 | IN_PROGRESS | - | Notes/evidence/fix/F1.md | Toolchain fixes done (F1.1, F1.2), working on F1.3 caf-xtask guard |
 | F2 | TODO | - | Notes/evidence/fix/F2.md | - |
 | F3 | TODO | - | Notes/evidence/fix/F3.md | - |
 | F4 | TODO | - | Notes/evidence/fix/F4.md | - |
@@ -35,9 +35,9 @@ Current plan: TASK_FIX.md
 | F0.3 | DONE | F0.md#f03-run-the-audit-verification-checklist | Audit §5 verification in throwaway clone |
 | F0.4 | DONE | F0.md#f04-baseline-measurements | Ratchets baseline measurement |
 | F0.5 | DONE | F0.md#f05-classify-commit-message-claims | T-9 commit claims classification |
-| F1.1 | IN_PROGRESS | F1.md#f11 | Clippy unwrap_used fix |
-| F1.2 | TODO | F1.md#f12 | Format and cargo-deny policy |
-| F1.3 | TODO | F1.md#f13 | caf-xtask guard subcommand |
+| F1.1 | DONE | F1.md#f11 | Clippy unwrap_used fixed via LazyLock in ai.rs & main.rs |
+| F1.2 | DONE | F1.md#f12 | Format and cargo-deny policy green (yoke-derive updated, deny.toml configured) |
+| F1.3 | IN_PROGRESS | F1.md#f13 | caf-xtask guard subcommand implementation |
 | F1.4 | TODO | F1.md#f14 | Hard-coded strings and sync writes scanner |
 | F1.5 | TODO | F1.md#f15 | CI workflow rewrite |
 | F1.6 | TODO | F1.md#f16 | Vitest test runner |
