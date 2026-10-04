@@ -5,6 +5,7 @@ members = [
     "crates/caf-cli",
     "crates/caf-app",
     "crates/caf-xtask",
+    "crates/caf-migrator",
 ]
 
 [workspace.package]
@@ -16,9 +17,6 @@ license = "MIT"
 repository = "https://github.com/cecep-azhar/caframework"
 
 [workspace.dependencies]
-rusqlite = "0.32"
-
-
 cargo-tarpaulin = "0.28"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }

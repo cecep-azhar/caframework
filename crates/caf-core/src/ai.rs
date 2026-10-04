@@ -12,8 +12,19 @@ static CARD_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
 static EMAIL_REGEX: LazyLock<Result<regex::Regex, regex::Error>> =
     LazyLock::new(|| regex::Regex::new(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"));
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum AiMode {
+    #[default]
+    Off,
+    Byo,
+    Hosted,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct AiSettings {
+    #[serde(default)]
+    pub mode: AiMode,
     #[serde(default = "default_provider")]
     pub provider: String, // 'openai' | 'anthropic' | 'ollama' | 'hosted'
     #[serde(default = "default_model")]
@@ -47,6 +58,7 @@ fn default_temperature() -> u8 {
 impl Default for AiSettings {
     fn default() -> Self {
         Self {
+            mode: AiMode::default(),
             provider: default_provider(),
             model: default_model(),
             endpoint: "https://api.openai.com/v1".to_string(),
@@ -267,6 +279,7 @@ mod tests {
         assert_eq!(initial.provider, "openai");
 
         let custom = AiSettings {
+            mode: AiMode::Byo,
             provider: "ollama".into(),
             model: "llama3.2".into(),
             endpoint: "http://localhost:11434".into(),
