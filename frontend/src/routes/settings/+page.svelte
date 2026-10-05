@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { t } from '$lib/i18n/index.svelte';
+  import { t, getLocale, setLocale, LOCALES } from '$lib/i18n/index.svelte';
   import PageHeader from '$lib/components/PageHeader.svelte';
-  import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
   import { getTheme, setTheme } from '$lib/stores/theme.svelte';
   import { showToast } from '$lib/stores/uiNotifications.svelte';
   import { changeMasterPassword } from '$lib/api/vault';
@@ -11,8 +10,11 @@
   import { exportEncryptedBackup, importEncryptedBackup } from '$lib/api/prefs';
   import { APP_VERSION } from '$lib/appInfo';
 
-  type SettingsTab = 'security' | 'profiles' | 'ai' | 'backup' | 'about';
-  let currentTab = $state<SettingsTab>('security');
+  type SettingsTab = 'general' | 'security' | 'profiles' | 'ai' | 'backup' | 'about';
+  let currentTab = $state<SettingsTab>('general');
+
+  const theme = getTheme();
+  const currentLocale = $derived(getLocale());
 
   // Password state
   let oldPassword = $state('');
@@ -141,46 +143,158 @@
 </script>
 
 <div class="h-full flex flex-col bg-neutral-950 overflow-hidden">
-  <PageHeader title="Settings" subtitle="Manage security, family profiles, AI privacy, and system backups" />
+  <PageHeader title={t('settings.title')} subtitle={t('settings.subtitle')} />
 
   <div class="flex-1 flex overflow-hidden">
     <!-- Settings Sidebar -->
-    <div class="w-56 border-r border-neutral-800 p-4 space-y-1">
+    <div class="w-56 border-r border-neutral-800 p-4 space-y-1 shrink-0">
+      <button
+        onclick={() => (currentTab = 'general')}
+        class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'general' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
+      >
+        {t('settings.tabs.general')}
+      </button>
       <button
         onclick={() => (currentTab = 'security')}
         class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'security' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
       >
-        Security & Vault
+        {t('settings.tabs.security')}
       </button>
       <button
         onclick={() => (currentTab = 'profiles')}
         class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'profiles' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
       >
-        Family Profiles
+        {t('settings.tabs.profiles')}
       </button>
       <button
         onclick={() => (currentTab = 'ai')}
         class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'ai' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
       >
-        AI Assistant & Privacy
+        {t('settings.tabs.ai')}
       </button>
       <button
         onclick={() => (currentTab = 'backup')}
         class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'backup' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
       >
-        Backup & Restore
+        {t('settings.tabs.backup')}
       </button>
       <button
         onclick={() => (currentTab = 'about')}
         class="w-full text-left px-3 py-2 rounded-xl text-sm font-medium transition-colors {currentTab === 'about' ? 'bg-indigo-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-900'}"
       >
-        About CAFramework
+        {t('settings.tabs.about')}
       </button>
     </div>
 
     <!-- Settings Tab Content -->
     <div class="flex-1 overflow-y-auto p-6 max-w-2xl">
-      {#if currentTab === 'security'}
+      {#if currentTab === 'general'}
+        <div class="space-y-6">
+          <!-- Theme Preference -->
+          <div class="bg-neutral-900/50 border border-neutral-800 p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-white">{t('settings.themePreference')}</h3>
+                <p class="text-xs text-neutral-400 mt-0.5">{t('settings.themeDesc')}</p>
+              </div>
+              <div class="flex items-center p-1 rounded-xl bg-neutral-950 border border-neutral-800">
+                <button
+                  type="button"
+                  onclick={() => setTheme('light')}
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {theme.name === 'light' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-400 hover:text-white'}"
+                >
+                  <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                  <span>{t('settings.themes.light')}</span>
+                </button>
+                <button
+                  type="button"
+                  onclick={() => setTheme('dark')}
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {theme.name === 'dark' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}"
+                >
+                  <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                  <span>{t('settings.themes.dark')}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Language Preference -->
+          <div class="bg-neutral-900/50 border border-neutral-800 p-5 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-sm font-semibold text-white">{t('settings.languagePreference')}</h3>
+                <p class="text-xs text-neutral-400 mt-0.5">{t('settings.languageDesc')}</p>
+              </div>
+              <div class="flex items-center p-1 rounded-xl bg-neutral-950 border border-neutral-800 gap-1">
+                {#each LOCALES as loc}
+                  <button
+                    type="button"
+                    onclick={() => setLocale(loc.code)}
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {currentLocale === loc.code ? 'bg-indigo-600 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}"
+                  >
+                    {loc.label}
+                  </button>
+                {/each}
+              </div>
+            </div>
+          </div>
+
+          <!-- Vault & Encryption Status -->
+          <div class="bg-neutral-900/50 border border-neutral-800 p-5 rounded-2xl space-y-4">
+            <div>
+              <h3 class="text-sm font-semibold text-white">{t('settings.vaultStatusTitle')}</h3>
+              <p class="text-xs text-neutral-400 mt-0.5">{t('settings.vaultStatusDesc')}</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+              <div class="bg-neutral-950/60 border border-neutral-800/80 p-3 rounded-xl">
+                <span class="text-[11px] text-neutral-500 block mb-1">{t('settings.vaultStatusLabel')}</span>
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  {t('settings.vaultStatusActive')}
+                </span>
+              </div>
+              <div class="bg-neutral-950/60 border border-neutral-800/80 p-3 rounded-xl">
+                <span class="text-[11px] text-neutral-500 block mb-1">{t('settings.encryptionEngine')}</span>
+                <span class="text-xs font-mono text-neutral-200">{t('settings.encryptionEngineVal')}</span>
+              </div>
+              <div class="bg-neutral-950/60 border border-neutral-800/80 p-3 rounded-xl">
+                <span class="text-[11px] text-neutral-500 block mb-1">{t('settings.kdfAlgorithm')}</span>
+                <span class="text-xs font-mono text-neutral-200">{t('settings.kdfAlgorithmVal')}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- App & Version Info -->
+          <div class="bg-neutral-900/50 border border-neutral-800 p-5 rounded-2xl space-y-3">
+            <div>
+              <h3 class="text-sm font-semibold text-white">{t('settings.appInfoTitle')}</h3>
+              <p class="text-xs text-neutral-400 mt-0.5">{t('settings.appInfoDesc')}</p>
+            </div>
+            <div class="space-y-2.5 pt-1 text-xs text-neutral-300">
+              <div class="flex justify-between py-1 border-b border-neutral-800/60">
+                <span class="text-neutral-500">{t('settings.frameworkVersion')}</span>
+                <span class="font-mono text-white">v{APP_VERSION}</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-neutral-800/60">
+                <span class="text-neutral-500">{t('settings.architectureStack')}</span>
+                <span>{t('settings.architectureStackVal')}</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-neutral-800/60">
+                <span class="text-neutral-500">{t('settings.license')}</span>
+                <span>{t('settings.licenseVal')}</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-neutral-500">{t('settings.author')}</span>
+                <span>{t('settings.authorVal')}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {:else if currentTab === 'security'}
         <div class="space-y-6">
           <div>
             <h2 class="text-base font-semibold text-white">Master Password</h2>

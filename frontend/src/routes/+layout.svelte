@@ -19,6 +19,8 @@
   import { invoke } from '@tauri-apps/api/core';
   import { t } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from '$lib/components/LanguageSwitcher.svelte';
+  import HeaderQuickControls from '$lib/components/HeaderQuickControls.svelte';
+  import WindowControls from '$lib/components/WindowControls.svelte';
   import { APP_CONFIG } from '$lib/generated/app';
   import { navItems as getNavItems, settingsNavItem } from '$lib/navItems';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
@@ -187,23 +189,37 @@
 
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col min-w-0 bg-neutral-950 overflow-hidden">
-      <!-- Top Bar with Global AI Action -->
-      <header class="h-12 border-b border-neutral-800/80 bg-neutral-900/40 backdrop-blur px-4 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-3">
+      <!-- Top Bar with Global Header Controls and Window Controls -->
+      <header
+        data-tauri-drag-region
+        class="h-10 border-b border-neutral-800/80 bg-neutral-900/40 backdrop-blur px-3 flex items-center justify-between shrink-0 select-none cursor-default"
+      >
+        <div class="flex items-center gap-2 pointer-events-none">
           <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50"></div>
-          <span class="text-xs text-neutral-400 font-medium">Vault Encrypted (SQLCipher)</span>
+          <span class="text-xs text-neutral-400 font-medium truncate">Vault Encrypted (SQLCipher)</span>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 no-drag">
+          <!-- Ask AI Trigger -->
           <button
+            type="button"
             onclick={() => toggleAiChat()}
-            class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/20 hover:text-indigo-300 transition-colors text-xs font-medium"
+            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/20 hover:text-indigo-300 transition-colors text-xs font-medium cursor-pointer"
+            title="Ask AI Assistant"
           >
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            <span>Ask AI</span>
+            <span class="hidden sm:inline">Ask AI</span>
           </button>
+
+          <!-- Unified Quick Controls (Split, Panels, Theme, Language) -->
+          <HeaderQuickControls />
+
+          <!-- Window Controls (Minimize, Maximize, Close) -->
+          <div class="pl-1 border-l border-neutral-800/80">
+            <WindowControls />
+          </div>
         </div>
       </header>
 
