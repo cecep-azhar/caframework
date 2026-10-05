@@ -70,7 +70,7 @@
   {:else}
     <!-- Sidebar / Navigation Drawer -->
     <aside
-      class="flex flex-col bg-neutral-900/90 border-r border-neutral-800/80 transition-all duration-200 shrink-0 select-none {isCollapsed ? 'w-16' : 'w-60'}"
+      class="flex flex-col bg-neutral-900/90 border-r border-neutral-800/80 shrink-0 select-none {isCollapsed ? 'w-16' : 'w-60'}"
     >
       <!-- Top Brand Header -->
       <div class="flex items-center justify-between px-3.5 py-4 border-b border-neutral-800/60">
