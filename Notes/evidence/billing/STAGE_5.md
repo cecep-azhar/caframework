@@ -1,0 +1,1 @@
+- Stage 5 complete: billingStore reactive Svelte 5 store, <ProGate> component with grace & offline banners, and Rust require_pro feature guard fully tested
