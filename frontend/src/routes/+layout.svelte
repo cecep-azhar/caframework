@@ -64,7 +64,7 @@
   let { children } = $props();
 </script>
 
-<div class="flex h-screen w-screen overflow-hidden bg-neutral-950 text-neutral-100 select-none font-sans">
+<div class="flex h-screen w-screen overflow-hidden bg-neutral-950 text-neutral-100 select-none font-sans pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]">
   {#if !isVaultUnlocked}
     <LockScreen onUnlocked={() => (isVaultUnlocked = true)} />
   {:else}

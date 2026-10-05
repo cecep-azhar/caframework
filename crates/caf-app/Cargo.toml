@@ -9,7 +9,7 @@ description = "CAFramework v2 desktop shell — thin Tauri binding layer over ca
 
 [lib]
 name = "caf_app_lib"
-crate-type = ["staticlib", "rlib"]
+crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -26,11 +26,11 @@ tauri-plugin-dialog = "2.7.3"
 mimalloc = { version = "0.1", default-features = false }
 tauri-plugin-process = "2"
 tauri-plugin-fs = "2"
-tauri-plugin-single-instance = "2.0.0"
 ts-rs = "12.0.1"
 
 [target.'cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))'.dependencies]
 tauri-plugin-updater = "2"
+tauri-plugin-single-instance = "2.0.0"
 
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.38"

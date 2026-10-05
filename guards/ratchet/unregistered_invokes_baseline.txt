@@ -50,3 +50,10 @@ pro_team_leave
 pro_team_remove_member
 save_performance_prefs
 submit_crash_report
+billing_get_effective_state
+billing_request_otp
+billing_verify_otp
+billing_activate_license
+billing_create_checkout
+billing_poll_checkout
+billing_sign_out

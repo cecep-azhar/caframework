@@ -32,15 +32,26 @@ pub fn run_with_start(start: std::time::Instant) {
     caf_core::crash::install_panic_hook();
 
     #[allow(clippy::expect_used, clippy::disallowed_methods)]
-    tauri::Builder::default()
+    let mut builder = tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_fs::init())
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        .plugin(tauri_plugin_fs::init());
+
+    #[cfg(desktop)]
+    {
+        builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             use tauri::Manager;
             let _ = app.get_webview_window("main").map(|w| w.set_focus());
-        }))
+        }));
+    }
+
+    builder
         .setup(move |app| {
+            use tauri::Manager;
+            if let Ok(app_data) = app.path().app_data_dir() {
+                let _ = caf_core::paths::set_custom_data_dir(app_data);
+            }
+
             window::create_main_window(app)?;
 
             #[cfg(desktop)]

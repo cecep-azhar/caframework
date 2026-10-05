@@ -26,7 +26,8 @@ echo "--> Created 5 artifacts + 2 signature files."
 # 2. Run distribute-release.sh in Dry Run mode
 echo "--> Running distribute-release.sh in --dry-run mode..."
 
-/home/cecepazhar/Project/caterm/scripts/distribute-release.sh \
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/distribute-release.sh" \
   --slug caterm \
   --tag v2.1.16 \
   --dir "$TEST_DIR" \
