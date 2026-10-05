@@ -61,6 +61,24 @@ pub struct AppConfig {
     pub modules: ModulesConfig,
     pub roles: RolesConfig,
     pub menus: Vec<MenuItem>,
+    pub billing: Option<BillingSectionConfig>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BillingPublicKey {
+    pub kid: String,
+    pub ed25519: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BillingSectionConfig {
+    pub enabled: bool,
+    pub product_code: String,
+    pub gcc_base_url: String,
+    pub public_keys: Vec<BillingPublicKey>,
+    pub offline_days: u32,
+    pub refresh_hours: u32,
+    pub currencies: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,6 +137,16 @@ fn load_config(path: &Path) -> Result<AppConfig, Box<dyn std::error::Error>> {
     let cfg: AppConfig = toml::from_str(&content)?;
     if cfg.menus.is_empty() {
         return Err("app.toml must contain at least one menu entry".into());
+    }
+    if let Some(ref b) = cfg.billing {
+        if b.enabled {
+            if b.product_code.trim().is_empty() {
+                return Err("[billing] product_code cannot be empty when billing is enabled".into());
+            }
+            if b.public_keys.is_empty() {
+                return Err("[billing] public_keys must contain at least one key when billing is enabled".into());
+            }
+        }
     }
     Ok(cfg)
 }
