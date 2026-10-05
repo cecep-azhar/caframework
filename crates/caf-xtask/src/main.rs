@@ -46,6 +46,11 @@ enum Commands {
         #[arg(short, long, default_value = "app.toml")]
         config: PathBuf,
     },
+    /// Run local GCC Billing Hub mock server
+    GccMock {
+        #[arg(short, long, default_value_t = 8888)]
+        port: u16,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -357,6 +362,7 @@ fn run_new_app(
 }
 
 mod codegen;
+pub mod gcc_mock;
 mod guard;
 mod scanner;
 
@@ -379,5 +385,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             dry_run,
         } => run_new_app(&config, &out, with_sample, dry_run),
         Commands::Guard { only } => guard::run_guard(only.as_deref()),
+        Commands::GccMock { port } => {
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(gcc_mock::run_mock_server(port))
+        }
     }
 }

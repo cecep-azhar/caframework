@@ -1,0 +1,370 @@
+openapi: 3.1.0
+info:
+  title: GCC Billing API Contract
+  version: 1.0.0
+  description: Central billing hub contract for desktop and mobile products in the Fathforce ecosystem.
+servers:
+  - url: https://gcc.example.com/api/billing
+    description: GCC Billing Hub Production / Mock Base URL
+
+paths:
+  /v1/auth/otp/request:
+    post:
+      summary: Send OTP to email for product login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, product_code]
+              properties:
+                email:
+                  type: string
+                  format: email
+                product_code:
+                  type: string
+      responses:
+        '202':
+          description: OTP requested and queued for delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '429':
+          description: Rate limited
+
+  /v1/auth/otp/verify:
+    post:
+      summary: Verify OTP code and register device
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, otp_code, product_code, device_id, device_name]
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp_code:
+                  type: string
+                product_code:
+                  type: string
+                device_id:
+                  type: string
+                device_name:
+                  type: string
+      responses:
+        '200':
+          description: Device registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '401':
+          description: Wrong or expired OTP code
+        '409':
+          description: Device limit reached
+
+  /v1/licenses/activate:
+    post:
+      summary: Activate license key on this device
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [license_key, product_code, device_id, device_name]
+              properties:
+                license_key:
+                  type: string
+                product_code:
+                  type: string
+                device_id:
+                  type: string
+                device_name:
+                  type: string
+      responses:
+        '200':
+          description: License activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSuccessResponse'
+        '404':
+          description: Unknown license key
+        '409':
+          description: Device limit reached
+        '410':
+          description: License key revoked
+
+  /v1/entitlement:
+    get:
+      summary: Get signed entitlement token for device
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: product_code
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Signed entitlement token
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [token, payload]
+                properties:
+                  token:
+                    type: string
+                    description: Compact JWS signed with Ed25519
+                  payload:
+                    $ref: '#/components/schemas/EntitlementPayload'
+        '401':
+          description: Device revoked or unauthorized
+
+  /v1/plans:
+    get:
+      summary: List billing plans for product and currency
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: product_code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: currency
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [IDR, USD]
+      responses:
+        '200':
+          description: List of available plans
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BillingPlan'
+
+  /v1/checkout:
+    post:
+      summary: Create checkout for a plan
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_id]
+              properties:
+                plan_id:
+                  type: string
+      responses:
+        '201':
+          description: Checkout created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [checkout_id, checkout_url, completion_mode]
+                properties:
+                  checkout_id:
+                    type: string
+                  checkout_url:
+                    type: string
+                  completion_mode:
+                    type: string
+                    enum: [poll, license_key]
+        '409':
+          description: Already lifetime entitlement
+
+  /v1/checkout/{id}:
+    get:
+      summary: Poll checkout status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Checkout status
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, paid, expired]
+
+  /v1/devices:
+    get:
+      summary: List registered devices for account and product
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceItem'
+
+  /v1/devices/{id}:
+    delete:
+      summary: Deactivate / revoke a device
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Device deactivated
+
+  /.well-known/gcc-billing-keys:
+    get:
+      summary: Retrieve GCC public signing keys for token verification
+      security: []
+      responses:
+        '200':
+          description: Set of public keys
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [keys]
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      required: [kid, ed25519]
+                      properties:
+                        kid:
+                          type: string
+                        ed25519:
+                          type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthSuccessResponse:
+      type: object
+      required: [device_token, account]
+      properties:
+        device_token:
+          type: string
+        account:
+          type: object
+          required: [id, email]
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            name:
+              type: string
+
+    EntitlementPayload:
+      type: object
+      required: [v, kid, account_id, product_code, device_id, tier, billing_type, status, issued_at]
+      properties:
+        v:
+          type: integer
+          example: 1
+        kid:
+          type: string
+          example: gcc-2026-10
+        account_id:
+          type: string
+        product_code:
+          type: string
+          example: CACASH
+        device_id:
+          type: string
+        tier:
+          type: string
+          enum: [free, pro]
+        billing_type:
+          type: string
+          enum: [free, monthly, yearly, lifetime]
+        status:
+          type: string
+          enum: [active, grace, expired, revoked]
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        grace_until:
+          type: string
+          format: date-time
+          nullable: true
+        issued_at:
+          type: string
+          format: date-time
+
+    BillingPlan:
+      type: object
+      required: [plan_id, billing_type, price_minor, currency]
+      properties:
+        plan_id:
+          type: string
+        billing_type:
+          type: string
+          enum: [monthly, yearly, lifetime]
+        price_minor:
+          type: integer
+          description: Price in smallest currency unit (e.g. cents or IDR Rupiah)
+        currency:
+          type: string
+          enum: [IDR, USD]
+
+    DeviceItem:
+      type: object
+      required: [id, device_id, device_name, is_current, last_seen_at]
+      properties:
+        id:
+          type: string
+        device_id:
+          type: string
+        device_name:
+          type: string
+        is_current:
+          type: boolean
+        last_seen_at:
+          type: string
+          format: date-time

@@ -7,6 +7,14 @@ authors.workspace = true
 license.workspace = true
 description = "CAFramework xtask developer tool and app generator"
 
+[lib]
+name = "caf_xtask"
+path = "src/lib.rs"
+
+[[bin]]
+name = "caf-xtask"
+path = "src/main.rs"
+
 [dependencies]
 clap = { workspace = true }
 serde = { workspace = true }
@@ -21,3 +29,10 @@ syn = { version = "2.0.119", features = ["full"] }
 quote = "1.0.47"
 proc-macro2 = "1.0.107"
 convert_case = "0.6.0"
+axum = "0.8.9"
+tokio = { version = "1.53.2", features = ["full"] }
+ed25519-dalek = "3.0.0"
+base64 = "0.23.1"
+tower-http = "0.7.1"
+uuid = { version = "1.27.0", features = ["v4"] }
+tower = { version = "0.5.3", features = ["util"] }

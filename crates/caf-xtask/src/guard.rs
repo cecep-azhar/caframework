@@ -276,7 +276,8 @@ fn check_invoke_registry(
                         if next_line.starts_with("pub fn ")
                             || next_line.starts_with("pub async fn ")
                             || next_line.starts_with("fn ")
-                            || next_line.starts_with("async fn ") {
+                            || next_line.starts_with("async fn ")
+                        {
                             let parts: Vec<&str> = next_line.split('(').collect();
                             if let Some(sig) = parts.first() {
                                 let name = sig.split_whitespace().last().unwrap_or("");

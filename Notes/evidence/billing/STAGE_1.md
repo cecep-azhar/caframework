@@ -1,0 +1,1 @@
+- Stage 1 complete: contract docs/contracts/gcc-billing-v1.yaml written, gcc_mock server implemented, contract compliance tests green
