@@ -121,6 +121,19 @@ export const id: Dictionary = {
     name: 'Nama Anda (opsional)',
     submit: 'Kirim Masukan',
     success: 'Terima kasih atas masukan Anda!'
+  },
+  dualSplit: {
+    single: 'Tunggal',
+    twoColumns: '2 Kolom',
+    twoRows: '2 Baris',
+    grid: 'Grid',
+    viewSuffix: 'Tampilan',
+    noGroups: 'Belum ada grup tab aktif',
+    closeGroup: 'Tutup Grup',
+    addGroup: 'Tambah Grup Tab Baru',
+    splitRight: 'Bagi Panel Kanan (Split Vertikal)',
+    splitDown: 'Bagi Panel Bawah (Split Horizontal)',
+    closePane: 'Tutup Panel'
   }
 };
 

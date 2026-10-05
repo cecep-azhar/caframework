@@ -119,6 +119,19 @@ export const en = {
     name: 'Your Name (optional)',
     submit: 'Submit Feedback',
     success: 'Thank you for your feedback!'
+  },
+  dualSplit: {
+    single: 'Single',
+    twoColumns: '2 Col',
+    twoRows: '2 Row',
+    grid: 'Grid',
+    viewSuffix: 'View',
+    noGroups: 'No active tab groups',
+    closeGroup: 'Close Group',
+    addGroup: 'Add New Tab Group',
+    splitRight: 'Split Pane Right (Vertical Split)',
+    splitDown: 'Split Pane Down (Horizontal Split)',
+    closePane: 'Close Pane'
   }
 };
 

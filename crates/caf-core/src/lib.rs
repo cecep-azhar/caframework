@@ -30,6 +30,7 @@ pub mod backup;
 pub mod billing;
 pub mod crash;
 pub mod db;
+pub mod dual_split;
 pub mod error;
 pub mod feedback;
 pub mod http;
