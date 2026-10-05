@@ -95,6 +95,17 @@ pub fn compute_effective_state(
     }
 
     // Rule 6: Lifetime or Timed Entitlement check
+    if payload.tier == "free" || payload.billing_type == "free" {
+        return EffectiveState {
+            tier: EffectiveTier::Free,
+            billing_type: "free".to_string(),
+            is_pro: false,
+            expires_at: None,
+            grace_until: None,
+            warning: None,
+        };
+    }
+
     if payload.billing_type == "lifetime" || payload.expires_at.is_none() {
         return EffectiveState {
             tier: EffectiveTier::Pro,

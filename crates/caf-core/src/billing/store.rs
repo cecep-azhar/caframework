@@ -12,7 +12,7 @@ const KEY_MAX_SEEN_TIME: &str = "billing.max_seen_time";
 pub fn save_device_info(device_id: &str, device_token: &str) -> Result<(), CatermError> {
     let conn = db::open()?;
     conn.execute(
-        "INSERT OR REPLACE INTO app_kv (k, v) VALUES (?1, ?2), (?3, ?4)",
+        "INSERT OR REPLACE INTO app_kv (key, value) VALUES (?1, ?2), (?3, ?4)",
         [KEY_DEVICE_ID, device_id, KEY_DEVICE_TOKEN, device_token],
     )
     .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
@@ -30,13 +30,13 @@ pub fn get_device_token() -> Result<Option<String>, CatermError> {
 pub fn save_cached_token(token: &str, verified_at_unix: u64) -> Result<(), CatermError> {
     let conn = db::open()?;
     let time_str = verified_at_unix.to_string();
-    
+
     // Update max seen time as well
     let current_max = get_max_seen_time()?.unwrap_or(0);
     let new_max = current_max.max(verified_at_unix).to_string();
 
     conn.execute(
-        "INSERT OR REPLACE INTO app_kv (k, v) VALUES (?1, ?2), (?3, ?4), (?5, ?6)",
+        "INSERT OR REPLACE INTO app_kv (key, value) VALUES (?1, ?2), (?3, ?4), (?5, ?6)",
         [
             KEY_CACHED_TOKEN,
             token,
@@ -75,7 +75,7 @@ pub fn update_max_seen_time(now_unix: u64) -> Result<(), CatermError> {
     if now_unix > current_max {
         let conn = db::open()?;
         conn.execute(
-            "INSERT OR REPLACE INTO app_kv (k, v) VALUES (?1, ?2)",
+            "INSERT OR REPLACE INTO app_kv (key, value) VALUES (?1, ?2)",
             [KEY_MAX_SEEN_TIME, &now_unix.to_string()],
         )
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
@@ -86,7 +86,7 @@ pub fn update_max_seen_time(now_unix: u64) -> Result<(), CatermError> {
 pub fn clear_billing_state() -> Result<(), CatermError> {
     let conn = db::open()?;
     conn.execute(
-        "DELETE FROM app_kv WHERE k IN (?1, ?2, ?3, ?4)",
+        "DELETE FROM app_kv WHERE key IN (?1, ?2, ?3, ?4)",
         [
             KEY_DEVICE_TOKEN,
             KEY_CACHED_TOKEN,
@@ -101,14 +101,19 @@ pub fn clear_billing_state() -> Result<(), CatermError> {
 fn get_kv(key: &str) -> Result<Option<String>, CatermError> {
     let conn = db::open()?;
     let mut stmt = conn
-        .prepare("SELECT v FROM app_kv WHERE k = ?1")
+        .prepare("SELECT value FROM app_kv WHERE key = ?1")
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
     let mut rows = stmt
         .query([key])
         .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
 
-    if let Some(row) = rows.next().map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))? {
-        Ok(Some(row.get(0).map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?))
+    if let Some(row) = rows
+        .next()
+        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?
+    {
+        Ok(Some(row.get(0).map_err(|e| {
+            CatermError::Db(DbError::Generic(e.to_string()))
+        })?))
     } else {
         Ok(None)
     }

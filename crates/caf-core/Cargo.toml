@@ -53,4 +53,6 @@ rusqlite = { version = "0.32", features = ["bundled-sqlcipher-vendored-openssl"]
 serde_json.workspace = true
 tempfile = "3.10"
 proptest = "1"
+caf-xtask = { path = "../caf-xtask" }
+axum = "0.8.9"
 
