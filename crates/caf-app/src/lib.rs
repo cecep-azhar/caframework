@@ -48,6 +48,7 @@ pub fn run_with_start(start: std::time::Instant) {
     builder
         .setup(move |app| {
             use tauri::Manager;
+            #[cfg(target_os = "android")]
             if let Ok(app_data) = app.path().app_data_dir() {
                 let _ = caf_core::paths::set_custom_data_dir(app_data);
             }
