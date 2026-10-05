@@ -27,6 +27,7 @@ pub mod ai_context_notes;
 pub mod api;
 pub mod audit;
 pub mod backup;
+pub mod billing;
 pub mod crash;
 pub mod db;
 pub mod error;
