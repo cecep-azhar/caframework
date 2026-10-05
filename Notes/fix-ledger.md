@@ -49,27 +49,27 @@ Current plan: TASK_FIX.md
 | F2.5 | DONE | F2.md#f25 | Absolute paths in docs |
 | F2.6 | DONE | F2.md#f26 | Untracked CATerm artefacts |
 | F2.7 | DONE | F2.md#f27 | Genericity guard |
-| F3.1 | IN_PROGRESS | F3.md#f31 | Schema types v1.1 |
-| F3.2 | TODO | F3.md#f32 | Validation with readable errors |
-| F3.3 | TODO | F3.md#f33 | Framework app.toml |
-| F3.4 | TODO | F3.md#f34 | Codegen outputs and --check |
-| F3.5 | TODO | F3.md#f35 | Icon pipeline |
-| F3.6 | TODO | F3.md#f36 | Portable data dir |
-| F4.1 | TODO | F4.md#f41 | Remove vault.key plaintext fallback |
-| F4.2 | TODO | F4.md#f42 | Legacy layout detection |
-| F4.3 | TODO | F4.md#f43 | Test vault helper and DB tests |
-| F4.4 | TODO | F4.md#f44 | Zeroization |
-| F4.5 | TODO | F4.md#f45 | Lockout counter in core |
-| F4.6 | TODO | F4.md#f46 | Passphrase strength and PIN policy |
-| F4.7 | TODO | F4.md#f47 | Atomic file writes |
-| F5.1 | TODO | F5.md#f51 | Migration runner |
-| F5.2 | TODO | F5.md#f52 | Sync table standard columns |
-| F5.3 | TODO | F5.md#f53 | Unix millisecond timestamps |
-| F5.4 | TODO | F5.md#f54 | Monotonic rev and change_log |
-| F5.5 | TODO | F5.md#f55 | Central sync helper |
-| F5.6 | TODO | F5.md#f56 | Command logs audit table |
-| F5.7 | TODO | F5.md#f57 | Database convention guard tests |
-| F5.8 | TODO | F5.md#f58 | Quality bars on data layer |
+| F3.1 | DONE | F3.md#f31 | Schema types v1.1 |
+| F3.2 | DONE | F3.md#f32 | Validation with readable errors |
+| F3.3 | DONE | F3.md#f33 | Framework app.toml |
+| F3.4 | DONE | F3.md#f34 | Codegen outputs and --check |
+| F3.5 | DONE | F3.md#f35 | Icon pipeline |
+| F3.6 | DONE | F3.md#f36 | Portable data dir |
+| F4.1 | DONE | F4.md#f41 | Remove vault.key plaintext fallback |
+| F4.2 | DONE | F4.md#f42 | Legacy layout detection |
+| F4.3 | DONE | F4.md#f43 | Test vault helper and DB tests |
+| F4.4 | DONE | F4.md#f44 | Zeroization |
+| F4.5 | DONE | F4.md#f45 | Lockout counter in core |
+| F4.6 | DONE | F4.md#f46 | Passphrase strength and PIN policy |
+| F4.7 | DONE | F4.md#f47 | Atomic file writes |
+| F5.1 | DONE | F5.md#f51 | Migration runner |
+| F5.2 | DONE | F5.md#f52 | Sync table standard columns |
+| F5.3 | DONE | F5.md#f53 | Unix millisecond timestamps |
+| F5.4 | DONE | F5.md#f54 | Monotonic rev and change_log |
+| F5.5 | DONE | F5.md#f55 | Central sync helper |
+| F5.6 | DONE | F5.md#f56 | Command logs audit table |
+| F5.7 | DONE | F5.md#f57 | Database convention guard tests |
+| F5.8 | DONE | F5.md#f58 | Quality bars on data layer |
 | F6.1 | DONE | F6.md#f61 | DEK 32-byte and dual key wrapping |
 | F6.2 | DONE | F6.md#f62 | BIP-39 24-word recovery code |
 | F6.3 | DONE | F6.md#f63 | Master password change via DEK re-wrapping |
@@ -113,16 +113,16 @@ Current plan: TASK_FIX.md
 | F15.1 | DONE | F15.md#f151 | Complete i18n dictionaries |
 | F15.2 | DONE | F15.md#f152 | Type-safe t() helper |
 | F15.3 | DONE | F15.md#f153 | Locale formatters |
-| F16.1 | TODO | F16.md#f161 | Notes CRUD completion |
-| F16.2 | TODO | F16.md#f162 | Notes export/import JSON |
-| F17.1 | TODO | F17.md#f171 | Open source documentation |
-| F17.2 | TODO | F17.md#f172 | Security policy & license notices |
-| F18.1 | TODO | F18.md#f181 | new-app generator rewrite |
-| F18.2 | TODO | F18.md#f182 | new-app E2E testing |
-| F19.1 | TODO | F19.md#f191 | Android build verification |
-| F20.1 | TODO | F20.md#f201 | Release DoD re-audit |
-| F20.2 | TODO | F20.md#f202 | Benchmarks & budgets |
-| F20.3 | TODO | F20.md#f203 | Release readiness report |
+| F16.1 | DONE | F16.md#f161 | Notes CRUD completion |
+| F16.2 | DONE | F16.md#f162 | Notes export/import JSON |
+| F17.1 | DONE | F17.md#f171 | Open source documentation |
+| F17.2 | DONE | F17.md#f172 | Security policy & license notices |
+| F18.1 | DONE | F18.md#f181 | new-app generator rewrite |
+| F18.2 | DONE | F18.md#f182 | new-app E2E testing |
+| F19.1 | DONE | F19.md#f191 | Android build verification |
+| F20.1 | DONE | F20.md#f201 | Release DoD re-audit |
+| F20.2 | DONE | F20.md#f202 | Benchmarks & budgets |
+| F20.3 | DONE | F20.md#f203 | Release readiness report |
 
 ## Owner decisions (copied from TASK_FIX.md §3 and TASK_FEATURES.md §1)
 | ID | Decision | Date | Changed? |
