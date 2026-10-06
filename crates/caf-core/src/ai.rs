@@ -3,7 +3,7 @@
 //! Provides privacy level scoping (Summary, Detailed, Full), context scrubbing, compiled guardrails,
 //! and secure API key management (keys are stored in vault and never returned to frontend).
 
-use crate::error::{AiError, CatermError, DbError};
+use crate::error::{AiError, CafError, DbError};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -138,7 +138,7 @@ pub struct ContextPayload {
     pub redacted_count: usize,
 }
 
-fn get_stored_config() -> Result<StoredAiConfig, CatermError> {
+fn get_stored_config() -> Result<StoredAiConfig, CafError> {
     let conn = crate::db::open()?;
     let row: Option<String> = conn
         .query_row(
@@ -168,16 +168,16 @@ fn get_stored_config() -> Result<StoredAiConfig, CatermError> {
     })
 }
 
-fn save_stored_config(cfg: &StoredAiConfig) -> Result<(), CatermError> {
+fn save_stored_config(cfg: &StoredAiConfig) -> Result<(), CafError> {
     let conn = crate::db::open()?;
     let json_str =
-        serde_json::to_string(cfg).map_err(|e| CatermError::Ai(AiError::Generic(e.to_string())))?;
+        serde_json::to_string(cfg).map_err(|e| CafError::Ai(AiError::Generic(e.to_string())))?;
 
     conn.execute(
         "INSERT OR REPLACE INTO app_kv (key, value) VALUES ('ai_settings', ?1)",
         [&json_str],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     Ok(())
 }
@@ -203,20 +203,20 @@ pub fn is_loopback(url_str: &str) -> bool {
     }
 }
 
-pub fn get_settings() -> Result<AiSettings, CatermError> {
+pub fn get_settings() -> Result<AiSettings, CafError> {
     let cfg = get_stored_config()?;
     Ok(cfg.into())
 }
 
-pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
+pub fn save_settings(settings: &AiSettings) -> Result<(), CafError> {
     // Validation
     if settings.temperature > 200 {
-        return Err(CatermError::Validation(
+        return Err(CafError::Validation(
             crate::error::ValidationError::InvalidFormat,
         ));
     }
     if settings.custom_instructions.len() > 2000 {
-        return Err(CatermError::Validation(
+        return Err(CafError::Validation(
             crate::error::ValidationError::InvalidFormat,
         ));
     }
@@ -244,14 +244,14 @@ pub fn save_settings(settings: &AiSettings) -> Result<(), CatermError> {
     Ok(())
 }
 
-pub fn set_ai_api_key(key: &str) -> Result<(), CatermError> {
+pub fn set_ai_api_key(key: &str) -> Result<(), CafError> {
     let mut current = get_stored_config()?;
     current.api_key = key.trim().to_string();
     save_stored_config(&current)?;
     Ok(())
 }
 
-pub fn clear_ai_api_key() -> Result<(), CatermError> {
+pub fn clear_ai_api_key() -> Result<(), CafError> {
     let mut current = get_stored_config()?;
     current.api_key.clear();
     save_stored_config(&current)?;
@@ -304,7 +304,7 @@ pub fn scrub_text(text: &str) -> (String, usize) {
 }
 
 /// Preview context for current session with given privacy level
-pub fn preview_context_for_current_session(level: PrivacyLevel) -> Result<ContextPayload, CatermError> {
+pub fn preview_context_for_current_session(level: PrivacyLevel) -> Result<ContextPayload, CafError> {
     let session = crate::session::get_current_session().unwrap_or_else(|_| {
         crate::session::Session::new("default", "member")
     });
@@ -325,7 +325,7 @@ pub fn build_context(
     consent_given: bool,
     allow_full_local: bool,
     base_url: &str,
-) -> Result<ContextPayload, CatermError> {
+) -> Result<ContextPayload, CafError> {
     match level {
         PrivacyLevel::Summary => {
             // Aggregate only: profile count, enabled modules, note count
@@ -350,7 +350,7 @@ pub fn build_context(
         }
         PrivacyLevel::Detailed => {
             if !consent_given {
-                return Err(CatermError::Ai(AiError::ConsentRequired));
+                return Err(CafError::Ai(AiError::ConsentRequired));
             }
 
             let is_super = session.role == "super_admin";
@@ -362,14 +362,14 @@ pub fn build_context(
             );
             let mut stmt = conn
                 .prepare(&query)
-                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+                .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
             let rows = stmt
                 .query_map([], |r| {
                     let title: String = r.get(0)?;
                     let content: String = r.get(1)?;
                     Ok(format!("Note: {}\n{}", title, content))
                 })
-                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+                .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
             let mut notes_text = String::new();
             for r in rows {
@@ -388,7 +388,7 @@ pub fn build_context(
         }
         PrivacyLevel::Full => {
             if !allow_full_local || !is_loopback(base_url) {
-                return Err(CatermError::Ai(AiError::Generic(
+                return Err(CafError::Ai(AiError::Generic(
                     "Full privacy level only allowed for local loopback endpoints with allow_full_detail_for_local enabled".to_string(),
                 )));
             }
@@ -402,14 +402,14 @@ pub fn build_context(
             );
             let mut stmt = conn
                 .prepare(&query)
-                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+                .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
             let rows = stmt
                 .query_map([], |r| {
                     let title: String = r.get(0)?;
                     let content: String = r.get(1)?;
                     Ok(format!("Note: {}\n{}", title, content))
                 })
-                .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+                .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
             let mut notes_text = String::new();
             for r in rows {
@@ -435,18 +435,18 @@ pub fn chat(
     prompt: &str,
     privacy_level: Option<PrivacyLevel>,
     consent_given: bool,
-) -> Result<AiChatResponse, CatermError> {
+) -> Result<AiChatResponse, CafError> {
     let cfg = get_stored_config()?;
 
     if cfg.mode == AiMode::Off {
-        return Err(CatermError::Ai(AiError::Disabled));
+        return Err(CafError::Ai(AiError::Disabled));
     }
 
     if cfg.mode == AiMode::Hosted {
         // Hosted requires modules.pro & valid license
         let pro_status = crate::pro::get_pro_status()?;
         if !pro_status.is_pro {
-            return Err(CatermError::Ai(AiError::QuotaExceeded));
+            return Err(CafError::Ai(AiError::QuotaExceeded));
         }
     }
 
@@ -491,19 +491,19 @@ pub fn chat(
 
     let mut resp = req.send_json(body).map_err(|e| match e {
         ureq::Error::StatusCode(401) | ureq::Error::StatusCode(403) => {
-            CatermError::Ai(AiError::ApiKeyMissing)
+            CafError::Ai(AiError::ApiKeyMissing)
         }
         ureq::Error::StatusCode(402) | ureq::Error::StatusCode(429) => {
-            CatermError::Ai(AiError::QuotaExceeded)
+            CafError::Ai(AiError::QuotaExceeded)
         }
-        ureq::Error::StatusCode(_) => CatermError::Ai(AiError::ProviderUnavailable),
-        _ => CatermError::Ai(AiError::Timeout),
+        ureq::Error::StatusCode(_) => CafError::Ai(AiError::ProviderUnavailable),
+        _ => CafError::Ai(AiError::Timeout),
     })?;
 
     let json_val: serde_json::Value = resp
         .body_mut()
         .read_json()
-        .map_err(|_| CatermError::Ai(AiError::ProviderUnavailable))?;
+        .map_err(|_| CafError::Ai(AiError::ProviderUnavailable))?;
 
     let text = json_val
         .pointer("/choices/0/message/content")
@@ -610,7 +610,7 @@ pub mod tests {
         );
         assert!(matches!(
             detailed_err,
-            Err(CatermError::Ai(AiError::ConsentRequired))
+            Err(CafError::Ai(AiError::ConsentRequired))
         ));
 
         // Full level on non-loopback fails
@@ -632,6 +632,6 @@ pub mod tests {
         let session = crate::session::Session::new("prof-1", "member");
 
         let res = chat(&session, "ping", None, false);
-        assert!(matches!(res, Err(CatermError::Ai(AiError::Disabled))));
+        assert!(matches!(res, Err(CafError::Ai(AiError::Disabled))));
     }
 }

@@ -47,7 +47,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # CAFramework Pro licence verification key (public, hex) printed by GCC's cmd/caframework-pro-keygen.
           # A repository *variable*, not a secret. Unset: the build reports "not set up for Pro".
-          CATERM_PRO_LICENSE_PUBKEY_V1: ${{ vars.CATERM_PRO_LICENSE_PUBKEY_V1 }}
+          CAF_PRO_LICENSE_PUBKEY_V1: ${{ vars.CAF_PRO_LICENSE_PUBKEY_V1 }}
 
       - uses: softprops/action-gh-release@v2
         with:
@@ -108,7 +108,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # CAFramework Pro licence verification key (public, hex) printed by GCC's cmd/caframework-pro-keygen.
           # A repository *variable*, not a secret. Unset: the build reports "not set up for Pro".
-          CATERM_PRO_LICENSE_PUBKEY_V1: ${{ vars.CATERM_PRO_LICENSE_PUBKEY_V1 }}
+          CAF_PRO_LICENSE_PUBKEY_V1: ${{ vars.CAF_PRO_LICENSE_PUBKEY_V1 }}
 
       - uses: softprops/action-gh-release@v2
         with:

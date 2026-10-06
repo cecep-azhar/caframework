@@ -15,7 +15,7 @@
 //!   }
 //! ```
 
-use crate::error::{CatermError, VaultError};
+use crate::error::{CafError, VaultError};
 
 use aes_gcm::{
     Aes256Gcm, Nonce,
@@ -103,14 +103,14 @@ fn b64_enc(b: &[u8]) -> String {
     base64::engine::general_purpose::STANDARD.encode(b)
 }
 
-fn b64_dec(s: &str) -> Result<Vec<u8>, CatermError> {
+fn b64_dec(s: &str) -> Result<Vec<u8>, CafError> {
     base64::engine::general_purpose::STANDARD
         .decode(s)
         .map_err(|e| keyring_err(format!("base64 decode failed: {e}")))
 }
 
-fn keyring_err(msg: impl Into<String>) -> CatermError {
-    CatermError::Vault(VaultError::Generic(msg.into()))
+fn keyring_err(msg: impl Into<String>) -> CafError {
+    CafError::Vault(VaultError::Generic(msg.into()))
 }
 
 fn random_salt() -> [u8; SALT_LEN] {
@@ -131,7 +131,7 @@ fn random_key() -> Zeroizing<[u8; KEY_LEN]> {
 fn derive_password_kek(
     password: &str,
     salt: &[u8],
-) -> Result<Zeroizing<[u8; KEY_LEN]>, CatermError> {
+) -> Result<Zeroizing<[u8; KEY_LEN]>, CafError> {
     let mut key = Zeroizing::new([0u8; KEY_LEN]);
     let params = Params::new(ARGON2_M_COST, ARGON2_T_COST, ARGON2_P_COST, Some(KEY_LEN))
         .map_err(|e| keyring_err(e.to_string()))?;
@@ -196,7 +196,7 @@ fn aes_gcm_wrap(
     kek: &[u8],
     plaintext: &[u8],
     aad: &[u8],
-) -> Result<(Vec<u8>, Vec<u8>), CatermError> {
+) -> Result<(Vec<u8>, Vec<u8>), CafError> {
     let cipher = Aes256Gcm::new_from_slice(kek)
         .map_err(|e| keyring_err(format!("cipher init failed: {e}")))?;
     let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
@@ -218,7 +218,7 @@ fn aes_gcm_unwrap(
     nonce_bytes: &[u8],
     ct: &[u8],
     aad: &[u8],
-) -> Result<Vec<u8>, CatermError> {
+) -> Result<Vec<u8>, CafError> {
     if nonce_bytes.len() != 12 {
         return Err(keyring_err("invalid nonce length"));
     }
@@ -228,7 +228,7 @@ fn aes_gcm_unwrap(
     cipher
         .decrypt(nonce, aes_gcm::aead::Payload { msg: ct, aad })
         .map_err(|_| {
-            CatermError::Vault(VaultError::Generic(
+            CafError::Vault(VaultError::Generic(
                 "AEAD tag mismatch (corrupt or wrong key)".into(),
             ))
         })
@@ -247,9 +247,9 @@ fn make_payload(dek: &[u8; KEY_LEN], bk: &[u8; KEY_LEN]) -> Zeroizing<Vec<u8>> {
 }
 
 /// Split a 64-byte payload back into DEK and BK.
-fn split_payload(payload: Vec<u8>) -> Result<UnwrappedKeys, CatermError> {
+fn split_payload(payload: Vec<u8>) -> Result<UnwrappedKeys, CafError> {
     if payload.len() != KEY_LEN * 2 {
-        return Err(CatermError::Vault(VaultError::Generic(
+        return Err(CafError::Vault(VaultError::Generic(
             "keyring payload has wrong length".into(),
         )));
     }
@@ -275,7 +275,7 @@ fn split_payload(payload: Vec<u8>) -> Result<UnwrappedKeys, CatermError> {
 pub fn generate(
     password: &str,
     recovery_entropy: &[u8],
-) -> Result<(Keyring, UnwrappedKeys), CatermError> {
+) -> Result<(Keyring, UnwrappedKeys), CafError> {
     let vault_id = Uuid::new_v4().to_string();
     let dek = random_key();
     let bk = random_key();
@@ -328,7 +328,7 @@ pub fn generate(
 pub fn unwrap_with_password(
     keyring: &Keyring,
     password: &str,
-) -> Result<UnwrappedKeys, CatermError> {
+) -> Result<UnwrappedKeys, CafError> {
     let salt_pw = b64_dec(&keyring.password_slot.salt_pw)?;
     let nonce = b64_dec(&keyring.password_slot.nonce)?;
     let ct = b64_dec(&keyring.password_slot.ct)?;
@@ -337,7 +337,7 @@ pub fn unwrap_with_password(
     let aad_pw = format!("{AAD_PW_PREFIX}{}", keyring.vault_id);
 
     let payload = aes_gcm_unwrap(kek_pw.as_ref(), &nonce, &ct, aad_pw.as_bytes())
-        .map_err(|_| CatermError::Vault(VaultError::WrongPassword))?;
+        .map_err(|_| CafError::Vault(VaultError::WrongPassword))?;
 
     split_payload(payload)
 }
@@ -347,7 +347,7 @@ pub fn unwrap_with_password(
 pub fn unwrap_with_recovery(
     keyring: &Keyring,
     recovery_entropy: &[u8],
-) -> Result<UnwrappedKeys, CatermError> {
+) -> Result<UnwrappedKeys, CafError> {
     let salt_rc = b64_dec(&keyring.recovery_slot.salt_rc)?;
     let nonce = b64_dec(&keyring.recovery_slot.nonce)?;
     let ct = b64_dec(&keyring.recovery_slot.ct)?;
@@ -356,7 +356,7 @@ pub fn unwrap_with_recovery(
     let aad_rc = format!("{AAD_RC_PREFIX}{}", keyring.vault_id);
 
     let payload = aes_gcm_unwrap(kek_rc.as_ref(), &nonce, &ct, aad_rc.as_bytes())
-        .map_err(|_| CatermError::Vault(VaultError::WrongRecoveryCode))?;
+        .map_err(|_| CafError::Vault(VaultError::WrongRecoveryCode))?;
 
     split_payload(payload)
 }
@@ -371,7 +371,7 @@ pub fn rewrap_password_slot(
     keyring: &mut Keyring,
     old_password: &str,
     new_password: &str,
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     let keys = unwrap_with_password(keyring, old_password)?;
     let payload = make_payload(&keys.dek, &keys.bk);
 
@@ -393,7 +393,7 @@ pub fn replace_recovery_slot(
     keyring: &mut Keyring,
     password: &str,
     new_recovery_entropy: &[u8],
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     let keys = unwrap_with_password(keyring, password)?;
     let payload = make_payload(&keys.dek, &keys.bk);
 
@@ -417,7 +417,7 @@ pub fn replace_recovery_slot(
 
 /// Load and deserialise the keyring from `<data_dir>/keyring.v1.json`.
 /// Returns `LegacyFormat` when only the old canary layout exists.
-pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
+pub fn load(data_dir: &Path) -> Result<Keyring, CafError> {
     let keyring_path = data_dir.join(KEYRING_FILE);
 
     if !keyring_path.exists() {
@@ -425,9 +425,9 @@ pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
         let is_legacy =
             data_dir.join("vault_salt.bin").exists() || data_dir.join("vault_canary.bin").exists();
         if is_legacy {
-            return Err(CatermError::Vault(VaultError::LegacyFormat));
+            return Err(CafError::Vault(VaultError::LegacyFormat));
         }
-        return Err(CatermError::Vault(VaultError::Generic(
+        return Err(CafError::Vault(VaultError::Generic(
             "keyring not found; vault not initialized".into(),
         )));
     }
@@ -436,11 +436,11 @@ pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
         .map_err(|e| keyring_err(format!("cannot read keyring: {e}")))?;
 
     let keyring: Keyring = serde_json::from_str(&raw).map_err(|e| {
-        CatermError::Vault(VaultError::Generic(format!("keyring JSON corrupt: {e}")))
+        CafError::Vault(VaultError::Generic(format!("keyring JSON corrupt: {e}")))
     })?;
 
     if keyring.format != FORMAT_VERSION {
-        return Err(CatermError::Vault(VaultError::Generic(format!(
+        return Err(CafError::Vault(VaultError::Generic(format!(
             "unsupported keyring format version: {}",
             keyring.format
         ))));
@@ -452,7 +452,7 @@ pub fn load(data_dir: &Path) -> Result<Keyring, CatermError> {
 /// Atomically write the keyring to disk:
 ///   1. Write to `keyring.v1.json.tmp`.
 ///   2. Rename over `keyring.v1.json`.
-pub fn save(data_dir: &Path, keyring: &Keyring) -> Result<(), CatermError> {
+pub fn save(data_dir: &Path, keyring: &Keyring) -> Result<(), CafError> {
     std::fs::create_dir_all(data_dir)
         .map_err(|e| keyring_err(format!("cannot create data dir: {e}")))?;
 
@@ -521,7 +521,7 @@ pub fn generate_mnemonic() -> (Zeroizing<String>, Zeroizing<Vec<u8>>) {
 
 /// Convert 24 BIP-39 words back to raw entropy bytes.
 /// Returns an error if any word is invalid or the checksum fails.
-pub fn mnemonic_to_entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, CatermError> {
+pub fn mnemonic_to_entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, CafError> {
     use bip39::{Language, Mnemonic};
     let m = Mnemonic::parse_in(Language::English, phrase)
         .map_err(|e| keyring_err(format!("invalid recovery phrase: {e}")))?;
@@ -538,7 +538,7 @@ pub fn mnemonic_to_entropy(phrase: &str) -> Result<Zeroizing<Vec<u8>>, CatermErr
 ///   1. write the keyring to disk (`save()`),
 ///   2. display the 24 words to the user once,
 ///   3. call `confirm_recovery_words()` to transition out of `RecoveryUnconfirmed`.
-pub fn initialize_vault_keyring(password: &str) -> Result<SetupResult, CatermError> {
+pub fn initialize_vault_keyring(password: &str) -> Result<SetupResult, CafError> {
     if password.len() < MIN_MASTER_PASSWORD_LEN {
         return Err(keyring_err(format!(
             "master password must be at least {MIN_MASTER_PASSWORD_LEN} characters (D-7)"
@@ -566,7 +566,7 @@ pub fn confirm_recovery_words(
     entropy: &[u8],
     positions: &[usize],
     guesses: &[&str],
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     use bip39::{Language, Mnemonic};
     if positions.len() != 3 || guesses.len() != 3 {
         return Err(keyring_err("exactly 3 confirmation positions required"));
@@ -577,10 +577,10 @@ pub fn confirm_recovery_words(
     for (&pos, &guess) in positions.iter().zip(guesses.iter()) {
         if let Some(&word) = words.get(pos) {
             if word != guess {
-                return Err(CatermError::Vault(VaultError::WrongRecoveryCode));
+                return Err(CafError::Vault(VaultError::WrongRecoveryCode));
             }
         } else {
-            return Err(CatermError::Vault(VaultError::WrongRecoveryCode));
+            return Err(CafError::Vault(VaultError::WrongRecoveryCode));
         }
     }
     Ok(())
@@ -595,7 +595,7 @@ pub fn change_master_password(
     keyring: &mut Keyring,
     old_password: &str,
     new_password: &str,
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     if new_password.len() < MIN_MASTER_PASSWORD_LEN {
         return Err(keyring_err(format!(
             "new password must be at least {MIN_MASTER_PASSWORD_LEN} characters (D-7)"
@@ -617,9 +617,9 @@ static AUTH_FAIL_COUNT: AtomicU32 = AtomicU32::new(0);
 const MAX_AUTH_FAILURES: u32 = 5;
 
 /// Returns `LockoutActive` if the fail counter has reached the threshold.
-fn check_not_locked_out() -> Result<(), CatermError> {
+fn check_not_locked_out() -> Result<(), CafError> {
     if AUTH_FAIL_COUNT.load(Ordering::Acquire) >= MAX_AUTH_FAILURES {
-        return Err(CatermError::Vault(VaultError::LockoutActive));
+        return Err(CafError::Vault(VaultError::LockoutActive));
     }
     Ok(())
 }
@@ -640,7 +640,7 @@ pub fn reset_auth_fail_count() {
 pub fn guarded_unwrap_with_password(
     keyring: &Keyring,
     password: &str,
-) -> Result<UnwrappedKeys, CatermError> {
+) -> Result<UnwrappedKeys, CafError> {
     check_not_locked_out()?;
     match unwrap_with_password(keyring, password) {
         Ok(k) => {
@@ -661,7 +661,7 @@ pub fn guarded_unwrap_with_password(
 pub fn guarded_unwrap_with_recovery(
     keyring: &Keyring,
     recovery_entropy: &[u8],
-) -> Result<UnwrappedKeys, CatermError> {
+) -> Result<UnwrappedKeys, CafError> {
     check_not_locked_out()?;
     match unwrap_with_recovery(keyring, recovery_entropy) {
         Ok(k) => {
@@ -722,7 +722,7 @@ mod tests {
         assert!(res.is_err());
         let err = res.unwrap_err();
         assert!(
-            matches!(err, CatermError::Vault(VaultError::WrongPassword)),
+            matches!(err, CafError::Vault(VaultError::WrongPassword)),
             "expected WrongPassword, got: {err}"
         );
     }
@@ -749,7 +749,7 @@ mod tests {
         assert!(
             matches!(
                 res.unwrap_err(),
-                CatermError::Vault(VaultError::WrongPassword)
+                CafError::Vault(VaultError::WrongPassword)
             ),
             "expected WrongPassword on corrupted CT"
         );
@@ -849,7 +849,7 @@ mod tests {
         assert!(
             matches!(
                 res.unwrap_err(),
-                CatermError::Vault(VaultError::LegacyFormat)
+                CafError::Vault(VaultError::LegacyFormat)
             ),
             "expected LegacyFormat variant"
         );
@@ -899,7 +899,7 @@ mod tests {
         let guesses = ["wrong", "wrong", "wrong"];
         let res = confirm_recovery_words(&result.entropy, &positions, &guesses);
         assert!(
-            matches!(res, Err(CatermError::Vault(VaultError::WrongRecoveryCode))),
+            matches!(res, Err(CafError::Vault(VaultError::WrongRecoveryCode))),
             "expected WrongRecoveryCode"
         );
     }
@@ -1020,13 +1020,13 @@ mod tests {
         // Fail count is now 5. Next attempt should be LockoutActive
         let res = guarded_unwrap_with_password(&kr, PASS);
         assert!(
-            matches!(res, Err(CatermError::Vault(VaultError::LockoutActive))),
+            matches!(res, Err(CafError::Vault(VaultError::LockoutActive))),
             "expected LockoutActive after 5 failures, got: {res:?}"
         );
         // Recovery also blocked
         let rc_res = guarded_unwrap_with_recovery(&kr, RECOVERY);
         assert!(
-            matches!(rc_res, Err(CatermError::Vault(VaultError::LockoutActive))),
+            matches!(rc_res, Err(CafError::Vault(VaultError::LockoutActive))),
             "expected LockoutActive for recovery after 5 failures"
         );
         // Reset clears lockout
@@ -1058,7 +1058,7 @@ mod tests {
         let _ = guarded_unwrap_with_password(&kr, "wrong");
         let res = guarded_unwrap_with_password(&kr, PASS);
         assert!(
-            matches!(res, Err(CatermError::Vault(VaultError::LockoutActive))),
+            matches!(res, Err(CafError::Vault(VaultError::LockoutActive))),
             "expected LockoutActive"
         );
         reset_auth_fail_count();

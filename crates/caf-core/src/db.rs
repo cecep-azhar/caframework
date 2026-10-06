@@ -1,15 +1,15 @@
 //! Encrypted SQLite storage engine for CAFramework. Every record persisted lives inside a
 //! single SQLCipher-encrypted file at `<data_dir>/caframework.db` — see [`crate::vault`].
 
-use crate::error::{CatermError, DbError};
+use crate::error::{CafError, DbError};
 use rusqlite::Connection;
 use std::path::Path;
 
 /// Opens (creating if absent) the SQLCipher-encrypted database at `<data_dir>/caframework.db`,
 /// keys it with `passphrase`, and ensures the schema exists.
-pub fn open_encrypted(data_dir: &Path, passphrase: &str) -> Result<Connection, CatermError> {
+pub fn open_encrypted(data_dir: &Path, passphrase: &str) -> Result<Connection, CafError> {
     std::fs::create_dir_all(data_dir).map_err(|e| {
-        CatermError::Db(DbError::Generic(format!("failed to create data dir: {e}")))
+        CafError::Db(DbError::Generic(format!("failed to create data dir: {e}")))
     })?;
     let db_path = crate::paths::db_path(data_dir);
 
@@ -20,7 +20,7 @@ pub fn open_encrypted(data_dir: &Path, passphrase: &str) -> Result<Connection, C
                 let conn = open_keyed(&db_path, &passphrase_literal(passphrase))?;
                 conn.execute_batch(&format!("PRAGMA rekey = {raw_key};"))
                     .map_err(|e| {
-                        CatermError::Db(DbError::Generic(format!(
+                        CafError::Db(DbError::Generic(format!(
                             "failed to migrate database to raw-key mode: {e}"
                         )))
                     })?;
@@ -47,26 +47,33 @@ fn raw_key_literal(passphrase: &str) -> Option<String> {
     }
 }
 
-fn open_keyed(db_path: &Path, key_literal: &str) -> Result<Connection, CatermError> {
+fn open_keyed(db_path: &Path, key_literal: &str) -> Result<Connection, CafError> {
     let conn = Connection::open(db_path)
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("failed to open database: {e}"))))?;
+        .map_err(|e| CafError::Db(DbError::Generic(format!("failed to open database: {e}"))))?;
 
-    conn.execute_batch(&format!(
-        "PRAGMA key = {key_literal};\nPRAGMA journal_mode = WAL;\nPRAGMA synchronous = NORMAL;\nPRAGMA foreign_keys = ON;"
-    ))
-    .map_err(|e| CatermError::Db(DbError::Generic(format!("failed to set vault key: {e}"))))?;
+    conn.execute_batch(&format!("PRAGMA key = {key_literal};"))
+        .map_err(|e| CafError::Db(DbError::Generic(format!("failed to set vault key: {e}"))))?;
 
     conn.query_row("SELECT count(*) FROM sqlite_master", [], |_| Ok(()))
         .map_err(|_| {
-            CatermError::Db(DbError::Generic(
+            CafError::Db(DbError::Generic(
                 "invalid vault key or corrupted database".into(),
             ))
         })?;
 
+    conn.execute_batch(
+        "PRAGMA journal_mode = WAL;\nPRAGMA synchronous = NORMAL;\nPRAGMA foreign_keys = ON;",
+    )
+    .map_err(|e| {
+        CafError::Db(DbError::Generic(format!(
+            "failed to configure database pragmas: {e}"
+        )))
+    })?;
+
     Ok(conn)
 }
 
-pub fn init_schema(conn: &Connection) -> Result<(), CatermError> {
+pub fn init_schema(conn: &Connection) -> Result<(), CafError> {
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS schema_version (
            version INTEGER PRIMARY KEY,
@@ -123,7 +130,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), CatermError> {
          );",
     )
     .map_err(|e| {
-        CatermError::Db(DbError::Generic(format!(
+        CafError::Db(DbError::Generic(format!(
             "failed to initialize schema: {e}"
         )))
     })?;
@@ -132,7 +139,7 @@ pub fn init_schema(conn: &Connection) -> Result<(), CatermError> {
 }
 
 /// Convenience helper to open the encrypted DB with the current vault key.
-pub fn open() -> Result<Connection, CatermError> {
+pub fn open() -> Result<Connection, CafError> {
     let data_dir = crate::paths::data_dir()?;
     let key = crate::vault::ensure_unlocked_key()?;
     open_encrypted(&data_dir, &key)

@@ -1,13 +1,18 @@
+use base64::Engine;
 use caf_core::billing::client::{BillingConfig, GccBillingClient};
 use caf_core::billing::state::EffectiveTier;
 use caf_core::billing::store;
-use caf_xtask::gcc_mock::{create_mock_app, init_dev_keys, MockState};
-use base64::Engine;
+use caf_xtask::gcc_mock::{MockState, create_mock_app, init_dev_keys};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn test_billing_client_integration_against_mock() {
+    let temp_dir =
+        std::env::temp_dir().join(format!("caf_client_mock_test_{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    caf_core::paths::set_custom_data_dir(temp_dir.clone()).unwrap();
+
     let (signing_key, verifying_key, kid) = init_dev_keys();
     let pub_key_b64 = base64::engine::general_purpose::STANDARD.encode(verifying_key.as_bytes());
 
@@ -43,7 +48,9 @@ async fn test_billing_client_integration_against_mock() {
     let client = GccBillingClient::new(config);
 
     // 1. Request OTP
-    client.request_otp("user@example.com").expect("OTP request failed");
+    client
+        .request_otp("user@example.com")
+        .expect("OTP request failed");
 
     // 2. Verify OTP & register device
     let auth = client
@@ -76,10 +83,14 @@ async fn test_billing_client_integration_against_mock() {
     let plans = client.get_plans(Some("IDR")).expect("get plans failed");
     assert!(!plans.is_empty());
 
-    let chk = client.create_checkout(&plans[0].plan_id).expect("create checkout failed");
+    let chk = client
+        .create_checkout(&plans[0].plan_id)
+        .expect("create checkout failed");
     assert_eq!(chk.completion_mode, "poll");
 
-    let status = client.poll_checkout_status(&chk.checkout_id).expect("poll status failed");
+    let status = client
+        .poll_checkout_status(&chk.checkout_id)
+        .expect("poll status failed");
     assert_eq!(status, "pending");
 
     // 5. Test License Key Activation (Ko-fi flow)
@@ -111,6 +122,8 @@ async fn test_billing_client_integration_against_mock() {
     let devices = client.list_devices().expect("list devices failed");
     assert!(!devices.is_empty());
 
-    client.deactivate_device("dev-client-2").expect("deactivate failed");
+    client
+        .deactivate_device("dev-client-2")
+        .expect("deactivate failed");
     assert!(store::get_device_token().unwrap().is_none());
 }

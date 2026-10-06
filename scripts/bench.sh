@@ -12,14 +12,14 @@ echo "=== T2-BOOT-06 bench harness ===" >&2
 echo "[1/3] cargo build --release --workspace" >&2
 cargo build --release --workspace
 
-CATERMCTL="target/release/caframeworkctl"
+CAFCTL="target/release/caframeworkctl"
 if [ -f "target/release/caframeworkctl.exe" ]; then
-    CATERMCTL="target/release/caframeworkctl.exe"
+    CAFCTL="target/release/caframeworkctl.exe"
 fi
 
 echo "[2/3] caframeworkctl bench run --json -> bench-report.json" >&2
-"$CATERMCTL" bench run --json | tee "$PROJECT_ROOT/bench-report.json"
+"$CAFCTL" bench run --json | tee "$PROJECT_ROOT/bench-report.json"
 
 echo "" >&2
 echo "[3/3] caframeworkctl bench run (ringkasan terbaca manusia)" >&2
-"$CATERMCTL" bench run
+"$CAFCTL" bench run

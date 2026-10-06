@@ -1,16 +1,15 @@
-// CAFramework Pro state for the UI: who is signed in, what this device is entitled to, and whether
+// CATerm Pro state for the UI: who is signed in, what this device is entitled to, and whether
 // the Pro server is reachable. Entitlement comes from the signed token checked offline by the
 // backend, so being offline never downgrades a paying user (within the 14-day grace).
 import {
   proStatus,
   proServerAvailable,
+  proCommitPending,
+  proSync,
   proErrorCode,
   type ProStatus,
+  type SyncOutcome
 } from '$lib/api/pro';
-
-export interface SyncOutcome {
-  status: ProStatus;
-}
 
 /** How often an unlocked app re-syncs its licence (the server re-issues a 14-day token). */
 const SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000;
@@ -67,8 +66,9 @@ export async function syncPro(): Promise<SyncOutcome | null> {
   if (syncing) return null;
   syncing = true;
   try {
-    await refreshProStatus();
-    return status ? { status } : null;
+    const outcome = await proSync();
+    status = outcome.status;
+    return outcome;
   } catch (err) {
     if (proErrorCode(err) === 'SESSION_EXPIRED') await refreshProStatus();
     throw err;
@@ -86,6 +86,11 @@ export function setProStatus(next: ProStatus): void {
  * background (and every few hours while the app stays unlocked).
  */
 export async function onVaultUnlocked(): Promise<void> {
+  try {
+    await proCommitPending();
+  } catch {
+    // Nothing pending, or no backend (browser preview).
+  }
   await refreshProStatus();
   void checkProServer();
   if (status?.signedIn) void syncPro().catch(() => {});

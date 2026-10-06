@@ -1,6 +1,6 @@
 //! Core session and authorization state management.
 
-use crate::error::{AuthError, CatermError};
+use crate::error::{AuthError, CafError};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[derive(Debug, Clone)]
@@ -40,26 +40,26 @@ pub struct SessionManager {
 
 static CURRENT_SESSION: std::sync::RwLock<Option<Session>> = std::sync::RwLock::new(None);
 
-pub fn get_current_session() -> Result<Session, CatermError> {
+pub fn get_current_session() -> Result<Session, CafError> {
     let lock = CURRENT_SESSION
         .read()
-        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+        .map_err(|_| CafError::Auth(AuthError::Unauthorized))?;
     lock.clone()
-        .ok_or_else(|| CatermError::Auth(AuthError::Unauthorized))
+        .ok_or_else(|| CafError::Auth(AuthError::Unauthorized))
 }
 
-pub fn set_current_session(session: Session) -> Result<(), CatermError> {
+pub fn set_current_session(session: Session) -> Result<(), CafError> {
     let mut lock = CURRENT_SESSION
         .write()
-        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+        .map_err(|_| CafError::Auth(AuthError::Unauthorized))?;
     *lock = Some(session);
     Ok(())
 }
 
-pub fn clear_current_session() -> Result<(), CatermError> {
+pub fn clear_current_session() -> Result<(), CafError> {
     let mut lock = CURRENT_SESSION
         .write()
-        .map_err(|_| CatermError::Auth(AuthError::Unauthorized))?;
+        .map_err(|_| CafError::Auth(AuthError::Unauthorized))?;
     *lock = None;
     Ok(())
 }
@@ -73,16 +73,16 @@ impl SessionManager {
         self.active_session = None;
     }
 
-    pub fn get(&self) -> Result<&Session, CatermError> {
+    pub fn get(&self) -> Result<&Session, CafError> {
         self.active_session
             .as_ref()
-            .ok_or_else(|| CatermError::Auth(AuthError::Unauthorized))
+            .ok_or_else(|| CafError::Auth(AuthError::Unauthorized))
     }
 
-    pub fn get_mut(&mut self) -> Result<&mut Session, CatermError> {
+    pub fn get_mut(&mut self) -> Result<&mut Session, CafError> {
         self.active_session
             .as_mut()
-            .ok_or_else(|| CatermError::Auth(AuthError::Unauthorized))
+            .ok_or_else(|| CafError::Auth(AuthError::Unauthorized))
     }
 }
 

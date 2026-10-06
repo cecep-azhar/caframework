@@ -10,7 +10,7 @@
 //! [`crate::feedback`]: the actual error-collector DSN is a server-side secret, never compiled
 //! into this binary.
 
-use crate::error::{CatermError, IoError, ValidationError};
+use crate::error::{CafError, IoError, ValidationError};
 use crate::paths::{crash_dumps_dir, resolve_data_dir};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -38,13 +38,13 @@ fn load_prefs(dir: &Path) -> CrashReportingPrefs {
         .unwrap_or_default()
 }
 
-fn save_prefs(dir: &Path, prefs: &CrashReportingPrefs) -> Result<(), CatermError> {
+fn save_prefs(dir: &Path, prefs: &CrashReportingPrefs) -> Result<(), CafError> {
     std::fs::create_dir_all(dir)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs dir: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash prefs dir: {e}"))))?;
     let bytes = serde_json::to_vec_pretty(prefs)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs encode: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash prefs encode: {e}"))))?;
     std::fs::write(dir.join(PREFS_FILE), bytes)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash prefs write: {e}"))))
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash prefs write: {e}"))))
 }
 
 /// Whether the user has turned crash reporting off entirely (no prompt, no local dump).
@@ -94,14 +94,14 @@ pub fn install_panic_hook() {
     }));
 }
 
-fn try_record_panic(info: &std::panic::PanicHookInfo<'_>) -> Result<(), CatermError> {
+fn try_record_panic(info: &std::panic::PanicHookInfo<'_>) -> Result<(), CafError> {
     let dir = resolve_data_dir()?.path;
     if load_prefs(&dir).disabled {
         return Ok(()); // opted out: don't even keep a local copy
     }
     let dumps_dir = crash_dumps_dir(&dir);
     std::fs::create_dir_all(&dumps_dir)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dumps dir: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dumps dir: {e}"))))?;
 
     let message = info
         .payload()
@@ -127,7 +127,7 @@ fn try_record_panic(info: &std::panic::PanicHookInfo<'_>) -> Result<(), CatermEr
     };
 
     let bytes = serde_json::to_vec(&event)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump encode: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump encode: {e}"))))?;
     // Filename starts with a millisecond timestamp so dumps sort chronologically by name alone
     // — no need to open every file just to find the most recent one.
     let id = format!("{}-{}", now_millis(), uuid::Uuid::new_v4());
@@ -143,7 +143,7 @@ fn now_millis() -> i64 {
 }
 
 #[cfg(unix)]
-fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CatermError> {
+fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CafError> {
     use std::fs::OpenOptions;
     use std::io::Write;
     use std::os::unix::fs::OpenOptionsExt;
@@ -152,15 +152,15 @@ fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CatermError> {
         .create_new(true)
         .mode(0o600)
         .open(path)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump open: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump open: {e}"))))?;
     file.write_all(bytes)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump write: {e}"))))
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump write: {e}"))))
 }
 
 #[cfg(not(unix))]
-fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CatermError> {
+fn write_restricted(path: &Path, bytes: &[u8]) -> Result<(), CafError> {
     std::fs::write(path, bytes)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump write: {e}"))))
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump write: {e}"))))
 }
 
 // ---- PII scrubbing (spec §2) --------------------------------------------------------------------
@@ -315,9 +315,9 @@ fn valid_id(id: &str) -> bool {
     !id.is_empty() && id.len() <= 80 && id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
 }
 
-fn dump_path(dumps_dir: &Path, id: &str) -> Result<PathBuf, CatermError> {
+fn dump_path(dumps_dir: &Path, id: &str) -> Result<PathBuf, CafError> {
     if !valid_id(id) {
-        return Err(CatermError::Validation(ValidationError::Generic(
+        return Err(CafError::Validation(ValidationError::Generic(
             "ID laporan crash tidak valid".to_string(),
         )));
     }
@@ -353,7 +353,7 @@ fn list_dumps(dumps_dir: &Path) -> Vec<(String, PathBuf)> {
 /// whole backlog without ever reading its contents into memory beyond the delete itself, since
 /// "disabled" must mean disabled even for dumps written before the user turned it off. It also
 /// clears dumps older than 30 days, which nobody would meaningfully report weeks later.
-pub fn pending_crash_report() -> Result<Option<ScrubbedCrashReport>, CatermError> {
+pub fn pending_crash_report() -> Result<Option<ScrubbedCrashReport>, CafError> {
     let dir = resolve_data_dir()?.path;
     let dumps_dir = crash_dumps_dir(&dir);
     let disabled = load_prefs(&dir).disabled;
@@ -402,14 +402,14 @@ pub fn pending_crash_report() -> Result<Option<ScrubbedCrashReport>, CatermError
 /// Sends the scrubbed report `id` to the feedback-style proxy (never straight to the error
 /// collector — see module docs) and deletes the local dump once it is accepted. A failed send
 /// leaves the dump in place so the same report can be retried on the next launch.
-pub fn submit_crash_report(id: &str) -> Result<(), CatermError> {
+pub fn submit_crash_report(id: &str) -> Result<(), CafError> {
     let dir = resolve_data_dir()?.path;
     let dumps_dir = crash_dumps_dir(&dir);
     let path = dump_path(&dumps_dir, id)?;
     let bytes = std::fs::read(&path)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump not found: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump not found: {e}"))))?;
     let raw: RawCrashEvent = serde_json::from_slice(&bytes)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("crash dump corrupt: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("crash dump corrupt: {e}"))))?;
     let scrubbed = scrub_event(&PiiScrubber::new(), &raw);
     let payload = envelope(id, &scrubbed);
 
@@ -419,7 +419,7 @@ pub fn submit_crash_report(id: &str) -> Result<(), CatermError> {
         .header("Content-Type", "application/json")
         .send_json(&payload)
         .map_err(|e| {
-            CatermError::Io(IoError::Generic(format!(
+            CafError::Io(IoError::Generic(format!(
                 "Gagal mengirim laporan crash: {e}"
             )))
         })?;
@@ -427,7 +427,7 @@ pub fn submit_crash_report(id: &str) -> Result<(), CatermError> {
     let status = resp.status().as_u16();
     if !(200..300).contains(&status) {
         let body = resp.body_mut().read_to_string().unwrap_or_default();
-        return Err(CatermError::Io(IoError::Generic(format!(
+        return Err(CafError::Io(IoError::Generic(format!(
             "Server crash-report menolak laporan (HTTP {status}): {body}"
         ))));
     }
@@ -439,7 +439,7 @@ pub fn submit_crash_report(id: &str) -> Result<(), CatermError> {
 /// Discards the dump `id` without sending anything. When `never_again` is set, also disables
 /// future prompts and clears every other pending dump — "never ask again" must mean it, even
 /// for crashes that happened earlier in the same session.
-pub fn dismiss_crash_report(id: &str, never_again: bool) -> Result<(), CatermError> {
+pub fn dismiss_crash_report(id: &str, never_again: bool) -> Result<(), CafError> {
     let dir = resolve_data_dir()?.path;
     let dumps_dir = crash_dumps_dir(&dir);
 

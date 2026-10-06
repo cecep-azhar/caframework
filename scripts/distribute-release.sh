@@ -82,7 +82,7 @@ Uploads .exe, .apk, .deb, .rpm, .AppImage and updater signatures to:
 GitHub Releases, Cloudflare R2, YPC MinIO S3, and GCC Storage API.
 
 Options:
-  -s, --slug SLUG          App slug (e.g. caframework, caterm) [REQUIRED or env RELEASE_SLUG]
+  -s, --slug SLUG          App slug (e.g. caframework, myapp) [REQUIRED or env RELEASE_SLUG]
   -t, --tag TAG            Release tag version (e.g. v0.1.0, v2.1.16) [REQUIRED or env RELEASE_TAG]
   -d, --dir DIRECTORY      Directory containing build artifacts [default: dist]
   -n, --notes NOTES        Release notes text or file path
@@ -107,7 +107,7 @@ Environment Variables:
   YPC_ENDPOINT, YPC_BUCKET, YPC_ACCESS_KEY_ID, YPC_SECRET_ACCESS_KEY, YPC_REGION, YPC_PREFIX
 
 Examples:
-  ./scripts/distribute-release.sh --slug caterm --tag v2.1.16 --dir dist
+  ./scripts/distribute-release.sh --slug caframework --tag v0.1.0 --dir dist
   ./scripts/distribute-release.sh --slug caframework --tag v0.1.0 --dry-run
 EOF
 }
@@ -140,9 +140,6 @@ if [[ -z "$SLUG" ]]; then
   if [[ -f "app.toml" ]] && grep -q '^slug' "app.toml"; then
     SLUG=$(grep '^slug' "app.toml" | head -n1 | cut -d'=' -f2 | tr -d ' "' | tr -d "'")
     log_info "Auto-detected slug from app.toml: $SLUG"
-  elif [[ -f "crates/caterm-app/tauri.conf.json" ]]; then
-    SLUG="caterm"
-    log_info "Auto-detected slug: caterm"
   elif [[ -f "crates/caf-app/tauri.conf.json" ]]; then
     SLUG="caframework"
     log_info "Auto-detected slug: caframework"

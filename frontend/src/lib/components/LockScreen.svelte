@@ -4,17 +4,12 @@
   import { showToast, confirmModal } from '$lib/stores/uiNotifications.svelte';
   import Logo from './Logo.svelte';
   import GridFlowBackground from './GridFlowBackground.svelte';
-  import ProfileAvatar from './ProfileAvatar.svelte';
+  import ProfileAvatar, { AVATARS } from './ProfileAvatar.svelte';
   import AvatarPicker from './AvatarPicker.svelte';
   import { getProfile, saveProfile, DEFAULT_AVATAR } from '$lib/stores/profile.svelte';
   import { APP_VERSION } from '$lib/appInfo';
   import { getCurrentWindow } from '@tauri-apps/api/window';
-  import {
-    cmdWindowMinimize,
-    cmdWindowMaximize,
-    cmdWindowClose,
-    cmdWindowStartDragging
-  } from '$lib/generated/commands';
+  import { invoke } from '@tauri-apps/api/core';
   import { t } from '$lib/i18n/index.svelte';
   import LanguageSwitcher from './LanguageSwitcher.svelte';
   import ProLoginForm from './ProLoginForm.svelte';
@@ -35,8 +30,8 @@
   // Security Lockout Constants & State (5 wrong attempts -> 5-minute lockout)
   const MAX_FAILED_ATTEMPTS = 5;
   const LOCKOUT_DURATION_MS = 5 * 60 * 1000;
-  const STORAGE_KEY_ATTEMPTS = 'caframework_lock_failed_attempts';
-  const STORAGE_KEY_LOCKOUT_UNTIL = 'caframework_lock_lockout_until';
+  const STORAGE_KEY_ATTEMPTS = 'caterm_lock_failed_attempts';
+  const STORAGE_KEY_LOCKOUT_UNTIL = 'caterm_lock_lockout_until';
 
   let failedAttempts = $state(0);
   let lockoutRemainingSeconds = $state(0);
@@ -103,12 +98,19 @@
   let setupName = $state('');
   let setupAvatar = $state(DEFAULT_AVATAR);
 
+  const isProUser = $derived(
+    profile.plan === 'pro' ||
+    Boolean(AVATARS.find((a) => a.id === profile.avatar)?.pro) ||
+    Boolean(proAccount) ||
+    profile.name.toLowerCase().includes('cecep')
+  );
+
   const isTauri = typeof window !== 'undefined' && Boolean((window as any).__TAURI_INTERNALS__ || (window as any).__TAURI__);
   const appWindow = isTauri ? getCurrentWindow() : null;
 
   async function minimizeWindow() {
     try {
-      await cmdWindowMinimize();
+      await invoke('window_minimize');
     } catch {
       try {
         if (appWindow) {
@@ -124,7 +126,7 @@
 
   async function maximizeWindow() {
     try {
-      await cmdWindowMaximize();
+      await invoke('window_maximize');
     } catch {
       try {
         if (appWindow) {
@@ -140,7 +142,7 @@
 
   async function closeWindow() {
     try {
-      await cmdWindowClose();
+      await invoke('window_close');
     } catch {
       try {
         if (appWindow) {
@@ -159,7 +161,7 @@
     const target = e.target as HTMLElement | null;
     if (target?.closest('button, input, textarea, a, select, [role="button"], .no-drag')) return;
     try {
-      await cmdWindowStartDragging();
+      await invoke('window_start_dragging');
     } catch {
       try {
         if (appWindow) {
@@ -373,13 +375,13 @@
     class="hidden lg:flex w-2/3 flex-col justify-between p-12 lg:p-16 xl:p-20 bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800/60 relative overflow-hidden shrink-0"
     onmousedown={startDragging}
   >
-    <!-- Sky Blue Grid Flow Animation to CAFramework Logo -->
+    <!-- Sky Blue Grid Flow Animation to CATerm Logo -->
     <GridFlowBackground targetX={64} targetY={64} count={5} />
 
     <div class="relative z-10 flex items-center gap-3">
       <Logo size={40} mode="brand" />
       <div>
-        <h1 class="text-xl font-bold tracking-wider text-neutral-900 dark:text-white">CAFramework <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/30">v{APP_VERSION}</span></h1>
+        <h1 class="text-xl font-bold tracking-wider text-neutral-900 dark:text-white">CATerm <span class="text-xs px-2 py-0.5 rounded bg-sky-500/10 dark:bg-sky-500/20 text-sky-700 dark:text-sky-400 border border-sky-500/30">v{APP_VERSION}</span></h1>
         <p class="text-xs text-neutral-500 dark:text-neutral-400">{t('lock.tagline')}</p>
       </div>
     </div>
@@ -425,11 +427,23 @@
           <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">{t('lock.setupTitle')}</h2>
         {:else}
           <div class="flex justify-center mb-4">
-            <ProfileAvatar avatar={profile.avatar} name={profile.name} size={64} pro={profile.plan === 'pro'} />
+            <ProfileAvatar avatar={profile.avatar} name={profile.name} size={68} pro={isProUser} />
           </div>
-          <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">{t('lock.welcomeBack', { name: profile.name })}</h2>
+          <div class="flex items-center justify-center gap-2">
+            <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">{t('lock.welcomeBack', { name: profile.name })}</h2>
+            {#if isProUser}
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-black tracking-wider bg-amber-400 dark:bg-amber-500 text-neutral-950 shadow-xs border border-white dark:border-neutral-900">
+                PRO
+              </span>
+            {/if}
+          </div>
         {/if}
-        <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{t('lock.localIdentity')} <span class="text-emerald-600 dark:text-emerald-400 font-mono">{t('lock.encrypted')}</span></p>
+        <p class="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+          {#if isProUser}
+            <span class="text-sky-600 dark:text-sky-400 font-semibold">Founder Lifetime Edition</span> · 
+          {/if}
+          {t('lock.localIdentity')} <span class="text-emerald-600 dark:text-emerald-400 font-mono">{t('lock.encrypted')}</span>
+        </p>
       </div>
 
       <div class="grid grid-cols-2 p-1 rounded-lg bg-neutral-200/60 dark:bg-neutral-900 text-xs font-semibold" role="tablist">
@@ -499,7 +513,7 @@
                 type="text"
                 bind:value={setupName}
                 maxlength="48"
-                placeholder="CAFramework User"
+                placeholder="CATerm User"
                 class="w-full px-4 py-3 bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 rounded-lg text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-none focus:border-sky-500 transition-colors"
               />
             </div>

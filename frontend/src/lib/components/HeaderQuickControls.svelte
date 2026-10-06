@@ -1,186 +1,155 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { t } from '$lib/i18n/index.svelte';
   import { getTheme, setTheme } from '$lib/stores/theme.svelte';
-  import { getLocale, setLocale, LOCALES } from '$lib/i18n/index.svelte';
-  import {
-    getGlobalLayout,
-    setGlobalLayout,
-    type GlobalSplitLayout
-  } from '$lib/stores/dualSplitStore.svelte';
-  import { getAiChatState, toggleAiChat } from '$lib/stores/aiChat.svelte';
+  import LanguageSwitcher from './LanguageSwitcher.svelte';
+
+  interface Props {
+    layout: number;
+    showFiles: boolean;
+    aiOpen: boolean;
+    sessionCount: number;
+    splitOptions: Array<{ value: number; title: string; minTabs: number; path?: string }>;
+    onSetLayout: (layout: number) => void;
+    onToggleFiles: () => void;
+    onToggleAi: () => void;
+  }
+
+  let {
+    layout,
+    showFiles,
+    aiOpen,
+    sessionCount,
+    splitOptions,
+    onSetLayout,
+    onToggleFiles,
+    onToggleAi
+  }: Props = $props();
 
   let isOpen = $state(false);
-  let containerRef: HTMLDivElement | null = null;
+  let dropdownRef: HTMLDivElement | null = $state(null);
 
   const theme = getTheme();
-  const currentLocale = $derived(getLocale());
-  const currentLayout = $derived(getGlobalLayout());
-  const aiChat = getAiChatState();
+  const isDark = $derived(theme.name === 'dark');
 
-  const layoutOptions: Array<{ value: GlobalSplitLayout; label: string; icon: string }> = [
-    {
-      value: 'single',
-      label: 'Single',
-      icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z'
-    },
-    {
-      value: '2-columns',
-      label: '2 Columns',
-      icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M12 4v16'
-    },
-    {
-      value: '2-rows',
-      label: '2 Rows',
-      icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M4 12h16'
-    },
-    {
-      value: '2x2-grid',
-      label: '2x2 Grid',
-      icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v14a1 1 0 01-1 1H5a1 1 0 01-1-1V5z M12 4v16 M4 12h16'
-    }
-  ];
-
-  function toggleDropdown() {
-    isOpen = !isOpen;
-  }
-
-  function closeDropdown() {
-    isOpen = false;
-  }
-
-  function handleDocumentClick(e: MouseEvent) {
-    if (containerRef && !containerRef.contains(e.target as Node)) {
+  function handleOutside(e: MouseEvent) {
+    if (dropdownRef && !dropdownRef.contains(e.target as Node)) {
       isOpen = false;
     }
   }
 
-  onMount(() => {
-    document.addEventListener('click', handleDocumentClick);
-    return () => {
-      document.removeEventListener('click', handleDocumentClick);
-    };
+  $effect(() => {
+    if (isOpen) {
+      window.addEventListener('click', handleOutside);
+      return () => window.removeEventListener('click', handleOutside);
+    }
   });
 </script>
 
-<div class="relative no-drag" bind:this={containerRef}>
-  <!-- Quick Controls Trigger Button -->
+<div class="relative no-drag" bind:this={dropdownRef}>
   <button
     type="button"
-    onclick={toggleDropdown}
-    class="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors cursor-pointer {isOpen ? 'bg-neutral-800 text-white' : ''}"
-    title="Quick Controls & Preferences"
-    aria-label="Quick Controls & Preferences"
+    onclick={() => (isOpen = !isOpen)}
+    class="p-1.5 rounded-md transition-colors flex items-center justify-center {isOpen ? 'bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-white' : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-neutral-800'}"
+    title={t('shell.preferencesTitle') || 'Preferences & Display Options'}
+    aria-label="Preferences & Display Options"
     aria-expanded={isOpen}
   >
+    <!-- Modern Sliders / Control Hub SVG Icon -->
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
     </svg>
   </button>
 
-  <!-- Dropdown Hub Menu -->
   {#if isOpen}
     <div
-      class="absolute right-0 top-full mt-2 w-72 rounded-xl bg-neutral-900/95 border border-neutral-800 shadow-2xl backdrop-blur-md p-3 z-50 text-neutral-200 text-xs space-y-3.5 select-none"
+      class="absolute right-0 top-full mt-1.5 z-50 w-64 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 select-none p-3 space-y-3.5 text-xs"
+      role="menu"
     >
-      <!-- Section 1: Global Split Layout -->
-      <div>
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5 flex items-center justify-between">
-          <span>Global Layout</span>
-          <span class="text-[10px] text-indigo-400 font-mono">{currentLayout}</span>
-        </div>
-        <div class="grid grid-cols-2 gap-1.5">
-          {#each layoutOptions as opt}
-            <button
-              type="button"
-              onclick={() => {
-                setGlobalLayout(opt.value);
-              }}
-              class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-left transition-colors {currentLayout === opt.value
-                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-300 font-medium'
-                : 'bg-neutral-800/60 border-neutral-700/50 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-200'}"
-            >
-              <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={opt.icon} />
-              </svg>
-              <span class="truncate">{opt.label}</span>
-            </button>
-          {/each}
-        </div>
-      </div>
-
-      <!-- Section 2: Quick Panels -->
-      <div class="border-t border-neutral-800 pt-3">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5">
-          Quick Panels
-        </div>
-        <button
-          type="button"
-          onclick={() => {
-            toggleAiChat();
-            closeDropdown();
-          }}
-          class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-neutral-800/60 border border-neutral-700/50 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors"
-        >
-          <div class="flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span>Ask AI Assistant</span>
-          </div>
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded {aiChat.open ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-neutral-700/50 text-neutral-400'}">
-            {aiChat.open ? 'OPEN' : 'CLOSED'}
+      <!-- Split View Layouts (if sessions > 1) -->
+      {#if sessionCount > 1}
+        <div>
+          <span class="block text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-1.5">
+            {t('shell.splitLayout') || 'Global Split Layout'}
           </span>
-        </button>
-      </div>
-
-      <!-- Section 3: Preferences (Theme & Language) -->
-      <div class="border-t border-neutral-800 pt-3 space-y-2.5">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-          Preferences
-        </div>
-
-        <!-- Theme Segmented Control -->
-        <div class="flex items-center justify-between">
-          <span class="text-neutral-400">Theme</span>
-          <div class="flex items-center p-0.5 rounded-lg bg-neutral-950 border border-neutral-800">
-            <button
-              type="button"
-              onclick={() => setTheme('light')}
-              class="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors {theme.name === 'light' ? 'bg-white text-neutral-950 shadow-sm' : 'text-neutral-400 hover:text-white'}"
-            >
-              <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <span>Light</span>
-            </button>
-            <button
-              type="button"
-              onclick={() => setTheme('dark')}
-              class="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium transition-colors {theme.name === 'dark' ? 'bg-neutral-800 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}"
-            >
-              <svg class="w-3 h-3 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-              <span>Dark</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Language Segmented Control -->
-        <div class="flex items-center justify-between">
-          <span class="text-neutral-400">Language</span>
-          <div class="flex items-center p-0.5 rounded-lg bg-neutral-950 border border-neutral-800">
-            {#each LOCALES as loc}
+          <div class="grid grid-cols-4 gap-1 p-1 bg-neutral-100 dark:bg-neutral-950 rounded-lg border border-neutral-200 dark:border-neutral-800">
+            {#each splitOptions as option}
               <button
                 type="button"
-                onclick={() => setLocale(loc.code)}
-                class="px-2 py-1 rounded-md text-[11px] font-bold uppercase transition-colors {currentLocale === loc.code ? 'bg-indigo-600 text-white shadow-sm' : 'text-neutral-400 hover:text-white'}"
+                disabled={sessionCount < option.minTabs}
+                onclick={() => { onSetLayout(option.value); isOpen = false; }}
+                class="py-1.5 flex flex-col items-center justify-center rounded transition-colors disabled:opacity-30 {layout === option.value ? 'bg-sky-600 text-white shadow-xs' : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800'}"
+                title={option.title}
               >
-                {loc.code}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {#if option.value === 1}
+                    <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"></rect>
+                  {:else}
+                    <path stroke-width="2" d={option.path}></path>
+                  {/if}
+                </svg>
+                <span class="text-[9px] mt-0.5">{option.value === 1 ? '1' : option.value === 2 ? '2H' : option.value === 3 ? '2V' : '4G'}</span>
               </button>
             {/each}
           </div>
+        </div>
+      {/if}
+
+      <!-- Quick Panes (Files SFTP & AI Assistant) -->
+      <div>
+        <span class="block text-[10px] font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 mb-1.5">
+          {t('shell.panels') || 'Quick Panels'}
+        </span>
+        <div class="grid grid-cols-2 gap-2">
+          {#if sessionCount > 0}
+            <button
+              type="button"
+              onclick={() => { onToggleFiles(); isOpen = false; }}
+              class="flex items-center gap-2 p-2 rounded-lg border transition-colors {showFiles ? 'bg-sky-500/15 border-sky-500/40 text-sky-600 dark:text-sky-400' : 'bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60'}"
+            >
+              <svg class="w-4 h-4 shrink-0 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+              </svg>
+              <span class="font-medium text-xs truncate">{showFiles ? (t('shell.hideFiles') || 'Files: ON') : (t('shell.showFiles') || 'Files')}</span>
+            </button>
+          {/if}
+
+          <button
+            type="button"
+            onclick={() => { onToggleAi(); isOpen = false; }}
+            class="flex items-center gap-2 p-2 rounded-lg border transition-colors {aiOpen ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400' : 'bg-neutral-50 dark:bg-neutral-950 border-neutral-200 dark:border-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800/60'}"
+          >
+            <svg class="w-3.5 h-3.5 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+            </svg>
+            <span class="font-medium text-xs truncate">{aiOpen ? 'Hana: ON' : 'Hana AI'}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Language & Theme Switchers -->
+      <div class="pt-2 border-t border-neutral-200 dark:border-neutral-800/80 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] text-neutral-500">{t('shell.language') || 'Lang'}:</span>
+          <LanguageSwitcher />
+        </div>
+
+        <div class="flex items-center p-0.5 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-950">
+          <button
+            type="button"
+            onclick={() => setTheme('light')}
+            class="p-1 rounded-md transition-colors {!isDark ? 'bg-white text-amber-500 shadow-sm' : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}"
+            title={t('shell.lightTheme')}
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+          </button>
+          <button
+            type="button"
+            onclick={() => setTheme('dark')}
+            class="p-1 rounded-md transition-colors {isDark ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:text-neutral-900'}"
+            title={t('shell.darkTheme')}
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          </button>
         </div>
       </div>
     </div>

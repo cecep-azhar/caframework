@@ -1,7 +1,7 @@
 //! Multi-profile management with PIN and roles.
 
 use crate::db;
-use crate::error::{AuthError, CatermError, DbError};
+use crate::error::{AuthError, CafError, DbError};
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
@@ -37,7 +37,7 @@ pub struct ProfileInput {
     pub pin: Option<String>,
 }
 
-pub fn list_profiles() -> Result<Vec<ProfileRecord>, CatermError> {
+pub fn list_profiles() -> Result<Vec<ProfileRecord>, CafError> {
     let conn = db::open()?;
     let mut stmt = conn
         .prepare(
@@ -46,7 +46,7 @@ pub fn list_profiles() -> Result<Vec<ProfileRecord>, CatermError> {
              WHERE deleted_at IS NULL
              ORDER BY created_at ASC",
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let rows = stmt
         .query_map([], |row| {
@@ -69,11 +69,11 @@ pub fn list_profiles() -> Result<Vec<ProfileRecord>, CatermError> {
                 visibility: row.get(11)?,
             })
         })
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let mut list = Vec::new();
     for row in rows {
-        list.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
+        list.push(row.map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?);
     }
 
     Ok(list)
@@ -82,11 +82,11 @@ pub fn list_profiles() -> Result<Vec<ProfileRecord>, CatermError> {
 pub fn save_profile(
     input: ProfileInput,
     caller_profile_id: &str,
-) -> Result<ProfileRecord, CatermError> {
+) -> Result<ProfileRecord, CafError> {
     let mut conn = db::open()?;
     let tx = conn
         .transaction()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let now = Utc::now().to_rfc3339();
     let device_id = crate::paths::device_id().unwrap_or_else(|_| "device-local".into());
@@ -99,7 +99,7 @@ pub fn save_profile(
                 argon2
                     .hash_password(pin.as_bytes(), &salt)
                     .map_err(|e| {
-                        CatermError::Auth(AuthError::Generic(format!("PIN hash failed: {e}")))
+                        CafError::Auth(AuthError::Generic(format!("PIN hash failed: {e}")))
                     })?
                     .to_string(),
             )
@@ -117,7 +117,7 @@ pub fn save_profile(
                 [&existing_id],
                 |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
             )
-            .map_err(|e| CatermError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
+            .map_err(|e| CafError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
 
         let new_rev = existing.0 + 1;
         let final_pin_hash = pin_hash.or(existing.2);
@@ -126,7 +126,7 @@ pub fn save_profile(
             "UPDATE profiles SET name = ?1, role = ?2, avatar = ?3, pin_hash = ?4, rev = ?5, updated_at = ?6 WHERE id = ?7",
             rusqlite::params![input.name, input.role, input.avatar, final_pin_hash, new_rev, now, existing_id],
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
         (existing_id, new_rev, existing.1, final_pin_hash, "update")
     } else {
@@ -148,13 +148,13 @@ pub fn save_profile(
                 caller_profile_id
             ],
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
         (new_id, rev, now.clone(), pin_hash, "create")
     };
 
     tx.commit()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let has_pin = final_pin_hash.is_some()
         && !final_pin_hash
@@ -178,7 +178,7 @@ pub fn save_profile(
     })
 }
 
-pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CatermError> {
+pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CafError> {
     let conn = db::open()?;
     let pin_hash: Option<String> = conn
         .query_row(
@@ -186,7 +186,7 @@ pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CatermError> {
             [profile_id],
             |r| r.get(0),
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
+        .map_err(|e| CafError::Db(DbError::Generic(format!("Profile not found: {e}"))))?;
 
     let Some(hash_str) = pin_hash else {
         return Ok(true); // No PIN set
@@ -197,13 +197,13 @@ pub fn verify_pin(profile_id: &str, pin: &str) -> Result<bool, CatermError> {
     }
 
     let parsed_hash = PasswordHash::new(&hash_str)
-        .map_err(|e| CatermError::Auth(AuthError::Generic(format!("Corrupt PIN hash: {e}"))))?;
+        .map_err(|e| CafError::Auth(AuthError::Generic(format!("Corrupt PIN hash: {e}"))))?;
 
     let argon2 = Argon2::default();
     Ok(argon2.verify_password(pin.as_bytes(), &parsed_hash).is_ok())
 }
 
-pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CatermError> {
+pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CafError> {
     let conn = db::open()?;
     let mut stmt = conn
         .prepare(
@@ -211,7 +211,7 @@ pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CatermError> {
              FROM profiles 
              WHERE id = ?1 AND deleted_at IS NULL",
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let mut rows = stmt
         .query_map([id], |row| {
@@ -234,32 +234,32 @@ pub fn get_profile(id: &str) -> Result<Option<ProfileRecord>, CatermError> {
                 visibility: row.get(11)?,
             })
         })
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     if let Some(row) = rows.next() {
         Ok(Some(row.map_err(|e| {
-            CatermError::Db(DbError::Generic(e.to_string()))
+            CafError::Db(DbError::Generic(e.to_string()))
         })?))
     } else {
         Ok(None)
     }
 }
 
-pub fn delete_profile(id: &str, caller_profile_id: &str) -> Result<(), CatermError> {
+pub fn delete_profile(id: &str, caller_profile_id: &str) -> Result<(), CafError> {
     let mut conn = db::open()?;
     let tx = conn
         .transaction()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let now = Utc::now().to_rfc3339();
     tx.execute(
         "UPDATE profiles SET deleted_at = ?1, updated_at = ?1 WHERE id = ?2 AND deleted_at IS NULL",
         rusqlite::params![now, id],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     tx.commit()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let _ = crate::audit::log_event(
         "PROFILE_DELETE",

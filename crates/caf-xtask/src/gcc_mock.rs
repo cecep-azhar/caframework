@@ -104,6 +104,7 @@ pub fn init_dev_keys() -> (SigningKey, VerifyingKey, String) {
 // --------------------------------------------------------------------------
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct OtpRequestPayload {
     email: String,
     product_code: String,
@@ -127,6 +128,7 @@ struct LicenseActivatePayload {
 }
 
 #[derive(Deserialize)]
+#[allow(dead_code)]
 struct PlansQuery {
     product_code: String,
     currency: Option<String>,

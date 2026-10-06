@@ -1,4 +1,4 @@
-REPO_DIR: ~/Project/caframework
+REPO_DIR: ~/Product/caframework
 BASE_COMMIT: auto
 WORK_BRANCH: main
 FEATURE_BRANCH: main

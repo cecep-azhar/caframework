@@ -1,6 +1,6 @@
 <script lang="ts">
   interface Props {
-    /** Skip internal padding — use for full-bleed layouts like terminal grid */
+    /** Skip internal padding — use for full-bleed content layouts */
     noPadding?: boolean;
     class?: string;
     children: import('svelte').Snippet;

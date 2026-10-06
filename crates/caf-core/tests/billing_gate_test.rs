@@ -1,24 +1,25 @@
+use base64::Engine;
 use caf_core::billing::gate::require_pro;
 use caf_core::billing::store;
 use caf_core::billing::token::EntitlementPayload;
-use base64::Engine;
 use ed25519_dalek::{Signer, SigningKey};
-use rand::rngs::OsRng;
 use rand::RngCore;
+use rand::rngs::OsRng;
 
 fn generate_keys() -> (SigningKey, String, String) {
     let mut key_bytes = [0u8; 32];
     OsRng.fill_bytes(&mut key_bytes);
     let signing_key = SigningKey::from_bytes(&key_bytes);
-    let pub_key_b64 = base64::engine::general_purpose::STANDARD
-        .encode(signing_key.verifying_key().as_bytes());
+    let pub_key_b64 =
+        base64::engine::general_purpose::STANDARD.encode(signing_key.verifying_key().as_bytes());
     let kid = "gcc-2026-10".to_string();
     (signing_key, pub_key_b64, kid)
 }
 
 fn create_token(payload: &EntitlementPayload, signing_key: &SigningKey, kid: &str) -> String {
-    let header_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD
-        .encode(serde_json::to_vec(&serde_json::json!({"alg": "EdDSA", "typ": "JWT", "kid": kid})).unwrap());
+    let header_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(
+        serde_json::to_vec(&serde_json::json!({"alg": "EdDSA", "typ": "JWT", "kid": kid})).unwrap(),
+    );
     let payload_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD
         .encode(serde_json::to_vec(payload).unwrap());
     let signing_input = format!("{}.{}", header_b64, payload_b64);
@@ -29,6 +30,10 @@ fn create_token(payload: &EntitlementPayload, signing_key: &SigningKey, kid: &st
 
 #[test]
 fn test_require_pro_rust_guard_rejection_and_acceptance() {
+    let temp_dir = std::env::temp_dir().join(format!("caf_gate_test_{}", uuid::Uuid::new_v4()));
+    std::fs::create_dir_all(&temp_dir).unwrap();
+    caf_core::paths::set_custom_data_dir(temp_dir.clone()).unwrap();
+
     let (key, pub_b64, kid) = generate_keys();
     let keys = vec![(kid.clone(), pub_b64)];
 

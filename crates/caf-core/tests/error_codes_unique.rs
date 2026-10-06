@@ -16,9 +16,9 @@ fn workspace_root() -> PathBuf {
 
 #[test]
 fn no_duplicate_error_codes() {
-    let codes: Vec<&'static str> = caf_core::CatermError::all_known_for_registry()
+    let codes: Vec<&'static str> = caf_core::CafError::all_known_for_registry()
         .iter()
-        .map(caf_core::CatermError::code)
+        .map(caf_core::CafError::code)
         .collect();
     let unique: HashSet<&'static str> = codes.iter().copied().collect();
     assert_eq!(
@@ -30,7 +30,7 @@ fn no_duplicate_error_codes() {
 
 #[test]
 fn error_codes_md_matches_generated_source() {
-    let generated = caf_core::CatermError::generate_registry_markdown();
+    let generated = caf_core::CafError::generate_registry_markdown();
     let doc_path = workspace_root().join("docs").join("error-codes.md");
 
     if std::env::var("UPDATE_GOLDEN").is_ok() {

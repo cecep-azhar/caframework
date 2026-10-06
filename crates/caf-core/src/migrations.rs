@@ -1,4 +1,4 @@
-use crate::error::{CatermError, DbError};
+use crate::error::{CafError, DbError};
 use rusqlite::Connection;
 use sha2::{Digest, Sha256};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -15,7 +15,7 @@ fn compute_checksum(sql: &str) -> String {
     hex::encode(hasher.finalize())
 }
 
-pub fn run_migrations(conn: &mut Connection) -> Result<(), CatermError> {
+pub fn run_migrations(conn: &mut Connection) -> Result<(), CafError> {
     // Only bootstrap the schema version table if it doesn't exist
     conn.execute_batch(
         "CREATE TABLE IF NOT EXISTS schema_version (
@@ -26,13 +26,13 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), CatermError> {
         );",
     )
     .map_err(|e| {
-        CatermError::Db(DbError::Generic(format!(
+        CafError::Db(DbError::Generic(format!(
             "failed to bootstrap schema_version: {e}"
         )))
     })?;
 
     let tx = conn.transaction().map_err(|e| {
-        CatermError::Db(DbError::Generic(format!(
+        CafError::Db(DbError::Generic(format!(
             "failed to start migration transaction: {e}"
         )))
     })?;
@@ -60,10 +60,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), CatermError> {
 
             if let Ok(stored) = stored_checksum {
                 if stored != expected_checksum {
-                    return Err(CatermError::Db(DbError::MigrationChecksum));
+                    return Err(CafError::Db(DbError::MigrationChecksum));
                 }
             } else {
-                return Err(CatermError::Db(DbError::Generic(format!(
+                return Err(CafError::Db(DbError::Generic(format!(
                     "migration {} is marked applied but no checksum found",
                     version
                 ))));
@@ -73,7 +73,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), CatermError> {
 
         // Apply new migration
         tx.execute_batch(sql).map_err(|e| {
-            CatermError::Db(DbError::Generic(format!(
+            CafError::Db(DbError::Generic(format!(
                 "failed to apply migration {}: {}",
                 version, e
             )))
@@ -88,19 +88,19 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), CatermError> {
             "INSERT INTO schema_version (version, name, checksum, applied_at) VALUES (?1, ?2, ?3, ?4)",
             (&version, &name, &expected_checksum, &now_ms),
         ).map_err(|e| {
-            CatermError::Db(DbError::Generic(format!("failed to record migration {}: {}", version, e)))
+            CafError::Db(DbError::Generic(format!("failed to record migration {}: {}", version, e)))
         })?;
 
         applied_any = true;
     }
 
     if max_version > MIGRATIONS.last().map(|m| m.0).unwrap_or(0) {
-        return Err(CatermError::Db(DbError::SchemaTooNew));
+        return Err(CafError::Db(DbError::SchemaTooNew));
     }
 
     if applied_any {
         tx.commit().map_err(|e| {
-            CatermError::Db(DbError::Generic(format!(
+            CafError::Db(DbError::Generic(format!(
                 "failed to commit migrations: {e}"
             )))
         })?;

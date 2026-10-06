@@ -1,7 +1,7 @@
 //! Notes module — sample vertical slice demonstrating sync-ready conventions.
 
 use crate::db;
-use crate::error::{CatermError, DbError};
+use crate::error::{CafError, DbError};
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -31,12 +31,12 @@ pub struct NoteInput {
     pub owner_profile_id: String,
 }
 
-pub fn list_notes(caller_profile_id: &str, is_super: bool) -> Result<Vec<NoteRecord>, CatermError> {
+pub fn list_notes(caller_profile_id: &str, is_super: bool) -> Result<Vec<NoteRecord>, CafError> {
     let conn = db::open()?;
     let scope_clause = crate::visibility::sql_scope(is_super);
     let sql = format!(
-        "SELECT id, title, content, tags, rev, created_at, updated_at, deleted_at, origin_device_id, owner_profile_id, visibility 
-         FROM notes 
+        "SELECT id, title, content, tags, rev, created_at, updated_at, deleted_at, origin_device_id, owner_profile_id, visibility
+         FROM notes
          WHERE {}
          ORDER BY updated_at DESC",
         scope_clause
@@ -44,7 +44,7 @@ pub fn list_notes(caller_profile_id: &str, is_super: bool) -> Result<Vec<NoteRec
 
     let mut stmt = conn
         .prepare(&sql)
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let map_fn = |row: &rusqlite::Row| -> rusqlite::Result<NoteRecord> {
         let tags_str: String = row.get(3)?;
@@ -68,27 +68,27 @@ pub fn list_notes(caller_profile_id: &str, is_super: bool) -> Result<Vec<NoteRec
     if is_super {
         let rows = stmt
             .query_map([], map_fn)
-            .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+            .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
         for row in rows {
-            notes.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
+            notes.push(row.map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?);
         }
     } else {
         let rows = stmt
             .query_map([caller_profile_id], map_fn)
-            .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+            .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
         for row in rows {
-            notes.push(row.map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?);
+            notes.push(row.map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?);
         }
     };
 
     Ok(notes)
 }
 
-pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord, CatermError> {
+pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord, CafError> {
     let mut conn = db::open()?;
     let tx = conn
         .transaction()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let now = Utc::now().to_rfc3339();
     let device_id = crate::paths::device_id().unwrap_or_else(|_| "device-local".into());
@@ -103,14 +103,14 @@ pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord
                 [&existing_id],
                 |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
             )
-            .map_err(|e| CatermError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
+            .map_err(|e| CafError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
 
         let new_rev = existing.0 + 1;
         tx.execute(
             "UPDATE notes SET title = ?1, content = ?2, tags = ?3, rev = ?4, updated_at = ?5, visibility = ?6 WHERE id = ?7",
             rusqlite::params![input.title, input.content, tags_json, new_rev, now, visibility, existing_id],
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
         (existing_id, new_rev, existing.1, "update")
     } else {
@@ -133,7 +133,7 @@ pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord
                 visibility
             ],
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
         (new_id, rev, now.clone(), "create")
     };
@@ -163,10 +163,10 @@ pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord
             now
         ],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     tx.commit()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     Ok(NoteRecord {
         id,
@@ -183,11 +183,11 @@ pub fn save_note(input: NoteInput, caller_profile_id: &str) -> Result<NoteRecord
     })
 }
 
-pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CatermError> {
+pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CafError> {
     let mut conn = db::open()?;
     let tx = conn
         .transaction()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let now = Utc::now().to_rfc3339();
     let device_id = crate::paths::device_id().unwrap_or_else(|_| "device-local".into());
@@ -198,14 +198,14 @@ pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CatermError>
             [id],
             |r| Ok((r.get(0)?, r.get(1)?)),
         )
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
+        .map_err(|e| CafError::Db(DbError::Generic(format!("Note not found: {e}"))))?;
 
     let new_rev = rev + 1;
     tx.execute(
         "UPDATE notes SET deleted_at = ?1, rev = ?2, updated_at = ?3 WHERE id = ?4",
         rusqlite::params![now, new_rev, now, id],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     tx.execute(
         "INSERT INTO change_log (entity_type, entity_id, rev, action, payload, origin_device_id, owner_profile_id, visibility, timestamp)
@@ -222,10 +222,10 @@ pub fn delete_note(id: &str, caller_profile_id: &str) -> Result<(), CatermError>
             now
         ],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+    .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     tx.commit()
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     Ok(())
 }
@@ -244,7 +244,7 @@ mod tests {
             NoteInput {
                 id: None,
                 title: "Belajar Rust CAFramework".into(),
-                content: "Starter template berbasis CATerm v2".into(),
+                content: "Starter template berbasis CAFramework".into(),
                 tags: vec!["rust".into(), "svelte".into()],
                 visibility: Some("shared".into()),
                 owner_profile_id: "user-1".into(),

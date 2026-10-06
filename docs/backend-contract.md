@@ -11,4 +11,4 @@ Commands are grouped into policy classes:
 
 ## Error Model
 
-All commands return standard structured errors matching the `CatermError` taxonomy defined in `docs/error-codes.md`.
+All commands return standard structured errors matching the `CafError` taxonomy defined in `docs/error-codes.md`.

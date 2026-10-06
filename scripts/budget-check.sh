@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # T2-BOOT-06 budget gate. Reads bench-report.json (from scripts/bench.sh) and fails
 # (exit != 0) if any Fase-0-measurable REQ-02 metric exceeds its threshold. Thresholds
-# are overridable via CATERM_BUDGET_* env vars so the gate's bite can be proven on demand.
+# are overridable via CAF_BUDGET_* env vars so the gate's bite can be proven on demand.
 #
 # MEMORY METRIC (direvisi 2026-09-18, koreksi kedua):
 #   Gerbang ini memakai `private_bytes` — memori privat pohon proses, halaman bersama
@@ -43,9 +43,9 @@ fi
 # private working set Task Manager pada run yang sama: ~70 MB (lihat evidence
 # T2-BOOT-06b). Target lama 35 MB terbukti tidak realistis dengan WebView2 (Q-01/D-01);
 # angka 380 MB dari revisi pertama juga SALAH dan sudah dicabut.
-BUDGET_BINARY_MB="${CATERM_BUDGET_BINARY_MB:-8}"
-BUDGET_COLD_START_MS="${CATERM_BUDGET_COLD_START_MS:-800}"
-BUDGET_PRIVATE_MB="${CATERM_BUDGET_PRIVATE_MB:-160}"
+BUDGET_BINARY_MB="${CAF_BUDGET_BINARY_MB:-8}"
+BUDGET_COLD_START_MS="${CAF_BUDGET_COLD_START_MS:-800}"
+BUDGET_PRIVATE_MB="${CAF_BUDGET_PRIVATE_MB:-160}"
 
 # Round UP to the nearest whole MB - never let integer truncation hide an overage.
 BINARY_SIZE_MB=$(((BINARY_SIZE_BYTES + 1048575) / 1048576))

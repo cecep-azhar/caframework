@@ -131,7 +131,7 @@
             {planLabel.toUpperCase()}
           </span>
         </span>
-        <span class="block text-[11px] font-mono text-neutral-500 dark:text-neutral-500 truncate">{t('profileMenu.vaultEncrypted')}</span>
+        <span class="block text-[11px] font-mono text-neutral-500 dark:text-neutral-400 truncate">Local Encryption</span>
       </span>
       <svg class="w-4 h-4 shrink-0 text-neutral-400 transition-transform {open ? '-rotate-90' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
     {/if}

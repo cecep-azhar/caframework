@@ -1,5 +1,5 @@
 use crate::ai_context::ContextProvider;
-use crate::error::CatermError;
+use crate::error::CafError;
 use crate::visibility::VisibilityScope;
 use async_trait::async_trait;
 
@@ -11,7 +11,7 @@ impl ContextProvider for NotesContextProvider {
         "notes"
     }
 
-    async fn get_context(&self, scope: &VisibilityScope) -> Result<String, CatermError> {
+    async fn get_context(&self, scope: &VisibilityScope) -> Result<String, CafError> {
         let conn = crate::db::open()?;
         let query = format!(
             "SELECT title, content FROM notes WHERE {}",
@@ -20,7 +20,7 @@ impl ContextProvider for NotesContextProvider {
 
         let mut stmt = conn
             .prepare(&query)
-            .map_err(|e| CatermError::Db(crate::error::DbError::Generic(e.to_string())))?;
+            .map_err(|e| CafError::Db(crate::error::DbError::Generic(e.to_string())))?;
 
         let rows = stmt
             .query_map([], |row| {
@@ -28,12 +28,12 @@ impl ContextProvider for NotesContextProvider {
                 let content: String = row.get(1)?;
                 Ok(format!("Title: {}\nContent: {}\n", title, content))
             })
-            .map_err(|e| CatermError::Db(crate::error::DbError::Generic(e.to_string())))?;
+            .map_err(|e| CafError::Db(crate::error::DbError::Generic(e.to_string())))?;
 
         let mut context = String::new();
         for row in rows {
             let entry =
-                row.map_err(|e| CatermError::Db(crate::error::DbError::Generic(e.to_string())))?;
+                row.map_err(|e| CafError::Db(crate::error::DbError::Generic(e.to_string())))?;
             context.push_str(&entry);
         }
 
@@ -43,7 +43,7 @@ impl ContextProvider for NotesContextProvider {
                 None,
                 "Super-role accessed all notes via AI context provider",
             )
-            .map_err(|e| CatermError::Db(crate::error::DbError::Generic(e.to_string())))?;
+            .map_err(|e| CafError::Db(crate::error::DbError::Generic(e.to_string())))?;
         }
 
         Ok(context)

@@ -4,16 +4,19 @@
 import { version } from '../../package.json';
 
 export const APP_VERSION: string = version;
-export const REPO_URL = '';
-export const WEBSITE_URL = '';
-export const AUTHOR_URL = '';
-export const PRICING_URL = '';
-export const GITHUB_SPONSORS_URL = '';
-export const KOFI_URL = '';
-export const PAYPAL_URL = '';
+export const APP_NAME = 'CAFramework';
+export const REPO_URL = 'https://github.com/cecep-azhar/caterm';
+export const WEBSITE_URL = 'https://caterm.fathforce.com';
+export const AUTHOR_URL = 'https://cecepazhar.com';
+export const PRICING_URL = `${WEBSITE_URL}/#pricing`;
+export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/cecep-azhar';
+/** Primary donation / sponsor-tier channel (Silver $5, Gold $25, Platinum $100 per month). */
+export const KOFI_URL = 'https://ko-fi.com/cecepazhar';
+/** Secondary one-time donation channel. */
+export const PAYPAL_URL = 'https://paypal.me/cecepazhar';
 
 /**
- * Pricing page for the signed-in CAFramework account: the landing page passes the account id on to
+ * Pricing page for the signed-in CATerm account: the landing page passes the account id on to
  * Lemon Squeezy as checkout custom data, so the subscription lands on this account whatever email
  * is typed at checkout. Only the opaque account id travels, never the email.
  */

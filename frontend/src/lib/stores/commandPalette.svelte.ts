@@ -1,5 +1,4 @@
-// Command palette visibility. `hosts` mode (Ctrl+Shift+T, "new session") lists only things that
-// open a terminal; `all` (Ctrl+K / Ctrl+Shift+P) adds open sessions, pages and actions.
+// Command palette visibility & mode store (Ctrl+K / Ctrl+Shift+P).
 
 export type PaletteMode = 'all' | 'hosts';
 

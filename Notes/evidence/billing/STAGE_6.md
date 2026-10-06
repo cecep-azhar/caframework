@@ -1,1 +1,0 @@
-- Stage 6 complete: app.toml [billing] validation active, scaffolding verified with /tmp/test_billing_app, docs/billing-guide.md written, full test suite green

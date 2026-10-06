@@ -1,7 +1,7 @@
 /**
  * Readable text for anything thrown across the Tauri boundary.
  *
- * A failing `#[tauri::command]` rejects with the serialized `CatermError` — a plain object of
+ * A failing `#[tauri::command]` rejects with the serialized `CafError` — a plain object of
  * `{ code, message, domain }`, not an `Error`. Code that reached for `String(err)` printed
  * `[object Object]`, which is how a perfectly descriptive backend message ("Respons AI tidak
  * sesuai format...") reached the user as no information at all.

@@ -3,9 +3,9 @@
 //! Tauri binary. See apps/caframework/main.go `handleFeedback`.
 //!
 //! Deliberately fire-and-forget from the user's perspective: a 2xx means the
-//! proxy accepted it, a non-2xx surfaces a human-readable error via `CatermError`.
+//! proxy accepted it, a non-2xx surfaces a human-readable error via `CafError`.
 
-use crate::error::{CatermError, IoError};
+use crate::error::{CafError, IoError};
 
 const PROXY_URL: &str = "";
 
@@ -20,14 +20,14 @@ pub fn submit_feedback(
     content: &str,
     name: Option<&str>,
     profession: Option<&str>,
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     if !(1..=5).contains(&rating) {
-        return Err(CatermError::Io(IoError::Generic(
+        return Err(CafError::Io(IoError::Generic(
             "Rating must be between 1 and 5".into(),
         )));
     }
     if content.trim().is_empty() {
-        return Err(CatermError::Io(IoError::Generic(
+        return Err(CafError::Io(IoError::Generic(
             "Feedback cannot be empty".into(),
         )));
     }
@@ -57,13 +57,13 @@ pub fn submit_feedback(
         .header("Content-Type", "application/json")
         .send_json(&payload)
         .map_err(|e| {
-            CatermError::Io(IoError::Generic(format!("Failed to submit feedback: {e}")))
+            CafError::Io(IoError::Generic(format!("Failed to submit feedback: {e}")))
         })?;
 
     let status = resp.status().as_u16();
     if !(200..300).contains(&status) {
         let body = resp.body_mut().read_to_string().unwrap_or_default();
-        return Err(CatermError::Io(IoError::Generic(format!(
+        return Err(CafError::Io(IoError::Generic(format!(
             "Feedback proxy rejected request (HTTP {status}): {body}"
         ))));
     }

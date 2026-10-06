@@ -10,30 +10,30 @@ trap 'rm -rf "$TEST_DIR"' EXIT
 
 echo "--> Created mock artifact test directory: $TEST_DIR"
 
-# 1. Create mock build artifacts (.exe, .apk, .deb, .rpm, .AppImage + .sig)
-echo "test-exe-binary-content-12345" > "$TEST_DIR/caterm-v2.1.16-setup.exe"
-echo "test-sig-windows-minisign" > "$TEST_DIR/caterm-v2.1.16-setup.exe.sig"
+	# 1. Create mock build artifacts (.exe, .apk, .deb, .rpm, .AppImage + .sig)
+	echo "test-exe-binary-content-12345" > "$TEST_DIR/caframework-v0.1.0-setup.exe"
+	echo "test-sig-windows-minisign" > "$TEST_DIR/caframework-v0.1.0-setup.exe.sig"
 
-echo "test-appimage-binary-67890" > "$TEST_DIR/caterm-v2.1.16.AppImage"
-echo "test-sig-linux-minisign" > "$TEST_DIR/caterm-v2.1.16.AppImage.sig"
+	echo "test-appimage-binary-67890" > "$TEST_DIR/caframework-v0.1.0.AppImage"
+	echo "test-sig-linux-minisign" > "$TEST_DIR/caframework-v0.1.0.AppImage.sig"
 
-echo "test-deb-package" > "$TEST_DIR/caterm_2.1.16_amd64.deb"
-echo "test-rpm-package" > "$TEST_DIR/caterm-2.1.16-1.x86_64.rpm"
-echo "test-apk-package" > "$TEST_DIR/caterm-v2.1.16-arm64-v8a.apk"
+	echo "test-deb-package" > "$TEST_DIR/caframework_0.1.0_amd64.deb"
+	echo "test-rpm-package" > "$TEST_DIR/caframework-0.1.0-1.x86_64.rpm"
+	echo "test-apk-package" > "$TEST_DIR/caframework-v0.1.0-arm64-v8a.apk"
 
-echo "--> Created 5 artifacts + 2 signature files."
+	echo "--> Created 5 artifacts + 2 signature files."
 
-# 2. Run distribute-release.sh in Dry Run mode
-echo "--> Running distribute-release.sh in --dry-run mode..."
+	# 2. Run distribute-release.sh in Dry Run mode
+	echo "--> Running distribute-release.sh in --dry-run mode..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/distribute-release.sh" \
-  --slug caterm \
-  --tag v2.1.16 \
-  --dir "$TEST_DIR" \
-  --channel stable \
-  --notes "Release test notes for v2.1.16" \
-  --dry-run
+	SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+	"$SCRIPT_DIR/distribute-release.sh" \
+	  --slug caframework \
+	  --tag v0.1.0 \
+	  --dir "$TEST_DIR" \
+	  --channel stable \
+	  --notes "Release test notes for v0.1.0" \
+	  --dry-run
 
 echo "--> Verifying SHA256SUMS generated..."
 if [[ -f "$TEST_DIR/SHA256SUMS" ]]; then
@@ -49,12 +49,12 @@ if [[ -f "$TEST_DIR/latest.json" ]]; then
   echo "[PASS] latest.json exists and valid JSON:"
   jq . "$TEST_DIR/latest.json"
   
-  # Validate key fields
-  ver=$(jq -r .version "$TEST_DIR/latest.json")
-  if [[ "$ver" != "2.1.16" ]]; then
-    echo "[FAIL] Expected version 2.1.16, got $ver"
-    exit 1
-  fi
+	  # Validate key fields
+	  ver=$(jq -r .version "$TEST_DIR/latest.json")
+	  if [[ "$ver" != "0.1.0" ]]; then
+	    echo "[FAIL] Expected version 0.1.0, got $ver"
+	    exit 1
+	  fi
   
   win_sig=$(jq -r '.platforms["windows-x86_64"].signature' "$TEST_DIR/latest.json")
   linux_sig=$(jq -r '.platforms["linux-x86_64"].signature' "$TEST_DIR/latest.json")

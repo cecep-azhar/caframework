@@ -1,6 +1,6 @@
 //! Zero-Knowledge Argon2id Vault Manager.
 
-use crate::error::{CatermError, DbError, VaultError};
+use crate::error::{CafError, DbError, VaultError};
 use argon2::{
     Argon2, Params, Version,
     password_hash::rand_core::{OsRng, RngCore},
@@ -22,16 +22,16 @@ const SALT_LEN: usize = 16;
 
 static ACTIVE_VAULT_KEY: LazyLock<RwLock<Option<[u8; 32]>>> = LazyLock::new(|| RwLock::new(None));
 
-fn vault_err(msg: impl Into<String>) -> CatermError {
-    CatermError::Vault(VaultError::Generic(msg.into()))
+fn vault_err(msg: impl Into<String>) -> CafError {
+    CafError::Vault(VaultError::Generic(msg.into()))
 }
 
-pub fn is_unlocked() -> Result<bool, CatermError> {
+pub fn is_unlocked() -> Result<bool, CafError> {
     let guard = ACTIVE_VAULT_KEY.read();
     Ok(guard.is_some())
 }
 
-pub fn ensure_unlocked_key() -> Result<String, CatermError> {
+pub fn ensure_unlocked_key() -> Result<String, CafError> {
     let guard = ACTIVE_VAULT_KEY.read();
     if let Some(key) = *guard {
         Ok(hex::encode(key))
@@ -41,7 +41,7 @@ pub fn ensure_unlocked_key() -> Result<String, CatermError> {
     }
 }
 
-pub fn is_vault_initialized() -> Result<bool, CatermError> {
+pub fn is_vault_initialized() -> Result<bool, CafError> {
     let data_dir = crate::paths::resolve_data_dir()?.path;
     Ok(data_dir.join(CANARY_FILE).exists())
 }
@@ -53,7 +53,7 @@ pub fn lock() {
     }
 }
 
-pub fn reset_vault() -> Result<(), CatermError> {
+pub fn reset_vault() -> Result<(), CafError> {
     let data_dir = crate::paths::resolve_data_dir()?.path;
 
     {
@@ -83,7 +83,7 @@ pub fn reset_vault() -> Result<(), CatermError> {
     Ok(())
 }
 
-fn check_password_len(password: &str) -> Result<(), CatermError> {
+fn check_password_len(password: &str) -> Result<(), CafError> {
     if password.len() < MIN_PASSWORD_LEN {
         return Err(vault_err(format!(
             "Master password minimal {MIN_PASSWORD_LEN} karakter."
@@ -92,7 +92,7 @@ fn check_password_len(password: &str) -> Result<(), CatermError> {
     Ok(())
 }
 
-fn derive_key(master_password: &str, salt: &[u8]) -> Result<[u8; 32], CatermError> {
+fn derive_key(master_password: &str, salt: &[u8]) -> Result<[u8; 32], CafError> {
     check_password_len(master_password)?;
 
     let mut derived_key = [0u8; 32];
@@ -106,7 +106,7 @@ fn derive_key(master_password: &str, salt: &[u8]) -> Result<[u8; 32], CatermErro
     Ok(derived_key)
 }
 
-fn load_or_create_salt(data_dir: &std::path::Path) -> Result<[u8; SALT_LEN], CatermError> {
+fn load_or_create_salt(data_dir: &std::path::Path) -> Result<[u8; SALT_LEN], CafError> {
     let path = data_dir.join(SALT_FILE);
     if let Ok(bytes) = std::fs::read(&path)
         && let Ok(salt) = <[u8; SALT_LEN]>::try_from(bytes.as_slice())
@@ -121,7 +121,7 @@ fn load_or_create_salt(data_dir: &std::path::Path) -> Result<[u8; SALT_LEN], Cat
     Ok(salt)
 }
 
-fn verify_canary(key: &[u8; 32], canary_path: &std::path::Path) -> Result<(), CatermError> {
+fn verify_canary(key: &[u8; 32], canary_path: &std::path::Path) -> Result<(), CafError> {
     let wrong_password = || vault_err("Master password salah. Silakan coba lagi.");
     let encrypted_canary =
         std::fs::read_to_string(canary_path).map_err(|e| vault_err(e.to_string()))?;
@@ -133,7 +133,7 @@ fn verify_canary(key: &[u8; 32], canary_path: &std::path::Path) -> Result<(), Ca
     Ok(())
 }
 
-pub fn validate_password(password: &str) -> Result<bool, CatermError> {
+pub fn validate_password(password: &str) -> Result<bool, CafError> {
     let data_dir = crate::paths::resolve_data_dir()?.path;
     let canary_path = data_dir.join(CANARY_FILE);
 
@@ -169,7 +169,7 @@ pub fn validate_password(password: &str) -> Result<bool, CatermError> {
     }
 }
 
-pub fn change_master_password(old_pass: &str, new_pass: &str) -> Result<(), CatermError> {
+pub fn change_master_password(old_pass: &str, new_pass: &str) -> Result<(), CafError> {
     if old_pass == new_pass {
         return Err(vault_err("Master password baru harus berbeda."));
     }
@@ -189,7 +189,7 @@ pub fn change_master_password(old_pass: &str, new_pass: &str) -> Result<(), Cate
     let conn = crate::db::open()?;
     let hex_new = hex::encode(new_key);
     conn.execute(&format!("PRAGMA rekey = \"x'{hex_new}'\";"), [])
-        .map_err(|e| CatermError::Db(DbError::Generic(e.to_string())))?;
+        .map_err(|e| CafError::Db(DbError::Generic(e.to_string())))?;
 
     let encrypted = crate::secret::encrypt_bytes(&new_key, CANARY_PLAINTEXT)?;
     std::fs::write(&canary_path, encrypted).map_err(|e| vault_err(e.to_string()))?;
@@ -203,7 +203,7 @@ pub fn change_master_password(old_pass: &str, new_pass: &str) -> Result<(), Cate
     Ok(())
 }
 
-pub fn load_or_create_local_key(data_dir: &std::path::Path) -> Result<String, CatermError> {
+pub fn load_or_create_local_key(data_dir: &std::path::Path) -> Result<String, CafError> {
     let path = data_dir.join("vault.key");
     if let Ok(content) = std::fs::read_to_string(&path) {
         let trimmed = content.trim();

@@ -4,7 +4,7 @@
 //!
 //! Plain JSON next to the database in the data directory. Nothing sensitive may go here.
 
-use crate::error::{CatermError, IoError};
+use crate::error::{CafError, IoError};
 use crate::paths::resolve_data_dir;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -40,12 +40,12 @@ impl Default for PerformancePrefs {
 
 /// If anything fails: missing, unreadable or corrupt file falls back to defaults, because a bad
 /// preferences file must not be able to stop the app from opening its window.
-pub fn load_performance_prefs() -> Result<PerformancePrefs, CatermError> {
+pub fn load_performance_prefs() -> Result<PerformancePrefs, CafError> {
     let info = resolve_data_dir()?;
     Ok(load_from(&info.path))
 }
 
-pub fn save_performance_prefs(prefs: &PerformancePrefs) -> Result<(), CatermError> {
+pub fn save_performance_prefs(prefs: &PerformancePrefs) -> Result<(), CafError> {
     save_to(&resolve_data_dir()?.path, prefs)
 }
 
@@ -56,13 +56,13 @@ fn load_from(dir: &Path) -> PerformancePrefs {
         .unwrap_or_default()
 }
 
-fn save_to(dir: &Path, prefs: &PerformancePrefs) -> Result<(), CatermError> {
+fn save_to(dir: &Path, prefs: &PerformancePrefs) -> Result<(), CafError> {
     std::fs::create_dir_all(dir)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("create data dir: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("create data dir: {e}"))))?;
     let json = serde_json::to_vec_pretty(prefs)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("serialize prefs: {e}"))))?;
+        .map_err(|e| CafError::Io(IoError::Generic(format!("serialize prefs: {e}"))))?;
     std::fs::write(dir.join(FILE_NAME), json)
-        .map_err(|e| CatermError::Io(IoError::Generic(format!("write {FILE_NAME}: {e}"))))
+        .map_err(|e| CafError::Io(IoError::Generic(format!("write {FILE_NAME}: {e}"))))
 }
 
 #[cfg(test)]

@@ -4,8 +4,6 @@ Modern, sync-ready, multi-profile application starter framework for Desktop (Lin
 
 Built with **Rust (Edition 2024)**, **Tauri v2**, **SQLCipher (Argon2id)**, **Svelte 5 Runes**, and **Tailwind CSS v4**.
 
-Derived from [CATerm](https://github.com/cecep-azhar/caterm) with all terminal/SSH dependencies removed.
-
 ---
 
 ## ✨ Features

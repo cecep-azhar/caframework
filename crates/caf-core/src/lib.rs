@@ -47,7 +47,7 @@ pub mod session;
 pub mod vault;
 pub mod visibility;
 
-pub use error::{CafError, CatermError};
+pub use error::CafError;
 
 pub const CORE_VERSION: &str = env!("CARGO_PKG_VERSION");
 

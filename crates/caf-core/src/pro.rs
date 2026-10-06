@@ -1,6 +1,6 @@
 //! Generic Pro Licensing & Account client.
 
-use crate::error::CatermError;
+use crate::error::CafError;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,7 +11,7 @@ pub struct ProStatus {
     pub expires_at: Option<String>,
 }
 
-pub fn get_pro_status() -> Result<ProStatus, CatermError> {
+pub fn get_pro_status() -> Result<ProStatus, CafError> {
     Ok(ProStatus {
         is_pro: false,
         plan: "free".to_string(),

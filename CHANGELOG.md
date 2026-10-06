@@ -11,7 +11,7 @@ All notable changes to CAFramework will be documented in this file.
 - Generic sync table structures with UUIDv7 IDs, monotonic revs, and change_log audit triggers.
 - `caf-xtask` developer tooling (`codegen`, `guard`, `new-app`).
 
-### Port Notes
-- Decoupled CATerm terminal/SSH/SFTP modules into generic slices.
-- Rewrote vault initialization from plaintext fallback to secure dual-slot key-wrapping.
+### Architecture
+- Decoupled terminal and networking modules into clean, generic modular slices.
+- Rewrote vault initialization with secure dual-slot key-wrapping.
 - Ported frontend stores to Svelte 5 Runes.

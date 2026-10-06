@@ -1,7 +1,5 @@
 CAFramework
 Copyright (c) 2026 Cecep Saeful Azhar Hidayat, ST
 
-This software contains derivative works and architectural abstractions originating from
-CATerm (https://github.com/cecep-azhar/caterm), created by Cecep Saeful Azhar Hidayat.
-All terminal, SSH, SFTP, and networking protocol client dependencies have been decoupled
-and removed to establish a generic, modular desktop/mobile application framework.
+Modern, sync-ready, multi-profile application starter framework for Desktop and Mobile.
+Licensed under the MIT License.

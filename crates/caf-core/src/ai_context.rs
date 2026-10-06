@@ -1,4 +1,4 @@
-use crate::error::CatermError;
+use crate::error::CafError;
 use crate::visibility::VisibilityScope;
 use async_trait::async_trait;
 
@@ -10,7 +10,7 @@ pub trait ContextProvider: Send + Sync {
     fn name(&self) -> &'static str;
 
     /// Fetches context data, applying the visibility scope rules.
-    async fn get_context(&self, scope: &VisibilityScope) -> Result<String, CatermError>;
+    async fn get_context(&self, scope: &VisibilityScope) -> Result<String, CafError>;
 }
 
 /// Allows registering multiple context providers.

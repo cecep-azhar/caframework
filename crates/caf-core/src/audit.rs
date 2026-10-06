@@ -1,4 +1,4 @@
-use crate::error::{CatermError, DbError};
+use crate::error::{CafError, DbError};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::sync::OnceLock;
@@ -37,7 +37,7 @@ pub fn log_event(
     event_type: &str,
     host_id: Option<&str>,
     details: &str,
-) -> Result<(), CatermError> {
+) -> Result<(), CafError> {
     let conn = crate::db::open()?;
     let id = uuid::Uuid::new_v4().to_string();
     let timestamp = chrono::Utc::now().timestamp_millis();
@@ -47,7 +47,7 @@ pub fn log_event(
         "INSERT INTO command_logs (id, event_type, timestamp, host_id, details) VALUES (?1, ?2, ?3, ?4, ?5)",
         rusqlite::params![id, event_type, timestamp, host_id, masked_details],
     )
-    .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to log event: {e}"))))?;
+    .map_err(|e| CafError::Db(DbError::Generic(format!("Failed to log event: {e}"))))?;
 
     Ok(())
 }
@@ -56,7 +56,7 @@ pub fn get_logs(
     host_id_filter: Option<&str>,
     search: Option<&str>,
     limit: Option<usize>,
-) -> Result<Vec<CommandLog>, CatermError> {
+) -> Result<Vec<CommandLog>, CafError> {
     let conn = crate::db::open()?;
     let mut query =
         "SELECT id, event_type, timestamp, host_id, details FROM command_logs WHERE 1=1"
@@ -81,7 +81,7 @@ pub fn get_logs(
 
     let mut stmt = conn
         .prepare(&query)
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to prepare query: {e}"))))?;
+        .map_err(|e| CafError::Db(DbError::Generic(format!("Failed to prepare query: {e}"))))?;
 
     let logs = stmt
         .query_map(rusqlite::params_from_iter(params.iter()), |row| {
@@ -93,9 +93,9 @@ pub fn get_logs(
                 details: row.get(4)?,
             })
         })
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("Failed to query logs: {e}"))))?
+        .map_err(|e| CafError::Db(DbError::Generic(format!("Failed to query logs: {e}"))))?
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| CatermError::Db(DbError::Generic(format!("Row read error: {e}"))))?;
+        .map_err(|e| CafError::Db(DbError::Generic(format!("Row read error: {e}"))))?;
 
     Ok(logs)
 }

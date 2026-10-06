@@ -1,46 +1,52 @@
-import {
-  cmdGetAiSettings,
-  cmdSaveAiSettings,
-  cmdSetAiApiKey,
-  cmdClearAiApiKey,
-  cmdAiPreviewContext,
-  cmdAiChat,
-  type AiSettings,
-  type AiChatResponse,
-  type ContextPayload,
-  type PrivacyLevel
-} from '$lib/generated/commands';
+import { invoke } from '@tauri-apps/api/core';
 
-export type { AiSettings, AiChatResponse, ContextPayload, PrivacyLevel };
+export interface AiPlanStep {
+  id?: string;
+  step_number: number;
+  title: string;
+  command: string;
+  description: string;
+  is_sudo?: boolean;
+  is_danger?: boolean;
+  action_type?: string;
+  action_name?: string;
+  action_params?: any;
+}
+
+export interface AiSettings {
+  provider: string;
+  base_url: string;
+  api_key: string;
+  model: string;
+}
+
+export interface AiChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+export interface AiChatReply {
+  reply: string;
+  ready: boolean;
+  steps: AiPlanStep[];
+}
 
 export async function getAiSettings(): Promise<AiSettings> {
-  return await cmdGetAiSettings();
+  return invoke<AiSettings>('get_ai_settings');
 }
 
 export async function saveAiSettings(settings: AiSettings): Promise<void> {
-  await cmdSaveAiSettings({ settings });
+  return invoke<void>('save_ai_settings', { settings, input: settings });
 }
 
-export async function setAiApiKey(apiKey: string): Promise<void> {
-  await cmdSetAiApiKey({ apiKey });
-}
-
-export async function clearAiApiKey(): Promise<void> {
-  await cmdClearAiApiKey();
-}
-
-export async function previewAiContext(level: PrivacyLevel): Promise<ContextPayload> {
-  return await cmdAiPreviewContext({ level });
-}
-
-export async function chatWithAi(
-  prompt: string,
-  privacyLevel?: PrivacyLevel | null,
-  consentGiven?: boolean | null
-): Promise<AiChatResponse> {
-  return await cmdAiChat({
-    prompt,
-    privacyLevel: privacyLevel ?? undefined,
-    consentGiven: consentGiven ?? undefined
+export async function aiChat(
+  messages: AiChatMessage[],
+  hostLabel?: string,
+  hosted: boolean = false
+): Promise<AiChatReply> {
+  return invoke<AiChatReply>('ai_chat', {
+    messages,
+    hostLabel,
+    hosted
   });
 }

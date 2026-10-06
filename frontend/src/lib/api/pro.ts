@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 
-// Mirrors caf_core::pro (serialized camelCase). Server contract: GCC internal/caframeworkpro/API.md.
+// Mirrors caterm_core::pro (serialized camelCase). Server contract: GCC internal/catermpro/API.md.
 
 export interface ProAccount {
   id: string;
@@ -132,10 +132,21 @@ export const proRegister = (email: string, password: string, name: string, local
 export const proResendVerification = (email: string) => invoke<void>('pro_resend_verification', { email });
 export const proForgotPassword = (email: string, locale: string) => invoke<void>('pro_forgot_password', { email, locale });
 export const proLogin = (email: string, password: string) => invoke<ProAccount>('pro_login', { email, password });
+export const proCommitPending = () => invoke<boolean>('pro_commit_pending');
+export const proSync = () => invoke<SyncOutcome>('pro_sync');
 export const proStartTrial = () => invoke<SyncOutcome>('pro_start_trial');
 export const proAccount = () => invoke<AccountDetails>('pro_account');
 export const proRevokeDevice = (deviceId: string) => invoke<void>('pro_revoke_device', { deviceId });
 export const proLogout = () => invoke<void>('pro_logout');
+
+export const proTeam = () => invoke<ProTeamView>('pro_team');
+export const proTeamInvite = (email: string, locale: string) => invoke<ProTeamView>('pro_team_invite', { email, locale });
+export const proTeamCancelInvite = (inviteId: string) => invoke<ProTeamView>('pro_team_cancel_invite', { inviteId });
+export const proTeamRemoveMember = (accountId: string) => invoke<ProTeamView>('pro_team_remove_member', { accountId });
+/** Joining or leaving changes this device's entitlement: sync afterwards. */
+export const proTeamAccept = (invitationId: string) => invoke<ProTeamView>('pro_team_accept', { invitationId });
+export const proTeamDecline = (invitationId: string) => invoke<ProTeamView>('pro_team_decline', { invitationId });
+export const proTeamLeave = () => invoke<ProTeamView>('pro_team_leave');
 
 /**
  * The server's stable error code for a failed Pro call (`INVALID_CREDENTIALS`, `NETWORK`, ...),

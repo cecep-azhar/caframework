@@ -34,7 +34,7 @@
     <div class="flex justify-center mb-3">
       <Logo size={48} mode="brand" />
     </div>
-    <h2 id="about-title" class="text-lg font-bold text-neutral-900 dark:text-white">CAFramework</h2>
+    <h2 id="about-title" class="text-lg font-bold text-neutral-900 dark:text-white">CATerm</h2>
     <p class="mt-1 text-xs font-mono text-sky-600 dark:text-sky-400">v{APP_VERSION}</p>
     <p class="mt-3 text-sm text-neutral-500 dark:text-neutral-400">
       {t('about.tagline')}
@@ -48,15 +48,13 @@
       <div class="flex justify-between py-2">
         <dt class="text-neutral-500">{t('about.website')}</dt>
         <dd>
-          {#if WEBSITE_URL}
-            <a href={WEBSITE_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">{WEBSITE_URL}</a>
-          {/if}
+          <a href={WEBSITE_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">caterm.fathforce.com</a>
         </dd>
       </div>
       <div class="flex justify-between py-2">
         <dt class="text-neutral-500">{t('about.source')}</dt>
         <dd>
-          <a href={REPO_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">cecep-azhar/caframework</a>
+          <a href={REPO_URL} target="_blank" rel="noreferrer" class="text-sky-600 dark:text-sky-400 hover:underline font-mono">cecep-azhar/caterm</a>
         </dd>
       </div>
       <div class="flex justify-between py-2">
@@ -90,7 +88,7 @@
           <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
         </svg>
         <span>{t('about.fromIndonesia')}</span>
-        <span class="inline-flex items-center justify-center overflow-hidden rounded-sm border border-neutral-300 dark:border-neutral-700 w-4 h-2.5 shrink-0" title={t('about.indonesia') || 'Indonesia'}>
+        <span class="inline-flex items-center justify-center overflow-hidden rounded-sm border border-neutral-300 dark:border-neutral-700 w-4 h-2.5 shrink-0" title="Indonesia">
           <svg viewBox="0 0 3 2" class="w-full h-full">
             <rect width="3" height="1" fill="#e70011"/>
             <rect y="1" width="3" height="1" fill="#ffffff"/>

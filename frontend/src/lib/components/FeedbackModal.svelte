@@ -4,7 +4,7 @@
   import { showToast } from '$lib/stores/uiNotifications.svelte';
   import { errorText } from '$lib/errors';
 
-  const STORAGE_KEY_PREFIX = 'caframework_feedback_state';
+  const STORAGE_KEY_PREFIX = 'caterm_feedback_state';
   const APP_VERSION = 'v2';
 
   let {
