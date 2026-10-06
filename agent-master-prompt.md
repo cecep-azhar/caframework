@@ -1,7 +1,7 @@
 # MASTER PROMPT — CAFramework v2 Feature Completion (1 Orkestrator + 10 Sub-Agent)
 
 > Tempel seluruh isi file ini sebagai prompt awal ke AI agent orchestrator kamu (mis. Claude Code multi-agent / Devin / Cline Team).
-> Prompt ini SENGAJA ditulis berdasarkan kondisi nyata repo `D:\Project\caframework` per 2026-09-21 (bukan asumsi generik), supaya agent tidak menebak-nebak atau membangun ulang yang sudah ada.
+> Prompt ini SENGAJA ditulis berdasarkan kondisi nyata repo `D:\Project\caframework` per 2026-09-21 (bukan asumsi generik), supaya agent tidak menebak-nebak atau membangun ulang yang sudah ada..
 
 ---
 
