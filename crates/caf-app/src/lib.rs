@@ -63,6 +63,31 @@ pub fn run_with_start(start: std::time::Instant) {
 
             #[cfg(target_os = "linux")]
             {
+                // Fix for non-Debian distros (Fedora/Arch/RHEL): tauri-plugin-updater hardcodes
+                // /etc/ssl/certs/ca-certificates.crt which doesn't exist on Fedora. Sanitize it
+                // so child processes don't inherit a poisoned SSL_CERT_FILE.
+                if let Ok(cert) = std::env::var("SSL_CERT_FILE") {
+                    if !std::path::Path::new(&cert).exists() {
+                        let valid_ca = [
+                            "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+                            "/etc/pki/tls/cert.pem",
+                            "/etc/ssl/ca-bundle.pem",
+                            "/etc/ssl/cert.pem",
+                        ]
+                        .into_iter()
+                        .find(|p| std::path::Path::new(p).exists());
+
+                        if let Some(valid) = valid_ca {
+                            unsafe { std::env::set_var("SSL_CERT_FILE", valid); }
+                        } else {
+                            unsafe { std::env::remove_var("SSL_CERT_FILE"); }
+                        }
+                    }
+                }
+            }
+
+            #[cfg(target_os = "linux")]
+            {
                 use tauri::Manager;
                 if let Some(window) = app.get_webview_window("main") {
                     window

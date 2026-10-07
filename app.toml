@@ -48,4 +48,4 @@ currencies = ["IDR", "USD"]
 
 [[billing.public_keys]]
 kid = "gcc-2026-10"
-ed25519 = "O8+tQ5qQ/pQpP9P9p9p9P9P9p9P9P9P9p9P9P9P9P9M="
+ed25519 = "Su0nese5LuWHeNPFIz69p0HGUsdT49rnEn82fbtY2S8="

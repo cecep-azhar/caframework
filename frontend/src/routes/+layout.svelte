@@ -299,10 +299,10 @@
             {@render children()}
           </div>
 
-          <!-- Docking AI Panel -->
-          <div class={['contents', !aiChat.open && 'hidden'].filter(Boolean).join(' ')}>
+          <!-- Floating AI Panel Overlay (Non-destructive) -->
+          {#if aiChat.open}
             <AiChatPanel onClose={closeAiChat} />
-          </div>
+          {/if}
         </main>
       </div>
     </div>

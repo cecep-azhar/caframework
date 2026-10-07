@@ -6,6 +6,7 @@ let openedManually = false;
 export function isFeedbackDismissedOrSubmitted(): boolean {
   if (typeof localStorage === 'undefined') return true;
   return (
+    localStorage.getItem(`${STORAGE_PREFIX}_shown`) === 'true' ||
     localStorage.getItem(`${STORAGE_PREFIX}_dismissed`) === 'true' ||
     localStorage.getItem(`${STORAGE_PREFIX}_submitted`) === 'true'
   );
@@ -19,8 +20,9 @@ export function recordSessionClosed() {
   const nextCount = currentCount + 1;
   localStorage.setItem(`${STORAGE_PREFIX}_closed_count`, nextCount.toString());
 
-  if (nextCount === 3) {
+  if (nextCount >= 3) {
     showPrompt = true;
+    localStorage.setItem(`${STORAGE_PREFIX}_shown`, 'true');
   }
 }
 
@@ -36,8 +38,9 @@ export function getFeedbackPromptState() {
     },
     close() {
       showPrompt = false;
-      // Closing a form the user asked for is not a "never ask me" for the automatic prompt.
-      if (!openedManually && typeof localStorage !== 'undefined') {
+      // Mark as permanently dismissed/shown on close so it never auto-pops up again
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(`${STORAGE_PREFIX}_shown`, 'true');
         localStorage.setItem(`${STORAGE_PREFIX}_dismissed`, 'true');
       }
       openedManually = false;
