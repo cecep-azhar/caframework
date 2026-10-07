@@ -7,9 +7,11 @@ frontend/src/lib/components/FeedbackWidget.svelte:157
 frontend/src/lib/components/FeedbackWidget.svelte:202
 frontend/src/lib/components/FeedbackWidget.svelte:216
 frontend/src/lib/components/FeedbackWidget.svelte:232
-frontend/src/lib/components/LockScreen.svelte:502
-frontend/src/lib/components/LockScreen.svelte:516
-frontend/src/lib/components/LockScreen.svelte:530
+frontend/src/lib/components/LockScreen.svelte:492
+frontend/src/lib/components/LockScreen.svelte:506
+frontend/src/lib/components/LockScreen.svelte:520
+frontend/src/lib/components/AmbientSettingsCard.svelte:284
+frontend/src/lib/components/AmbientSettingsCard.svelte:382
 frontend/src/lib/components/CommandPalette.svelte:93
 frontend/src/lib/components/AvatarPicker.svelte:98
 frontend/src/lib/components/HeaderQuickControls.svelte:54

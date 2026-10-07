@@ -12,8 +12,8 @@ export const APP_CONFIG = {
     title: "CAFramework",
     width: 1200,
     height: 800,
-    minWidth: 800,
-    minHeight: 600
+    minWidth: 360,
+    minHeight: 500
   },
   security: {
     masterPasswordRequired: true,

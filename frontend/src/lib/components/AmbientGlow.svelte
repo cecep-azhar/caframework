@@ -40,13 +40,13 @@
 
 {#if ambient.config.enabled && ambient.config.cardGlowEnabled && pro.isPro}
   <div
-    class="pointer-events-none absolute -inset-[2px] md:rounded-tl-xl z-0 overflow-visible transition-opacity duration-300 will-change-[filter,opacity]"
+    class="pointer-events-none absolute -inset-[2px] rounded-2xl md:rounded-none md:rounded-tl-xl z-0 overflow-visible transition-opacity duration-300 will-change-[filter,opacity]"
     style:opacity={ambient.config.intensity}
     aria-hidden="true"
   >
     {#if ambient.config.cardGlowStyle === 'chroma-beam'}
       <!-- Chroma Border Beam: Dynamic rotating conic laser sweep around the rounded corner -->
-      <div class="relative w-full h-full md:rounded-tl-xl overflow-hidden p-[1.5px]">
+      <div class="relative w-full h-full rounded-2xl md:rounded-none md:rounded-tl-xl overflow-hidden p-[1.5px]">
         <div
           class="absolute -inset-[100%] card-glow-spin"
           style:animation-duration={animationDuration}
@@ -55,19 +55,19 @@
             : `conic-gradient(from 0deg, transparent 0deg, transparent 240deg, ${activeColor}88 300deg, ${activeColor} 360deg)`}
         ></div>
         <!-- Inner mask to let the border beam glow outward while matching the main card corner -->
-        <div class="w-full h-full md:rounded-tl-xl bg-transparent"></div>
+        <div class="w-full h-full rounded-2xl md:rounded-none md:rounded-tl-xl bg-transparent"></div>
       </div>
     {:else if isGradientMode}
       <!-- Gradient Underglow Canvas for RGB Chroma / Aurora -->
       <div
-        class="w-full h-full md:rounded-tl-xl will-change-[filter,transform] {ambient.config.mode === 'rgb-cycle' ? 'ambient-rgb-cycle' : 'ambient-aurora-wave'} {ambient.config.effect === 'breathing' ? 'ambient-breathe' : ''}"
+        class="w-full h-full rounded-2xl md:rounded-none md:rounded-tl-xl will-change-[filter,transform] {ambient.config.mode === 'rgb-cycle' ? 'ambient-rgb-cycle' : 'ambient-aurora-wave'} {ambient.config.effect === 'breathing' ? 'ambient-breathe' : ''}"
         style:filter="blur({ambient.config.cardGlowStyle === 'neon-border' ? Math.round(ambient.config.blurRadius * 0.35) : ambient.config.blurRadius}px)"
         style:animation-duration={animationDuration}
       ></div>
     {:else}
       <!-- Solid / App Accent Underglow Glow (Diffused Halo or Neon Border) -->
       <div
-        class="w-full h-full md:rounded-tl-xl will-change-[filter,opacity] {ambient.config.effect === 'breathing' ? 'ambient-breathe' : ''} {ambient.config.effect === 'wave' ? 'ambient-pulse-slow' : ''}"
+        class="w-full h-full rounded-2xl md:rounded-none md:rounded-tl-xl will-change-[filter,opacity] {ambient.config.effect === 'breathing' ? 'ambient-breathe' : ''} {ambient.config.effect === 'wave' ? 'ambient-pulse-slow' : ''}"
         style:box-shadow={glowBoxShadow}
         style:animation-duration={animationDuration}
       ></div>

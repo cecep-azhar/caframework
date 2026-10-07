@@ -190,16 +190,6 @@
     currentQuote = QUOTES[Math.floor(Math.random() * QUOTES.length)];
     checkStoredLockout();
     try {
-      if (appWindow) {
-        const isMax = await appWindow.isMaximized();
-        if (!isMax) {
-          await appWindow.maximize();
-        }
-      }
-    } catch (e) {
-      console.warn('Failed to maximize on mount:', e);
-    }
-    try {
       isSetup = !(await isVaultInitialized());
     } catch {
       isSetup = true; // Fallback to setup if cannot determine

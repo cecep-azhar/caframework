@@ -12,8 +12,8 @@ brand = "CAFramework"
 title = "CAFramework"
 width = 1200
 height = 800
-min_width = 800
-min_height = 600
+min_width = 360
+min_height = 500
 
 [security]
 master_password_required = true

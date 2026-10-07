@@ -26,12 +26,15 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import { getPalette } from '$lib/stores/commandPalette.svelte';
   import AmbientGlow from '$lib/components/AmbientGlow.svelte';
+  import BottomNav from '$lib/components/BottomNav.svelte';
+  import AllMenusSheet from '$lib/components/AllMenusSheet.svelte';
   import { getAmbientStore } from '$lib/stores/ambient.svelte';
   import { getPro } from '$lib/stores/pro.svelte';
 
   let isCollapsed = $state(false);
   let isVaultUnlocked = $state(false);
   let mobileDrawerOpen = $state(false);
+  let allMenusSheetOpen = $state(false);
   let pendingCrashReport = $state<ScrubbedCrashReport | null>(null);
 
   const theme = getTheme();
@@ -44,19 +47,19 @@
 
   const cardBorderClass = $derived.by(() => {
     if (!ambient.config.enabled || !ambient.config.cardGlowEnabled || !pro.isPro) {
-      return 'border-t border-neutral-200 dark:border-neutral-800 md:border-l';
+      return 'border border-neutral-200 dark:border-neutral-800 md:border-b-0 md:border-r-0';
     }
 
     if (ambient.config.cardGlowStyle === 'neon-border') {
-      return 'border-t border-sky-400 dark:border-sky-400 md:border-l shadow-[inset_0_0_8px_rgba(56,189,248,0.15)]';
+      return 'border border-sky-400 dark:border-sky-400 md:border-b-0 md:border-r-0 shadow-[inset_0_0_8px_rgba(56,189,248,0.15)]';
     }
 
     if (ambient.config.cardGlowStyle === 'chroma-beam') {
-      return 'border-t border-sky-400/50 dark:border-sky-400/40 md:border-l';
+      return 'border border-sky-400/50 dark:border-sky-400/40 md:border-b-0 md:border-r-0';
     }
 
     // diffused-halo
-    return 'border-t border-sky-400/30 dark:border-sky-400/25 md:border-l';
+    return 'border border-sky-400/30 dark:border-sky-400/25 md:border-b-0 md:border-r-0';
   });
 
   const navItems = $derived(getNavItems());
@@ -122,6 +125,7 @@
   onkeydown={(e) => {
     if (e.key === 'Escape') {
       mobileDrawerOpen = false;
+      allMenusSheetOpen = false;
       closeAiChat();
     }
   }}
@@ -291,10 +295,10 @@
       </aside>
 
       <!-- Raised Main Content Panel with Outer Ambient Halo Underglow -->
-      <div class="flex-1 min-w-0 flex relative overflow-visible">
+      <div class="flex-1 min-w-0 flex relative overflow-visible p-2 md:p-0">
         <AmbientGlow defaultAccent="#64748b" />
         
-        <main class="flex-1 min-w-0 flex overflow-hidden relative z-10 bg-white dark:bg-[#161616] {cardBorderClass} md:rounded-tl-xl transition-colors duration-150">
+        <main class="flex-1 min-w-0 flex overflow-hidden relative z-10 bg-white dark:bg-[#161616] {cardBorderClass} rounded-2xl md:rounded-none md:rounded-tl-xl transition-colors duration-150">
           <div class="flex-1 min-w-0 overflow-auto text-neutral-900 dark:text-neutral-100 relative px-4 py-6 md:px-10 md:py-10 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:56px_56px]">
             {@render children()}
           </div>
@@ -312,7 +316,7 @@
       <button
         type="button"
         onclick={() => handleAiToggle()}
-        class="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-100 border border-neutral-700/80 shadow-2xl shadow-black/60 hover:scale-105 active:scale-95 transition-all text-xs font-semibold cursor-pointer group"
+        class="fixed bottom-20 right-4 md:bottom-5 md:right-5 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-100 border border-neutral-700/80 shadow-2xl shadow-black/60 hover:scale-105 active:scale-95 transition-all text-xs font-semibold cursor-pointer group"
         title={"Hana AI (CAFramework Assistant)"}
         aria-label={"Open Hana AI"}
       >
@@ -323,6 +327,10 @@
         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
       </button>
     {/if}
+
+    <!-- Mobile Bottom Navigation Bar & All Menus Grid Sheet -->
+    <BottomNav onOpenAll={() => (allMenusSheetOpen = true)} />
+    <AllMenusSheet bind:open={allMenusSheetOpen} onClose={() => (allMenusSheetOpen = false)} />
 
     {#if pendingCrashReport}
       <CrashReportModal
