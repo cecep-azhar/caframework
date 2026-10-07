@@ -135,8 +135,8 @@
           type="button"
           onclick={() => (mobileDrawerOpen = true)}
           class="md:hidden p-1 rounded text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-neutral-800 transition-colors shrink-0"
-          title="Buka Navigasi"
-          aria-label="Buka Navigasi"
+          title={"Buka Navigasi"}
+          aria-label={"Buka Navigasi"}
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -159,7 +159,7 @@
       <!-- Right: Unified Header Controls (Live dot, Workspace, Quick Controls, Notifications, Window Controls) -->
       <div class="flex items-center gap-1.5 text-neutral-500 dark:text-neutral-400 shrink-0" data-tauri-drag-region>
         <!-- 1. Live Pulse Dot Indicator -->
-        <div class="hidden sm:flex items-center px-1 py-1 shrink-0" title="Zero-Knowledge Encrypted Vault Active">
+        <div class="hidden sm:flex items-center px-1 py-1 shrink-0" title={"Zero-Knowledge Encrypted Vault Active"}>
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
         </div>
 
@@ -183,8 +183,8 @@
           type="button"
           onclick={() => showToast('Tidak ada notifikasi baru', 'info')}
           class="p-1.5 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200/70 dark:hover:bg-neutral-800 rounded-md transition-colors relative"
-          title="Notifikasi"
-          aria-label="Notifikasi"
+          title={"Notifikasi"}
+          aria-label={"Notifikasi"}
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -204,7 +204,7 @@
       <!-- Desktop Sidebar (Seamlessly shares the background, 0px vertical jump) -->
       <aside
         class="hidden md:flex flex-col shrink-0 will-change-[width] {isCollapsed ? 'w-16' : 'w-60'}"
-        aria-label="Sidebar Navigasi"
+        aria-label={"Sidebar Navigasi"}
       >
         <!-- Brand + collapse header (Fixed h-14 container height) -->
         <div class="h-14 flex items-center shrink-0 {isCollapsed ? 'justify-center px-2' : 'justify-between pl-4 pr-3'}">
@@ -212,8 +212,8 @@
             <button
               type="button"
               onclick={toggleSidebar}
-              title="Perluas Sidebar"
-              aria-label="Perluas Sidebar"
+              title={"Perluas Sidebar"}
+              aria-label={"Perluas Sidebar"}
               class="p-1.5 rounded-lg hover:bg-neutral-200/70 dark:hover:bg-neutral-800 transition-colors"
             >
               <Logo size={22} mode="brand" />
@@ -227,8 +227,8 @@
             <button
               type="button"
               onclick={toggleSidebar}
-              title="Ciutkan Sidebar"
-              aria-label="Ciutkan Sidebar"
+              title={"Ciutkan Sidebar"}
+              aria-label={"Ciutkan Sidebar"}
               class="p-1 rounded-md hover:bg-neutral-200/70 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors shrink-0"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -292,8 +292,8 @@
         type="button"
         onclick={() => handleAiToggle()}
         class="fixed bottom-5 right-5 z-40 flex items-center gap-2 px-3.5 py-2 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-neutral-100 border border-neutral-700/80 shadow-2xl shadow-black/60 hover:scale-105 active:scale-95 transition-all text-xs font-semibold cursor-pointer group"
-        title="Hana AI (CAFramework Assistant)"
-        aria-label="Open Hana AI"
+        title={"Hana AI (CAFramework Assistant)"}
+        aria-label={"Open Hana AI"}
       >
         <svg class="w-4 h-4 text-rose-500 group-hover:rotate-12 transition-transform shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />

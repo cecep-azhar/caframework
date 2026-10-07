@@ -39,6 +39,7 @@
 
 <script lang="ts">
   import { initialsOf } from '$lib/stores/profile.svelte';
+  import { getAmbientStore } from '$lib/stores/ambient.svelte';
 
   let {
     avatar,
@@ -49,24 +50,43 @@
   }: { avatar: string; name?: string; size?: number; pro?: boolean; class?: string } = $props();
 
   const preset = $derived(AVATARS.find((a) => a.id === avatar));
+  const ambient = getAmbientStore();
+
+  const isHaloActive = $derived(pro && ambient.config.avatarGlowEnabled);
+  const haloEffect = $derived(ambient.config.avatarGlowEffect || 'comet-beam');
+  const speed = $derived(ambient.config.speedSec || 4);
+  const intensity = $derived(ambient.config.intensity ?? 0.65);
+  const activeColor = $derived.by(() => {
+    if (ambient.config.mode === 'solid') return ambient.config.customColor || '#ef4444';
+    if (ambient.config.mode === 'app-accent') return ambient.config.customColor || '#38bdf8';
+    return '#38bdf8';
+  });
 </script>
 
-<span class="relative inline-flex items-center justify-center shrink-0" style="width: {size}px; height: {size}px;">
-  {#if pro}
-    <!-- Glowing Aurora Rotating Halo -->
-    <span class="pro-glow-ring" aria-hidden="true"></span>
-    <!-- Pulsing Cyan/Violet Edge Ring -->
-    <span class="pro-pulse-aura" aria-hidden="true"></span>
-    <!-- Meteor Orbit Trails -->
-    <span
-      class="meteor-orbit"
-      style="--meteor-stroke: {Math.max(2, Math.round(size * 0.06))}px;"
-      aria-hidden="true"
-    >
-      <span class="meteor-arc meteor-arc--1"></span>
-      <span class="meteor-arc meteor-arc--2"></span>
-      <span class="meteor-arc meteor-arc--3"></span>
-    </span>
+<span
+  class="relative inline-flex items-center justify-center shrink-0"
+  style="width: {size}px; height: {size}px; --halo-speed: {speed}s; --halo-opacity: {intensity}; --halo-color: {activeColor};"
+>
+  {#if isHaloActive}
+    {#if haloEffect === 'comet-beam'}
+      <!-- Effect 1: Conic Comet Beam (120° laser sweep) -->
+      <span class="avatar-halo-layer comet-beam-halo" aria-hidden="true">
+        <span class="comet-sweep" style="--meteor-stroke: {Math.max(2, Math.round(size * 0.08))}px;"></span>
+        <span class="comet-core-glow"></span>
+      </span>
+    {:else if haloEffect === 'dual-photons'}
+      <!-- Effect 2: Dual Photons (2 satelit berkejaran 180°) -->
+      <span class="avatar-halo-layer dual-photons-halo" aria-hidden="true">
+        <span class="photon-ring" style="--meteor-stroke: {Math.max(2, Math.round(size * 0.08))}px;"></span>
+        <span class="dual-core-pulse"></span>
+      </span>
+    {:else if haloEffect === 'chroma-ring'}
+      <!-- Effect 3: Reactive Chroma Ring (Aura reaktif mengikuti mode ambient) -->
+      <span class="avatar-halo-layer chroma-ring-halo" aria-hidden="true">
+        <span class="chroma-spin {ambient.config.mode}"></span>
+        <span class="chroma-blur {ambient.config.mode}"></span>
+      </span>
+    {/if}
   {/if}
   <span
     class="relative z-10 inline-flex items-center justify-center rounded-full shrink-0 overflow-hidden select-none {className}"
@@ -195,47 +215,28 @@
 </span>
 
 <style>
-  /* Radiant Glowing Aura */
-  .pro-glow-ring {
-    position: absolute;
-    inset: -3px;
-    border-radius: 9999px;
-    background: conic-gradient(from 0deg, #38bdf8, #818cf8, #c084fc, #f472b6, #fb923c, #38bdf8);
-    filter: blur(3.5px);
-    opacity: 0.85;
-    animation: pro-spin-glow 3.5s linear infinite;
-    z-index: 0;
-  }
-  .pro-pulse-aura {
-    position: absolute;
-    inset: -2px;
-    border-radius: 9999px;
-    border: 1.5px solid rgba(56, 189, 248, 0.9);
-    box-shadow: 0 0 8px rgba(56, 189, 248, 0.8), inset 0 0 5px rgba(192, 132, 252, 0.6);
-    animation: pro-pulse-ring 2.2s ease-in-out infinite alternate;
-    z-index: 1;
-  }
-  @keyframes pro-spin-glow {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  @keyframes pro-pulse-ring {
-    0% { transform: scale(0.98); opacity: 0.7; }
-    100% { transform: scale(1.06); opacity: 1; }
-  }
-
-  .meteor-orbit {
+  .avatar-halo-layer {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
+    will-change: transform;
+    transform: translateZ(0);
   }
-  /* Each arc is a conic-gradient comet trail, clipped to a thin ring band so the
-     head + fading tail are drawn curving along the circle itself, not a straight line. */
-  .meteor-arc {
+
+  /* 1. Conic Comet Beam (120 deg laser sweep) */
+  .comet-beam-halo .comet-sweep {
     position: absolute;
-    inset: -12%;
+    inset: -14%;
     border-radius: 9999px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 240deg,
+      rgba(56, 189, 248, 0.2) 280deg,
+      var(--halo-color, #38bdf8) 350deg,
+      #ffffff 360deg
+    );
     -webkit-mask: radial-gradient(
       closest-side,
       transparent calc(100% - var(--meteor-stroke, 3px) - 1px),
@@ -250,50 +251,116 @@
       #000 100%,
       transparent 100%
     );
+    animation: halo-spin var(--halo-speed, 3.5s) linear infinite;
+    opacity: var(--halo-opacity, 0.85);
+    filter: drop-shadow(0 0 6px var(--halo-color, #38bdf8));
   }
-  .meteor-arc--1 {
+  .comet-beam-halo .comet-core-glow {
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    border: 1px solid var(--halo-color, rgba(56, 189, 248, 0.4));
+    box-shadow: 0 0 10px var(--halo-color, rgba(56, 189, 248, 0.5));
+    opacity: calc(var(--halo-opacity, 0.85) * 0.7);
+    animation: halo-pulse 2.2s ease-in-out infinite alternate;
+  }
+
+  /* 2. Dual Photons (2 satelit 180 deg) */
+  .dual-photons-halo .photon-ring {
+    position: absolute;
+    inset: -14%;
+    border-radius: 9999px;
     background: conic-gradient(
       from 0deg,
       transparent 0deg,
-      transparent 322deg,
-      rgba(56, 189, 248, 0) 330deg,
-      rgba(125, 211, 252, 0.9) 350deg,
-      #f0f9ff 358deg,
-      transparent 360deg
+      transparent 120deg,
+      rgba(56, 189, 248, 0.3) 150deg,
+      #38bdf8 178deg,
+      #ffffff 180deg,
+      transparent 181deg,
+      transparent 300deg,
+      rgba(192, 132, 252, 0.3) 330deg,
+      #c084fc 358deg,
+      #ffffff 360deg
     );
-    animation: meteor-orbit-spin 2.4s linear infinite;
-  }
-  .meteor-arc--2 {
-    background: conic-gradient(
-      from 130deg,
-      transparent 0deg,
-      transparent 326deg,
-      rgba(56, 189, 248, 0) 333deg,
-      rgba(125, 211, 252, 0.85) 350deg,
-      #e0f2fe 358deg,
-      transparent 360deg
+    -webkit-mask: radial-gradient(
+      closest-side,
+      transparent calc(100% - var(--meteor-stroke, 3px) - 1px),
+      #000 calc(100% - var(--meteor-stroke, 3px)),
+      #000 100%,
+      transparent 100%
     );
-    animation: meteor-orbit-spin 4.1s linear infinite;
-  }
-  .meteor-arc--3 {
-    background: conic-gradient(
-      from 250deg,
-      transparent 0deg,
-      transparent 330deg,
-      rgba(56, 189, 248, 0) 336deg,
-      rgba(125, 211, 252, 0.8) 350deg,
-      #dbeafe 358deg,
-      transparent 360deg
+    mask: radial-gradient(
+      closest-side,
+      transparent calc(100% - var(--meteor-stroke, 3px) - 1px),
+      #000 calc(100% - var(--meteor-stroke, 3px)),
+      #000 100%,
+      transparent 100%
     );
-    animation: meteor-orbit-spin 6.3s linear infinite;
+    animation: halo-spin calc(var(--halo-speed, 3.5s) * 0.8) linear infinite;
+    opacity: var(--halo-opacity, 0.85);
+    filter: drop-shadow(0 0 7px #38bdf8) drop-shadow(0 0 7px #c084fc);
   }
-  @keyframes meteor-orbit-spin {
-    to {
-      transform: rotate(360deg);
-    }
+  .dual-photons-halo .dual-core-pulse {
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    border: 1.5px solid rgba(192, 132, 252, 0.4);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6), inset 0 0 6px rgba(192, 132, 252, 0.5);
+    opacity: calc(var(--halo-opacity, 0.85) * 0.75);
+    animation: halo-pulse 1.8s ease-in-out infinite alternate;
   }
+
+  /* 3. Reactive Chroma Ring (RGB & ambient reactive) */
+  .chroma-ring-halo .chroma-spin {
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    animation: halo-spin var(--halo-speed, 4s) linear infinite;
+    opacity: var(--halo-opacity, 0.85);
+  }
+  .chroma-ring-halo .chroma-spin.rgb-cycle {
+    background: conic-gradient(from 0deg, #ff0055, #ff9900, #33cc33, #0099ff, #cc00ff, #ff0055);
+  }
+  .chroma-ring-halo .chroma-spin.aurora {
+    background: conic-gradient(from 0deg, #ef4444, #f97316, #8b5cf6, #ec4899, #ef4444);
+  }
+  .chroma-ring-halo .chroma-spin.solid,
+  .chroma-ring-halo .chroma-spin.app-accent {
+    background: conic-gradient(from 0deg, transparent 0deg, var(--halo-color, #ef4444) 180deg, transparent 360deg);
+  }
+
+  .chroma-ring-halo .chroma-blur {
+    position: absolute;
+    inset: -4px;
+    border-radius: 9999px;
+    filter: blur(4px);
+    opacity: calc(var(--halo-opacity, 0.85) * 0.8);
+    animation: halo-pulse 2.5s ease-in-out infinite alternate;
+  }
+  .chroma-ring-halo .chroma-blur.rgb-cycle {
+    background: conic-gradient(from 0deg, #ff0055, #33cc33, #0099ff, #ff0055);
+  }
+  .chroma-ring-halo .chroma-blur.aurora {
+    background: conic-gradient(from 0deg, #ef4444, #8b5cf6, #ec4899, #ef4444);
+  }
+  .chroma-ring-halo .chroma-blur.solid,
+  .chroma-ring-halo .chroma-blur.app-accent {
+    background: radial-gradient(circle, var(--halo-color, #ef4444) 0%, transparent 70%);
+  }
+
+  @keyframes halo-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  @keyframes halo-pulse {
+    0% { transform: scale(0.97); opacity: calc(var(--halo-opacity, 0.85) * 0.5); }
+    100% { transform: scale(1.05); opacity: var(--halo-opacity, 0.85); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .pro-glow-ring, .pro-pulse-aura, .meteor-arc {
+    .comet-sweep, .comet-core-glow, .photon-ring, .dual-core-pulse, .chroma-spin, .chroma-blur {
       animation: none;
     }
   }

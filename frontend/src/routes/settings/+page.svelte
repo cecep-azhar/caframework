@@ -448,7 +448,7 @@
             type="text"
             maxlength="48"
             bind:value={profileName}
-            placeholder="CATerm User"
+            placeholder={"User"}
             class={INPUT} />
         </div>
         <div>

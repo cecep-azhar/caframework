@@ -36,7 +36,7 @@ export async function getAiSettings(): Promise<AiSettings> {
 }
 
 export async function saveAiSettings(settings: AiSettings): Promise<void> {
-  return invoke<void>('save_ai_settings', { settings, input: settings });
+  return invoke<void>('save_ai_settings', { settings });
 }
 
 export async function aiChat(

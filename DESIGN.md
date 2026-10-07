@@ -2,7 +2,7 @@
 
 > **Document Version:** 1.0.0 (Official Standard)  
 > **Author & Architect:** Cecep Saeful Azhar Hidayat, ST (Prof. Cecep)  
-> **Target Framework:** CAFramework (`/home/cecepazhar/Product/caframework`)  
+> **Target Framework:** CAFramework (`caframework`)  
 > **Applicable Products:** CATerm, CAMark, CATable, CAGames, CABook, CAPost, CAIgent, CAProduct, CAEntech, CAVision, GCC
 
 ---

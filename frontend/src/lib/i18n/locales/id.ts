@@ -59,9 +59,10 @@ const id: Dictionary = {
   nav: {
     notes: 'Catatan',
     workspace: 'Workspace',
-    vault: 'Brankas Terenkripsi',
+    vault: 'Vault Terenkripsi',
     ai_copilot: 'AI Copilot',
-    settings: 'Pengaturan'
+    settings: 'Pengaturan',
+    contribution: 'Dukungan & Kontribusi'
   },
   notes: {
     title: 'Catatan & Brankas',
@@ -79,7 +80,15 @@ const id: Dictionary = {
     tagsPlaceholder: 'Tag (pisahkan dengan koma)...',
     saveNote: 'Simpan Catatan',
     saved: 'Catatan berhasil disimpan',
+    saveSuccess: 'Catatan berhasil disimpan',
     deleted: 'Catatan berhasil dihapus',
+    deleteSuccess: 'Catatan berhasil dihapus',
+    noteTitle: 'Judul Catatan',
+    noteContent: 'Isi Catatan',
+    visibility: 'Visibilitas',
+    visibilityShared: 'Bersama (Workspace)',
+    visibilitySummary: 'Ringkasan Privat',
+    visibilityPrivate: 'Privat (Hanya Saya)',
     emptyTitle: 'Belum ada catatan'
   },
   language: {
@@ -563,6 +572,7 @@ const id: Dictionary = {
     tooManyAttemptsTitle: 'Terlalu banyak percobaan gagal',
     tooManyAttemptsBody: 'Akun Anda telah dikunci sementara demi alasan keamanan.',
     attemptsRemaining: 'Sisa {{count}} percobaan sebelum dikunci sementara',
+    attemptsRemaining_plural: 'Sisa {{count}} percobaan sebelum dikunci sementara',
     lockedCountdown: 'Silakan tunggu {{time}} sebelum mencoba lagi.',
     created: 'Vault berhasil dibuat dan dienkripsi.',
     unlocked: 'Vault berhasil dibuka.',
@@ -579,6 +589,18 @@ const id: Dictionary = {
       dijkstra: 'Kesederhanaan adalah prasyarat keandalan.',
       beck: 'Buat berjalan, buat benar, buat cepat.',
     }
+  },
+  dualSplit: {
+    single: 'Tunggal',
+    twoColumns: '2 Kolom',
+    twoRows: '2 Baris',
+    grid: 'Kotak 2x2',
+    viewSuffix: 'Tampilan',
+    splitRight: 'Bagi ke Kanan',
+    splitDown: 'Bagi ke Bawah',
+    closePane: 'Tutup Panel',
+    closeGroup: 'Tutup Grup',
+    addGroup: 'Tambah Grup'
   },
   workspaces: {
     title: 'Workspace',
@@ -1186,6 +1208,10 @@ const id: Dictionary = {
   },
   shell: {
     workspace: 'Ruang Kerja',
+    preferencesTitle: 'Preferensi & Opsi Tampilan',
+    splitLayout: 'Tata Letak Panel',
+    panels: 'Panel Cepat',
+    language: 'Bahasa',
     splitSingle: 'Tampilan Tunggal (1 panel)',
     splitHorizontal: 'Bagi Horizontal (Atas / Bawah)',
     splitVertical: 'Bagi Vertikal (Berdampingan)',

@@ -60,7 +60,8 @@ const en = {
     workspace: 'Workspace',
     vault: 'Encrypted Vault',
     ai_copilot: 'AI Copilot',
-    settings: 'Settings'
+    settings: 'Settings',
+    contribution: 'Support & Contribution'
   },
   notes: {
     title: 'Notes & Vault',
@@ -78,7 +79,15 @@ const en = {
     tagsPlaceholder: 'Tags (comma-separated)...',
     saveNote: 'Save Note',
     saved: 'Note saved successfully',
+    saveSuccess: 'Note saved successfully',
     deleted: 'Note deleted successfully',
+    deleteSuccess: 'Note deleted successfully',
+    noteTitle: 'Note Title',
+    noteContent: 'Note Content',
+    visibility: 'Visibility',
+    visibilityShared: 'Shared (Workspace)',
+    visibilitySummary: 'Private Summary',
+    visibilityPrivate: 'Private (Only Me)',
     emptyTitle: 'No notes yet'
   },
   language: {
@@ -561,7 +570,8 @@ const en = {
     errInvalid: 'Invalid password (minimum 8 characters)',
     tooManyAttemptsTitle: 'Too many failed attempts',
     tooManyAttemptsBody: 'Your account has been temporarily locked for security reasons.',
-    attemptsRemaining: '{{count}} attempts remaining before temporary lockout',
+    attemptsRemaining: '{{count}} attempt remaining before temporary lockout',
+    attemptsRemaining_plural: '{{count}} attempts remaining before temporary lockout',
     lockedCountdown: 'Please wait {{time}} before trying again.',
     created: 'Vault successfully created and encrypted.',
     unlocked: 'Vault successfully unlocked.',
@@ -578,6 +588,18 @@ const en = {
       dijkstra: 'Simplicity is prerequisite for reliability.',
       beck: 'Make it work, make it right, make it fast.',
     }
+  },
+  dualSplit: {
+    single: 'Single',
+    twoColumns: '2 Columns',
+    twoRows: '2 Rows',
+    grid: '2x2 Grid',
+    viewSuffix: 'View',
+    splitRight: 'Split Right',
+    splitDown: 'Split Down',
+    closePane: 'Close Pane',
+    closeGroup: 'Close Group',
+    addGroup: 'Add Group'
   },
   workspaces: {
     title: 'Workspaces',
@@ -1185,6 +1207,10 @@ const en = {
   },
   shell: {
     workspace: 'Workspace',
+    preferencesTitle: 'Preferences & Display Options',
+    splitLayout: 'Split Layout',
+    panels: 'Panels',
+    language: 'Language',
     splitSingle: 'Single View (1 pane)',
     splitHorizontal: 'Split Horizontal (Top / Bottom)',
     splitVertical: 'Split Vertical (Side by Side)',

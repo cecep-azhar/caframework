@@ -257,6 +257,104 @@
         </div>
       </div>
 
+      <!-- 4. Avatar Profile Halo Effect (PRO) -->
+      <div class="space-y-3 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+        <div class="flex items-center justify-between">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                Avatar Profile Halo Effect (PRO)
+              </span>
+              <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-500 border border-sky-500/20 uppercase">
+                Aura GPU
+              </span>
+            </div>
+            <p class="text-[11px] text-neutral-500 dark:text-neutral-400">
+              Pancaran halo mikro reaktif pada avatar profil di LockScreen, Menu, dan Pengaturan.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-neutral-500 dark:text-neutral-400">
+              {ambient.config.avatarGlowEnabled ? 'Aktif' : 'Nonaktif'}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-label="Toggle Avatar Glow Effect"
+              aria-checked={ambient.config.avatarGlowEnabled}
+              onclick={() => ambient.setAvatarGlowEnabled(!ambient.config.avatarGlowEnabled)}
+              class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none {ambient.config.avatarGlowEnabled ? 'bg-sky-600' : 'bg-neutral-300 dark:bg-neutral-700'}"
+            >
+              <span
+                class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {ambient.config.avatarGlowEnabled ? 'translate-x-4' : 'translate-x-0'}"
+              ></span>
+            </button>
+          </div>
+        </div>
+
+        {#if ambient.config.avatarGlowEnabled}
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+            <!-- 1. Comet Beam -->
+            <button
+              type="button"
+              onclick={() => ambient.setAvatarGlowEffect('comet-beam')}
+              class="p-3.5 rounded-xl border text-left transition-all relative flex flex-col justify-between gap-3 {ambient.config.avatarGlowEffect === 'comet-beam' ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500/50' : 'border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800'}"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold">Conic Comet Beam</span>
+                <!-- Mini Preview -->
+                <div class="relative w-8 h-8 rounded-full bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0 overflow-visible">
+                  <div class="absolute -inset-1 rounded-full animate-spin [animation-duration:3s] [background:conic-gradient(from_0deg,transparent_0deg,transparent_240deg,#38bdf8_360deg)] [mask:radial-gradient(closest-side,transparent_65%,black_70%)] [-webkit-mask:radial-gradient(closest-side,transparent_65%,black_70%)]"></div>
+                  <div class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-400 flex items-center justify-center text-[8px] font-bold">1</div>
+                </div>
+              </div>
+              <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                Default: Berkas laser komet berputar 120° mengelilingi cincin avatar.
+              </p>
+            </button>
+
+            <!-- 2. Dual Photons -->
+            <button
+              type="button"
+              onclick={() => ambient.setAvatarGlowEffect('dual-photons')}
+              class="p-3.5 rounded-xl border text-left transition-all relative flex flex-col justify-between gap-3 {ambient.config.avatarGlowEffect === 'dual-photons' ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500/50' : 'border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800'}"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold">Dual Photons</span>
+                <!-- Mini Preview -->
+                <div class="relative w-8 h-8 rounded-full bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0 overflow-visible">
+                  <div class="absolute -inset-1 rounded-full animate-spin [animation-duration:2.5s] [background:conic-gradient(from_0deg,transparent_0deg,transparent_140deg,#38bdf8_180deg,transparent_180deg,transparent_320deg,#c084fc_360deg)] [mask:radial-gradient(closest-side,transparent_65%,black_70%)] [-webkit-mask:radial-gradient(closest-side,transparent_65%,black_70%)]"></div>
+                  <div class="w-4 h-4 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[8px] font-bold">2</div>
+                </div>
+              </div>
+              <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                2 partikel foton satelit berkejaran 180° dengan pendar ganda.
+              </p>
+            </button>
+
+            <!-- 3. Reactive Chroma Ring -->
+            <button
+              type="button"
+              onclick={() => ambient.setAvatarGlowEffect('chroma-ring')}
+              class="p-3.5 rounded-xl border text-left transition-all relative flex flex-col justify-between gap-3 {ambient.config.avatarGlowEffect === 'chroma-ring' ? 'border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300 ring-1 ring-sky-500/50' : 'border-neutral-200 dark:border-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-800'}"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold">Reactive Chroma</span>
+                <!-- Mini Preview -->
+                <div class="relative w-8 h-8 rounded-full bg-neutral-900 border border-neutral-700 flex items-center justify-center shrink-0 overflow-visible">
+                  <div class="absolute -inset-1 rounded-full animate-spin [animation-duration:4s] [background:conic-gradient(from_0deg,#ff0055,#33cc33,#0099ff,#ff0055)] blur-[1px]"></div>
+                  <div class="w-4 h-4 rounded-full bg-neutral-900 z-10 flex items-center justify-center text-[8px] font-bold text-neutral-300">3</div>
+                </div>
+              </div>
+              <p class="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                Aura reaktif mengikuti spektrum warna & kecepatan ambient terpilih.
+              </p>
+            </button>
+          </div>
+        {/if}
+      </div>
+
     </div>
   {/if}
 </div>
