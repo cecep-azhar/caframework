@@ -24,6 +24,7 @@
   import ProTeamPanel from '$lib/components/ProTeamPanel.svelte';
   import { SHORTCUT_GROUPS } from '$lib/shortcuts';
   import PageHeader from '$lib/components/PageHeader.svelte';
+  import AmbientSettingsCard from '$lib/components/AmbientSettingsCard.svelte';
 
   // Shared surface classes so every tab reads the same in light and dark mode.
   const CARD = 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-lg p-6 shadow-sm dark:shadow-none text-neutral-900 dark:text-white';
@@ -475,6 +476,9 @@
       </div>
 
     </div>
+
+    <!-- PRO Ambient Underglow Lighting Card -->
+    <AmbientSettingsCard defaultAccent="#64748b" appName="CAFramework" />
   {:else if activeTab === 'updates'}
     <div class="{CARD} space-y-4">
       <div class="flex flex-wrap justify-between items-center gap-4">
