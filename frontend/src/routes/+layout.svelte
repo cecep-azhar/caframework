@@ -26,6 +26,8 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import { getPalette } from '$lib/stores/commandPalette.svelte';
   import AmbientGlow from '$lib/components/AmbientGlow.svelte';
+  import { getAmbientStore } from '$lib/stores/ambient.svelte';
+  import { getPro } from '$lib/stores/pro.svelte';
 
   let isCollapsed = $state(false);
   let isVaultUnlocked = $state(false);
@@ -37,6 +39,25 @@
   const feedbackPrompt = getFeedbackPromptState();
   const toasts = $derived(getToasts());
   const palette = getPalette();
+  const ambient = getAmbientStore();
+  const pro = getPro();
+
+  const cardBorderClass = $derived.by(() => {
+    if (!ambient.config.enabled || !ambient.config.cardGlowEnabled || !pro.isPro) {
+      return 'border-t border-neutral-200 dark:border-neutral-800 md:border-l';
+    }
+
+    if (ambient.config.cardGlowStyle === 'neon-border') {
+      return 'border-t border-sky-400 dark:border-sky-400 md:border-l shadow-[inset_0_0_8px_rgba(56,189,248,0.15)]';
+    }
+
+    if (ambient.config.cardGlowStyle === 'chroma-beam') {
+      return 'border-t border-sky-400/50 dark:border-sky-400/40 md:border-l';
+    }
+
+    // diffused-halo
+    return 'border-t border-sky-400/30 dark:border-sky-400/25 md:border-l';
+  });
 
   const navItems = $derived(getNavItems());
   const settingsItem = $derived(settingsNavItem());
@@ -270,10 +291,10 @@
       </aside>
 
       <!-- Raised Main Content Panel with Outer Ambient Halo Underglow -->
-      <div class="flex-1 min-w-0 flex relative overflow-hidden">
+      <div class="flex-1 min-w-0 flex relative overflow-visible">
         <AmbientGlow defaultAccent="#64748b" />
         
-        <main class="flex-1 min-w-0 flex overflow-hidden relative z-10 bg-white dark:bg-[#161616] border-t border-neutral-200 dark:border-neutral-800 md:border-l md:rounded-tl-xl transition-colors duration-150">
+        <main class="flex-1 min-w-0 flex overflow-hidden relative z-10 bg-white dark:bg-[#161616] {cardBorderClass} md:rounded-tl-xl transition-colors duration-150">
           <div class="flex-1 min-w-0 overflow-auto text-neutral-900 dark:text-neutral-100 relative px-4 py-6 md:px-10 md:py-10 bg-[linear-gradient(to_right,#0000000a_1px,transparent_1px),linear-gradient(to_bottom,#0000000a_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:56px_56px]">
             {@render children()}
           </div>

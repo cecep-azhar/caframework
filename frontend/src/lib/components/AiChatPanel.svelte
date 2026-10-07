@@ -191,8 +191,8 @@
   <!-- Floating Smart Card Overlay in bottom right -->
   <aside
     class="fixed z-50 flex flex-col bg-neutral-900/95 backdrop-blur-xl border border-neutral-700/80 rounded-2xl shadow-2xl shadow-black/80 overflow-hidden transition-all duration-200 {isFullHeight
-      ? 'inset-y-3 right-3 w-[420px]'
-      : 'bottom-4 right-4 w-[390px] h-[520px] max-h-[85vh]'}"
+      ? 'top-[calc(3.5rem+env(safe-area-inset-top,0px))] bottom-3 right-3 w-[420px]'
+      : 'bottom-4 right-4 w-[390px] h-[520px] max-h-[calc(100vh-4.5rem-env(safe-area-inset-top,0px))]'}"
     aria-label={"Asisten AI CAFramework"}
   >
     <!-- Header -->
