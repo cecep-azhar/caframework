@@ -7,21 +7,43 @@
 <svg
   width={size}
   height={size}
-  viewBox="0 0 1334 946"
-  fill="currentColor"
-  class="shrink-0 {mode === 'white' ? 'text-white' : mode === 'light' ? 'text-black' : 'text-[#ff0000]'} {className}"
+  viewBox="0 0 512 512"
+  class="shrink-0 {className}"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <!-- Left Segment -->
-  <path
-    fill-rule="evenodd"
-    clip-rule="evenodd"
-    d="M581 0L0 301V644L581 945V546L421 473L581 399V0ZM529 86L52 332V613L529 859V574L308 473L529 371V86Z"
-  />
-  <!-- Right Segment -->
-  <path
-    fill-rule="evenodd"
-    clip-rule="evenodd"
-    d="M753 0L1334 301V644L753 945V546L913 473L753 399V0ZM805 86L1282 332V613L805 859V574L1026 473L805 371V86Z"
-  />
+  <defs>
+    <linearGradient id="cafLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#6366F1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Isometric Crystalline Cube Skeleton / Hollow 3 Faces -->
+  <g fill="none">
+    <path
+      d="M256 104 L386 179 L386 329 L256 404 L126 329 L126 179 Z"
+      stroke={mode === 'white' ? '#FFFFFF' : mode === 'light' ? '#0A0A0C' : 'url(#cafLogoGrad)'}
+      stroke-width="28"
+      stroke-linejoin="round"
+      stroke-linecap="round"
+    />
+    <path
+      d="M256 254 L256 104"
+      stroke={mode === 'white' ? '#FFFFFF' : mode === 'light' ? '#0A0A0C' : '#06B6D4'}
+      stroke-width="28"
+      stroke-linecap="round"
+    />
+    <path
+      d="M256 254 L386 329"
+      stroke={mode === 'white' ? '#FFFFFF' : mode === 'light' ? '#0A0A0C' : '#6366F1'}
+      stroke-width="28"
+      stroke-linecap="round"
+    />
+    <path
+      d="M256 254 L126 329"
+      stroke={mode === 'white' ? '#FFFFFF' : mode === 'light' ? '#0A0A0C' : '#06B6D4'}
+      stroke-width="28"
+      stroke-linecap="round"
+    />
+  </g>
 </svg>
