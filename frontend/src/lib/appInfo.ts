@@ -5,11 +5,11 @@ import { version } from '../../package.json';
 
 export const APP_VERSION: string = version;
 export const APP_NAME = 'CAFramework';
-export const REPO_URL = 'https://github.com/cecep-azhar/caterm';
+export const REPO_URL = 'https://github.com/cecepazhar/caterm';
 export const WEBSITE_URL = 'https://caterm.fathforce.com';
 export const AUTHOR_URL = 'https://cecepazhar.com';
 export const PRICING_URL = `${WEBSITE_URL}/#pricing`;
-export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/cecep-azhar';
+export const GITHUB_SPONSORS_URL = 'https://github.com/sponsors/cecepazhar';
 /** Primary donation / sponsor-tier channel (Silver $5, Gold $25, Platinum $100 per month). */
 export const KOFI_URL = 'https://ko-fi.com/cecepazhar';
 /** Secondary one-time donation channel. */

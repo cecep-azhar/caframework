@@ -329,7 +329,7 @@ if [[ "$ENABLE_MANIFEST" = true ]]; then
   done
 
   # Prefer GitHub URL or GCC download proxy URL for manifest
-  BASE_URL="https://github.com/${GITHUB_REPO:-cecep-azhar/$SLUG}/releases/download/${TAG}"
+  BASE_URL="https://github.com/${GITHUB_REPO:-cecepazhar/$SLUG}/releases/download/${TAG}"
   if [[ -n "$GCC_BASE_URL" && "$ENABLE_GCC" = true ]]; then
     DL_BASE="${GCC_BASE_URL}/dl/${SLUG}/v/${TAG}"
   else
@@ -360,7 +360,7 @@ if [[ "$ENABLE_MANIFEST" = true ]]; then
       '. + {"darwin-x86_64": {"signature": $sig, "url": $url}, "darwin-aarch64": {"signature": $sig, "url": $url}}')
   fi
 
-  NOTES_URL="https://github.com/${GITHUB_REPO:-cecep-azhar/$SLUG}/releases/tag/${TAG}"
+  NOTES_URL="https://github.com/${GITHUB_REPO:-cecepazhar/$SLUG}/releases/tag/${TAG}"
 
   jq -n \
     --arg version "$RAW_VERSION" \

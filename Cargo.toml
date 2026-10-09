@@ -14,7 +14,7 @@ edition = "2024"
 rust-version = "1.98"
 authors = ["Cecep Saeful Azhar Hidayat <cecep.azhtech@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/cecep-azhar/caframework"
+repository = "https://github.com/cecepazhar/caframework"
 
 [workspace.dependencies]
 cargo-tarpaulin = "0.28"

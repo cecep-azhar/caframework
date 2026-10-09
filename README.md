@@ -26,7 +26,7 @@ Built with **Rust (Edition 2024)**, **Tauri v2**, **SQLCipher (Argon2id)**, **Sv
 ### 2. Setup & Development
 ```bash
 # Clone repository
-git clone https://github.com/cecep-azhar/caframework.git
+git clone https://github.com/cecepazhar/caframework.git
 cd caframework
 
 # Run Codegen
