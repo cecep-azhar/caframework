@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-get-routing-matrix"
+description = "Enables the ai_get_routing_matrix command without any pre-configured scope."
+commands.allow = ["ai_get_routing_matrix"]
+
+[[permission]]
+identifier = "deny-ai-get-routing-matrix"
+description = "Denies the ai_get_routing_matrix command without any pre-configured scope."
+commands.deny = ["ai_get_routing_matrix"]

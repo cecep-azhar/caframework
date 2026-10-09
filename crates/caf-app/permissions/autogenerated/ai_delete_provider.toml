@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-delete-provider"
+description = "Enables the ai_delete_provider command without any pre-configured scope."
+commands.allow = ["ai_delete_provider"]
+
+[[permission]]
+identifier = "deny-ai-delete-provider"
+description = "Denies the ai_delete_provider command without any pre-configured scope."
+commands.deny = ["ai_delete_provider"]

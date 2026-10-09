@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-dispatch-task-with-skill"
+description = "Enables the ai_dispatch_task_with_skill command without any pre-configured scope."
+commands.allow = ["ai_dispatch_task_with_skill"]
+
+[[permission]]
+identifier = "deny-ai-dispatch-task-with-skill"
+description = "Denies the ai_dispatch_task_with_skill command without any pre-configured scope."
+commands.deny = ["ai_dispatch_task_with_skill"]

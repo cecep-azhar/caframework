@@ -131,6 +131,91 @@ pub const COMMAND_POLICIES: &[CommandPolicy] = &[
         policy: Policy::Session,
         returns_list: false,
     },
+    CommandPolicy {
+        name: "ai_get_providers",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_save_provider",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_delete_provider",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_get_routing_matrix",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_save_routing_rule",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_get_personas",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_save_persona",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_delete_persona",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_get_habits",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_search_habits",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_toggle_habit_pin",
+        policy: Policy::Session,
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_delete_habit",
+        policy: Policy::Session,
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_get_skills",
+        policy: Policy::Session,
+        returns_list: true,
+    },
+    CommandPolicy {
+        name: "ai_save_skill",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_delete_skill",
+        policy: Policy::Requires("ai:manage"),
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_dispatch_task",
+        policy: Policy::Session,
+        returns_list: false,
+    },
+    CommandPolicy {
+        name: "ai_dispatch_task_with_skill",
+        policy: Policy::Session,
+        returns_list: false,
+    },
     // Feedback & Crash
     CommandPolicy {
         name: "submit_feedback",

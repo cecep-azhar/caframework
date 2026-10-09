@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-search-habits"
+description = "Enables the ai_search_habits command without any pre-configured scope."
+commands.allow = ["ai_search_habits"]
+
+[[permission]]
+identifier = "deny-ai-search-habits"
+description = "Denies the ai_search_habits command without any pre-configured scope."
+commands.deny = ["ai_search_habits"]

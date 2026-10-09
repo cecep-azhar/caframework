@@ -164,6 +164,102 @@ pub async fn ai_chat(
     .await
 }
 
+#[tauri::command]
+pub async fn ai_get_providers() -> Result<Vec<ai::AiProviderSummary>, CafError> {
+    run_blocking(ai::get_all_providers).await
+}
+
+#[tauri::command]
+pub async fn ai_save_provider(provider: ai::AiProviderConfig) -> Result<(), CafError> {
+    run_blocking(move || ai::save_ai_provider(provider)).await
+}
+
+#[tauri::command]
+pub async fn ai_delete_provider(id: String) -> Result<(), CafError> {
+    run_blocking(move || ai::delete_ai_provider(&id)).await
+}
+
+#[tauri::command]
+pub async fn ai_get_routing_matrix() -> Result<Vec<ai::TaskRouteRule>, CafError> {
+    run_blocking(ai::get_task_routing_matrix).await
+}
+
+#[tauri::command]
+pub async fn ai_save_routing_rule(rule: ai::TaskRouteRule) -> Result<(), CafError> {
+    run_blocking(move || ai::save_task_routing_rule(rule)).await
+}
+
+#[tauri::command]
+pub async fn ai_get_personas() -> Result<Vec<ai::SystemPersona>, CafError> {
+    run_blocking(ai::get_user_personas).await
+}
+
+#[tauri::command]
+pub async fn ai_save_persona(persona: ai::SystemPersona) -> Result<(), CafError> {
+    run_blocking(move || ai::save_user_persona(persona)).await
+}
+
+#[tauri::command]
+pub async fn ai_delete_persona(id: String) -> Result<(), CafError> {
+    run_blocking(move || ai::delete_user_persona(&id)).await
+}
+
+#[tauri::command]
+pub async fn ai_get_habits() -> Result<Vec<ai::HabitFact>, CafError> {
+    run_blocking(ai::get_habit_memories).await
+}
+
+#[tauri::command]
+pub async fn ai_search_habits(query: String, limit: Option<usize>) -> Result<Vec<ai::HabitFact>, CafError> {
+    run_blocking(move || ai::search_habit_memories(&query, limit.unwrap_or(20))).await
+}
+
+#[tauri::command]
+pub async fn ai_toggle_habit_pin(id: String) -> Result<bool, CafError> {
+    run_blocking(move || ai::toggle_habit_pin_status(&id)).await
+}
+
+#[tauri::command]
+pub async fn ai_delete_habit(id: String) -> Result<(), CafError> {
+    run_blocking(move || ai::delete_habit_memory(&id)).await
+}
+
+#[tauri::command]
+pub async fn ai_get_skills() -> Result<Vec<ai::CustomSkill>, CafError> {
+    run_blocking(ai::get_all_skills).await
+}
+
+#[tauri::command]
+pub async fn ai_save_skill(skill: ai::CustomSkill) -> Result<(), CafError> {
+    run_blocking(move || ai::save_custom_skill(skill)).await
+}
+
+#[tauri::command]
+pub async fn ai_delete_skill(id: String) -> Result<(), CafError> {
+    run_blocking(move || ai::delete_custom_skill(&id)).await
+}
+
+#[tauri::command]
+pub async fn ai_dispatch_task(
+    task_type: String,
+    query: String,
+    terminal_ctx: Option<ai::TerminalContext>,
+) -> Result<ai::DispatchResult, CafError> {
+    let tt = ai::TaskType::from_str_opt(&task_type).unwrap_or(ai::TaskType::Chat);
+    run_blocking(move || ai::dispatch_task(tt, &query, terminal_ctx)).await
+}
+
+#[tauri::command]
+pub async fn ai_dispatch_task_with_skill(
+    task_type: String,
+    query: String,
+    skill_name: Option<String>,
+    terminal_ctx: Option<ai::TerminalContext>,
+) -> Result<ai::DispatchResult, CafError> {
+    let tt = ai::TaskType::from_str_opt(&task_type).unwrap_or(ai::TaskType::Chat);
+    run_blocking(move || ai::dispatch_task_with_skill(tt, &query, skill_name, terminal_ctx)).await
+}
+
 // Feedback & Crash commands
 #[tauri::command]
 pub async fn submit_feedback(

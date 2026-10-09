@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-ai-delete-habit"
+description = "Enables the ai_delete_habit command without any pre-configured scope."
+commands.allow = ["ai_delete_habit"]
+
+[[permission]]
+identifier = "deny-ai-delete-habit"
+description = "Denies the ai_delete_habit command without any pre-configured scope."
+commands.deny = ["ai_delete_habit"]

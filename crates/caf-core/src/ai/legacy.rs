@@ -7,7 +7,7 @@ use crate::error::{AiError, CafError, DbError};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-pub const GUARDRAILS_TEXT: &str = include_str!("ai/guardrails.txt");
+pub const GUARDRAILS_TEXT: &str = include_str!("guardrails.txt");
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default, TS)]
 #[ts(export)]
